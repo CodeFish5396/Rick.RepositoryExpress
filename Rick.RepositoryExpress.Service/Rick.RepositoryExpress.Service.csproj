@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rick.RepositoryExpress.DataBase\Rick.RepositoryExpress.DataBase.csproj" />
+    <ProjectReference Include="..\Rick.RepositoryExpress.IService\Rick.RepositoryExpress.IService.csproj" />
+  </ItemGroup>
+
+</Project>

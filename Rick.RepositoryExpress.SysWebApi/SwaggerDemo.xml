@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Rick.RepositoryExpress.SysWebApi</name>
+    </assembly>
+    <members>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.FunctionController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.FunctionController.FunctionPostRequest)">
+            <summary>
+            提交Function
+            </summary>
+            <param name="functionPostRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RootController.Get">
+            <summary>
+            Root用户登录，系统超级管理员权限
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserLoginController.Get(System.String,System.String,System.Int64)">
+            <summary>
+            用户登录
+            </summary>
+            <param name="username"></param>
+            <param name="password"></param>
+            <param name="companyId"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

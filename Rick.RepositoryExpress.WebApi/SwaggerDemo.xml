@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Rick.RepositoryExpress.WebApi</name>
+    </assembly>
+    <members>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.ClaimController.Post(Rick.RepositoryExpress.WebApi.Controllers.ClaimController.ExpressclaimRequest)">
+            <summary>
+            包裹预报
+            </summary>
+            <param name="expressclaimRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.FileController.Get(System.Int64)">
+            <summary>
+            文件Url
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.FileController.Post(Rick.RepositoryExpress.WebApi.Controllers.FileController.FileUploadRequest)">
+            <summary>
+            上传文件
+            </summary>
+            <param name="fileUploadRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OpenIdController.Get(System.String)">
+            <summary>
+            获取openid
+            </summary>
+            <param name="code"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OpenIdController.Post(Rick.RepositoryExpress.WebApi.Controllers.OpenIdController.OpenIdRequestData)">
+            <summary>
+            解密获得手机号、注册并登录
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Rick.RepositoryExpress.WebApi.Controllers.OpenIdController.OpenIdResponseData.Token">
+            <summary>
+            用户登录凭证，消息头里Token携带
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.RepositoryController.Get(System.Int64)">
+            <summary>
+            获取仓库列表
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserController.Get">
+            <summary>
+            获取用户信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserLoginController.Get(System.Int64,System.Int64)">
+            <summary>
+            模拟登录
+            </summary>
+            <param name="userId"></param>
+            <param name="companyId"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

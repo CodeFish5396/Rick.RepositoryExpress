@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -11,8 +12,10 @@ namespace Rick.RepositoryExpress.IService
         public int Delete<T>(long id) where T : class;
         public T Find<T>(long id) where T : class;
         public T Find<T>(Expression<Func<T, bool>> expression) where T : class;
-        public IList<T> Query<T>() where T : class;
-        public IList<T> Query<T>(Expression<Func<T, bool>> expression) where T : class;
+        public IQueryable<T> Query<T>() where T : class;
+        public IQueryable<T> Query<T>(Expression<Func<T, bool>> expression) where T : class;
+        public int Count<T>(Expression<Func<T, bool>> expression) where T : class;
+
         public int Update<T>(T t) where T : class;
         public void BeginTranstraction();
 
@@ -22,7 +25,10 @@ namespace Rick.RepositoryExpress.IService
         public Task<T> FindAsync<T>(long id) where T : class;
         public Task<T> FindAsync<T>(Expression<Func<T, bool>> expression) where T : class;
         public Task<IList<T>> QueryAsync<T>(Expression<Func<T, bool>> expression) where T : class;
+        public Task<IList<T>> QueryAsync<T>(Expression<Func<T, bool>> expression, int index, int pageSize) where T : class;
+
         public Task<IList<T>> QueryAsync<T>() where T : class;
+        public Task<int> CountAsync<T>(Expression<Func<T, bool>> expression) where T : class;
         public Task<int> UpdateAsync<T>(T t) where T : class;
         public Task CommitAsync();
         public Task BeginTransactionAsync();

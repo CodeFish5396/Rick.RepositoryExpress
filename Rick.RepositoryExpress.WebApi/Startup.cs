@@ -45,11 +45,20 @@ namespace Rick.RepositoryExpress.WebApi
             services.AddDbContext<RickDBConext>(options => options.UseMySql(connectionString, ServerVersion.Parse(version)));
             services.AddScoped<IAppuserService, AppuserService>();
             services.AddScoped<IFileService, FileService>();
+            services.AddSingleton<IIdGeneratorService, SnowFlakeService>();
 
+            services.AddScoped<ISyscompanyService, SyscompanyService>();
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IFunctionService, FunctionService>();
             services.AddScoped<IRepositoryService, RepositoryService>();
             services.AddScoped<IExpressclaimService, ExpressclaimService>();
+            services.AddScoped<ICourierService, CourierService>();
+            services.AddScoped<ICurrencyService, CurrencyService>();
+            services.AddScoped<INationService, NationService>();
+            services.AddScoped<IChannelService, ChannelService>();
+            services.AddScoped<IAgentService, AgentService>();
 
-            services.AddSingleton<IIdGeneratorService, SnowFlakeService>();
+
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));
             services.AddSingleton(new RedisClientService(redisConnectionString, redisDbNum));

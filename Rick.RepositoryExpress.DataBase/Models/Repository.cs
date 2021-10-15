@@ -14,7 +14,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public string Recivermobil { get; set; }
         public string Region { get; set; }
         public string Address { get; set; }
-        public int Satus { get; set; }
+        public int Status { get; set; }
         public long Adduser { get; set; }
         public DateTime Addtime { get; set; }
         public long Lastuser { get; set; }

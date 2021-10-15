@@ -62,7 +62,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             repository.Recivermobil = repositoryRequest.Recivermobil;
             repository.Region = repositoryRequest.Region;
             repository.Address = repositoryRequest.Address;
-            repository.Satus = 1;
+            repository.Status = 1;
             repository.Adduser = UserInfo.Id;
             repository.Lastuser = UserInfo.Id;
             DateTime now = DateTime.Now;

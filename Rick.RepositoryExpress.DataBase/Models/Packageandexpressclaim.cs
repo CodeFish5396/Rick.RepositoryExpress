@@ -7,8 +7,13 @@ namespace Rick.RepositoryExpress.DataBase.Models
 {
     public partial class Packageandexpressclaim
     {
-        public long Packageandexpressclaimid { get; set; }
+        public long Id { get; set; }
         public long Packageid { get; set; }
         public long Expressclaimid { get; set; }
+        public int? Status { get; set; }
+        public long? Adduser { get; set; }
+        public DateTime? Addtime { get; set; }
+        public long? Lastuser { get; set; }
+        public DateTime? Lasttime { get; set; }
     }
 }

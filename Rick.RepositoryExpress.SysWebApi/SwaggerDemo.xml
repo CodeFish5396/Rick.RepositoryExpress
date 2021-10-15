@@ -4,11 +4,164 @@
         <name>Rick.RepositoryExpress.SysWebApi</name>
     </assembly>
     <members>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.AgentController">
+            <summary>
+            代理商
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AgentController.Get">
+            <summary>
+            查询代理商
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AgentController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.AgentRequest)">
+            <summary>
+            创建代理商
+            </summary>
+            <param name="agentRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.ChannelController">
+            <summary>
+            快递通道
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.ChannelController.Get">
+            <summary>
+            查询快递通道
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.ChannelController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.ChannelRequest)">
+            <summary>
+            创建快递通道
+            </summary>
+            <param name="channelRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.CourierController">
+            <summary>
+            快递公司
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.CourierController.Get(System.String,System.Nullable{System.Int32},System.Int32,System.Int32)">
+            <summary>
+            查询快递公司
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.CourierController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.CourierRequest)">
+            <summary>
+            创建快递公司
+            </summary>
+            <param name="courierRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.CurrencyController">
+            <summary>
+            货币
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.CurrencyController.Get(System.Int32)">
+            <summary>
+            查询货币
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.CurrencyController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.CurrencyRequest)">
+            <summary>
+            创建货币
+            </summary>
+            <param name="currencyRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.CurrencyController.Put(Rick.RepositoryExpress.SysWebApi.Controllers.CurrencyPutRequest)">
+            <summary>
+            修改货币
+            </summary>
+            <param name="currencyPutRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.CurrencyController.Delete(System.Int64)">
+            <summary>
+            删除货币
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.FileController.Get(System.Int64)">
+            <summary>
+            文件Url
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.FileController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.FileController.FileUploadRequest)">
+            <summary>
+            上传文件
+            </summary>
+            <param name="fileUploadRequest"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.FunctionController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.FunctionController.FunctionPostRequest)">
             <summary>
             提交Function
             </summary>
             <param name="functionPostRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.NationController">
+            <summary>
+            国家
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.NationController.Get">
+            <summary>
+            查询国家
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.NationController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.NationRequest)">
+            <summary>
+            创建国家
+            </summary>
+            <param name="nationRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInController">
+            <summary>
+            入库录单，录入货物信息
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.PackageInRequest)">
+            <summary>
+            包裹入库，录入货物信息
+            </summary>
+            <param name="packageInRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInController.Get(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Int32,System.Int32)">
+            <summary>
+            查询列表
+            </summary>
+            <param name="expressNumber"></param>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInPreController">
+            <summary>
+            快递扫描
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInPreController.Get(System.String)">
+            <summary>
+            包裹入库，扫码查询
+            </summary>
+            <param name="expressnumber"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RootController.Get">

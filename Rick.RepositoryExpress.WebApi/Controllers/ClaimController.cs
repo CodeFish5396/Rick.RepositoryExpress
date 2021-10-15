@@ -101,7 +101,6 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         public class ExpressclaimRequest
         {
             public long Repositoryid { get; set; }
-
             public string Expressnumber { get; set; }
             public string Remark { get; set; }
             public int Count { get; set; }

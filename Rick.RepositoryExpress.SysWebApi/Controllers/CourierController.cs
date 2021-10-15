@@ -23,12 +23,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
     [ApiController]
     public class CourierController : RickControllerBase
     {
-        private readonly ILogger<DefaultController> _logger;
+        private readonly ILogger<CourierController> _logger;
         private readonly IIdGeneratorService _idGenerator;
-        private readonly ICourierService _courierService ;
+        private readonly ICourierService _courierService;
         private readonly RedisClientService _redisClientService;
 
-        public CourierController(ILogger<DefaultController> logger, ICourierService courierService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
+        public CourierController(ILogger<CourierController> logger, ICourierService courierService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
             _logger = logger;
             _courierService = courierService;
@@ -36,22 +36,66 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             _redisClientService = redisClientService;
         }
 
+        /// <summary>
+        /// 查询快递公司
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<CourierResponse>>> Get()
+        public async Task<RickWebResult<CourierResponseList>> Get([FromQuery] string name, [FromQuery] int? status, [FromQuery] int index = 0, [FromQuery] int pageSize = 10)
         {
-            
+            int count = await _courierService.CountAsync<Courier>(t => (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name));
+            var results = await _courierService.QueryAsync<Courier>(t => (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name), index, pageSize);
+            CourierResponseList courierResponseList = new CourierResponseList();
+            courierResponseList.Count = count;
+            courierResponseList.List = results.Select(t => new CourierResponse()
+            {
+                Id = t.Id,
+                Code = t.Code,
+                Name = t.Name,
+                Extname = t.Extname,
+                Status = t.Status,
+                Addtime = t.Addtime
+            }); 
+            return RickWebResult.Success(courierResponseList);
         }
 
+        /// <summary>
+        /// 创建快递公司
+        /// </summary>
+        /// <param name="courierRequest"></param>
+        /// <returns></returns>
         [HttpPost]
-        public async Task<RickWebResult<UserLoginResult>> Post([FromBody] CourierRequest courierRequest)
+        public async Task<RickWebResult<CourierResponse>> Post([FromBody] CourierRequest courierRequest)
         {
+            await _courierService.BeginTransactionAsync();
 
+            Courier courier = new Courier();
+            DateTime now = DateTime.Now;
+            courier.Id = _idGenerator.NextId();
+            courier.Name = courierRequest.Name;
+            courier.Code = courierRequest.Code;
+            courier.Extname = courierRequest.Extname;
+            courier.Status = 1;
+            courier.Addtime = now;
+            courier.Lasttime = now;
+            courier.Adduser = UserInfo.Id;
+            courier.Lastuser = UserInfo.Id;
+            await _courierService.AddAsync(courier);
+            await _courierService.CommitAsync();
+            CourierResponse courierResponse = new CourierResponse();
+            courierResponse.Id = courier.Id;
+            courierResponse.Name = courier.Name;
+            courierResponse.Code = courier.Code;
+            courierResponse.Extname = courier.Extname;
+            courierResponse.Status = courier.Status;
+            return RickWebResult.Success(courierResponse);
         }
 
     }
 
     public class CourierRequest
     {
+        public string Code { get; set; }
         public string Name { get; set; }
         public string Extname { get; set; }
     }
@@ -59,9 +103,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
     public class CourierResponse
     {
         public long Id { get; set; }
+        public string Code { get; set; }
+
         public string Name { get; set; }
         public string Extname { get; set; }
         public int Status { get; set; }
+        public DateTime Addtime { get; set; }
+    }
+    public class CourierResponseList
+    {
+        public int Count { get; set; }
+        public IEnumerable<CourierResponse> List { get; set; }
     }
 
 }

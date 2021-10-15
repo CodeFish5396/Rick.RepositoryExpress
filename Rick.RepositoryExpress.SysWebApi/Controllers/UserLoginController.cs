@@ -67,6 +67,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 return RickWebResult.Success(userLoginResult);
             }
         }
+    
     }
 
     public class UserLoginRequest

@@ -26,6 +26,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Appuseraccountconsume> Appuseraccountconsumes { get; set; }
         public virtual DbSet<Appuseraddress> Appuseraddresses { get; set; }
         public virtual DbSet<Channel> Channels { get; set; }
+        public virtual DbSet<Channeldetail> Channeldetails { get; set; }
         public virtual DbSet<Courier> Couriers { get; set; }
         public virtual DbSet<Currency> Currencies { get; set; }
         public virtual DbSet<Expressclaim> Expressclaims { get; set; }
@@ -156,12 +157,21 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .ValueGeneratedNever()
                     .HasColumnName("id");
 
+                entity.Property(e => e.Address)
+                    .HasMaxLength(200)
+                    .HasColumnName("address");
+
                 entity.Property(e => e.Addtime)
                     .HasColumnType("datetime")
                     .HasColumnName("addtime")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Contact)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("contact");
 
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
@@ -170,7 +180,15 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Lastuser).HasColumnName("lastuser");
 
-                entity.Property(e => e.Name).HasColumnName("name");
+                entity.Property(e => e.Mobile)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("mobile");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnName("name");
 
                 entity.Property(e => e.Status)
                     .HasColumnName("status")
@@ -409,6 +427,43 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasDefaultValueSql("'1'");
             });
 
+            modelBuilder.Entity<Channeldetail>(entity =>
+            {
+                entity.ToTable("channeldetails");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Agentid).HasColumnName("agentid");
+
+                entity.Property(e => e.Channelid).HasColumnName("channelid");
+
+                entity.Property(e => e.Lasttime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("lasttime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Lastuser).HasColumnName("lastuser");
+
+                entity.Property(e => e.Nationid).HasColumnName("nationid");
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("status")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Unitprice)
+                    .HasPrecision(10)
+                    .HasColumnName("unitprice");
+            });
+
             modelBuilder.Entity<Courier>(entity =>
             {
                 entity.ToTable("courier");
@@ -422,25 +477,26 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasColumnName("addtime")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                entity.Property(e => e.Adduser)
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Code)
                     .IsRequired()
                     .HasMaxLength(45)
-                    .HasColumnName("adduser");
+                    .HasColumnName("code");
 
                 entity.Property(e => e.Extname)
                     .IsRequired()
                     .HasMaxLength(45)
                     .HasColumnName("extname");
 
+                entity.Property(e => e.Hasoutdoor).HasColumnName("hasoutdoor");
+
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
                     .HasColumnName("lasttime")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                entity.Property(e => e.Lastuser)
-                    .IsRequired()
-                    .HasMaxLength(45)
-                    .HasColumnName("lastuser");
+                entity.Property(e => e.Lastuser).HasColumnName("lastuser");
 
                 entity.Property(e => e.Name)
                     .IsRequired()
@@ -466,6 +522,11 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Code)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("code");
 
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
@@ -699,6 +760,11 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
+                entity.Property(e => e.Code)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("code");
+
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
                     .HasColumnName("lasttime")
@@ -778,15 +844,46 @@ namespace Rick.RepositoryExpress.DataBase.Models
             {
                 entity.ToTable("packageandexpressclaim");
 
+                entity.HasIndex(e => e.Addtime, "addtime_UNIQUE")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Adduser, "adduser_UNIQUE")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Lasttime, "lasttime_UNIQUE")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Lastuser, "lastuser_UNIQUE")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Status, "status_UNIQUE")
+                    .IsUnique();
+
                 entity.HasIndex(e => new { e.Packageid, e.Expressclaimid }, "unique_rinid_eiid");
 
-                entity.Property(e => e.Packageandexpressclaimid)
+                entity.Property(e => e.Id)
                     .ValueGeneratedNever()
-                    .HasColumnName("packageandexpressclaimid");
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
 
                 entity.Property(e => e.Expressclaimid).HasColumnName("expressclaimid");
 
+                entity.Property(e => e.Lasttime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("lasttime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Lastuser).HasColumnName("lastuser");
+
                 entity.Property(e => e.Packageid).HasColumnName("packageid");
+
+                entity.Property(e => e.Status).HasColumnName("status");
             });
 
             modelBuilder.Entity<Packagedetail>(entity =>
@@ -1313,8 +1410,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasMaxLength(45)
                     .HasColumnName("region");
 
-                entity.Property(e => e.Satus)
-                    .HasColumnName("satus")
+                entity.Property(e => e.Status)
+                    .HasColumnName("status")
                     .HasDefaultValueSql("'1'");
             });
 

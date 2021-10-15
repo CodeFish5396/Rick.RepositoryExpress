@@ -37,15 +37,21 @@ namespace Rick.RepositoryExpress.Service
         {
             return rickDBConext.Set<T>().Where(expression).SingleOrDefault();
         }
-        public IList<T> Query<T>() where T : class
+        public IQueryable<T> Query<T>() where T : class
         {
-            return rickDBConext.Set<T>().ToList();
+            return rickDBConext.Set<T>();
         }
 
-        public IList<T> Query<T>(Expression<Func<T, bool>> expression) where T : class
+        public IQueryable<T> Query<T>(Expression<Func<T, bool>> expression) where T : class
         {
-            return rickDBConext.Set<T>().Where(expression).ToList();
+            return rickDBConext.Set<T>().Where(expression);
         }
+
+        public int Count<T>(Expression<Func<T, bool>> expression) where T : class
+        {
+            return rickDBConext.Set<T>().Where(expression).Count();
+        }
+
         public int Update<T>(T t) where T : class
         {
             rickDBConext.Set<T>().Attach(t);
@@ -89,6 +95,15 @@ namespace Rick.RepositoryExpress.Service
         {
             return await rickDBConext.Set<T>().Where(expression).ToListAsync();
         }
+        public async Task<IList<T>> QueryAsync<T>(Expression<Func<T, bool>> expression, int index, int pageSize) where T : class
+        {
+            return await rickDBConext.Set<T>().Where(expression).Skip(pageSize * index).Take(pageSize).ToListAsync();
+        }
+        public async Task<int> CountAsync<T>(Expression<Func<T, bool>> expression) where T : class
+        {
+            return await rickDBConext.Set<T>().Where(expression).CountAsync();
+        }
+
         public async Task<int> UpdateAsync<T>(T t) where T : class
         {
             rickDBConext.Set<T>().Attach(t);

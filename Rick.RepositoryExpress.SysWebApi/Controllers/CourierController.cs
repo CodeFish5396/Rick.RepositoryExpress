@@ -41,10 +41,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<CourierResponseList>> Get([FromQuery] string name, [FromQuery] int? status, [FromQuery] int index = 0, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<CourierResponseList>> Get([FromQuery] string name, [FromQuery] int? status, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             int count = await _courierService.CountAsync<Courier>(t => (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name));
-            var results = await _courierService.QueryAsync<Courier>(t => (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name), index, pageSize);
+            var results = _courierService.Query<Courier>(t => (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name))
+                .OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize);
             CourierResponseList courierResponseList = new CourierResponseList();
             courierResponseList.Count = count;
             courierResponseList.List = results.Select(t => new CourierResponse()

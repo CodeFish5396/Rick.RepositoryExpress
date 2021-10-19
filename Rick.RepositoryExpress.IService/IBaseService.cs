@@ -25,7 +25,7 @@ namespace Rick.RepositoryExpress.IService
         public Task<T> FindAsync<T>(long id) where T : class;
         public Task<T> FindAsync<T>(Expression<Func<T, bool>> expression) where T : class;
         public Task<IList<T>> QueryAsync<T>(Expression<Func<T, bool>> expression) where T : class;
-        public Task<IList<T>> QueryAsync<T>(Expression<Func<T, bool>> expression, int index, int pageSize) where T : class;
+        //public Task<IList<T>> QueryAsync<T>(Expression<Func<T, bool>> expression, int index, int pageSize) where T : class;
 
         public Task<IList<T>> QueryAsync<T>() where T : class;
         public Task<int> CountAsync<T>(Expression<Func<T, bool>> expression) where T : class;

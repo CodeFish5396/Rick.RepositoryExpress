@@ -35,34 +35,40 @@ namespace Rick.RepositoryExpress.Service
                          };
             return await result.ToListAsync();
         }
-        public async Task<IList<PackageInView>> GetList(string expressNumber, DateTime startTime, DateTime endTime, int index = 0, int pageSize = 0)
+        public async Task<(IList<PackageInView>,int)> GetList(string expressNumber, DateTime startTime, DateTime endTime, int index = 0, int pageSize = 0)
         {
             index = index <= 1 ? 1 : index;
             pageSize = pageSize <= 10 ? 10 : pageSize;
-            var result = await (from package in rickDBConext.Packages.Where(t => t.Status == 1)
-                                join packageexclain in rickDBConext.Packageandexpressclaims.Where(t => t.Status == 1)
-                                on package.Id equals packageexclain.Packageid
-                                join exclaim in rickDBConext.Expressclaims.Where(t => t.Status == 1)
-                                on packageexclain.Expressclaimid equals exclaim.Id
-                                join user in rickDBConext.Appusers
-                                on exclaim.Adduser equals user.Id
-                                where (string.IsNullOrEmpty(expressNumber) || package.Expressnumber == expressNumber)
-                                && (startTime != DateTime.MinValue || package.Addtime >= startTime)
-                                && (endTime != DateTime.MinValue || package.Addtime <= endTime)
-                                select new PackageInView()
-                                {
-                                    Userid = user.Id,
-                                    Username = user.Name,
-                                    Packageid = package.Id,
-                                    Count = package.Count,
-                                    Addtime = package.Addtime,
-                                    Courierid = package.Courierid,
-                                    Expressnumber = package.Expressnumber,
-                                    Lastuser = package.Lastuser,
-                                    Lasttime = package.Lasttime
-                                }).OrderBy(t => t.Addtime).Skip(pageSize * (index - 1)).Take(pageSize).ToListAsync();
+            var result = from package in rickDBConext.Packages.Where(t => t.Status == 1)
+                          join packageexclain in rickDBConext.Packageandexpressclaims.Where(t => t.Status == 1)
+                          on package.Id equals packageexclain.Packageid
+                          join exclaim in rickDBConext.Expressclaims.Where(t => t.Status == 1)
+                          on packageexclain.Expressclaimid equals exclaim.Id
+                          join user in rickDBConext.Appusers
+                          on exclaim.Adduser equals user.Id
+                          //join courier in rickDBConext.Couriers
+                          //on package.Courierid equals courier.Id
+                          where (string.IsNullOrEmpty(expressNumber) || package.Expressnumber == expressNumber)
+                          && (startTime != DateTime.MinValue || package.Addtime >= startTime)
+                          && (endTime != DateTime.MinValue || package.Addtime <= endTime)
+                          select new PackageInView()
+                          {
+                              Userid = user.Id,
+                              Username = user.Name,
+                              Packageid = package.Id,
+                              Count = package.Count,
+                              Addtime = package.Addtime,
+                              Courierid = package.Courierid,
+                              Expressnumber = package.Expressnumber,
+                              Lastuser = package.Lastuser,
+                              Lasttime = package.Lasttime
+                          };
+            int count = await result.CountAsync();
+            var list = await result.OrderBy(t => t.Addtime).Skip(pageSize * (index - 1)).Take(pageSize).ToListAsync();
 
-            return result;
+            return (list, count);
         }
+    
+           
     }
 }

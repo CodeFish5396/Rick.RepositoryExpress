@@ -33,22 +33,41 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             _redisClientService = redisClientService;
         }
 
+        /// <summary>
+        /// 查询仓库
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="status"></param>
+        /// <param name="index"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<RepositoryResponce>>> Get([FromQuery] long id)
+        public async Task<RickWebResult<RepositoryResponceList>> Get([FromQuery] long? id, [FromQuery] string name, [FromQuery] int? status, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var result = (await _repositoryService.QueryAsync<Repository>(t => t.Companyid == UserInfo.Companyid && (t.Id == id || id <= 0)))
-                .Select(repository => new RepositoryResponce()
-                {
-                    Id = repository.Id,
-                    Name = repository.Name,
-                    Recivername = repository.Recivername,
-                    Recivermobil = repository.Recivermobil,
-                    Region = repository.Region,
-                    Address = repository.Address,
-                });
-            return RickWebResult.Success(result);
+            int count = await _repositoryService.CountAsync<Repository>(t => (!id.HasValue || t.Id == id) && (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name));
+
+            var results = _repositoryService.Query<Repository>(t => (!id.HasValue || t.Id == id) && (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name))
+                .OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize);
+            RepositoryResponceList repositoryResponceList = new RepositoryResponceList();
+            repositoryResponceList.Count = count;
+            repositoryResponceList.List = results.Select(repository => new RepositoryResponce()
+            {
+                Id = repository.Id,
+                Name = repository.Name,
+                Recivername = repository.Recivername,
+                Recivermobil = repository.Recivermobil,
+                Region = repository.Region,
+                Address = repository.Address,
+            });
+            return RickWebResult.Success(repositoryResponceList);
         }
 
+        /// <summary>
+        /// 新增仓库
+        /// </summary>
+        /// <param name="repositoryRequest"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<RickWebResult<RepositoryResponce>> Post([FromBody] RepositoryRequest repositoryRequest)
         {
@@ -98,5 +117,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Region { get; set; }
             public string Address { get; set; }
         }
+        public class RepositoryResponceList
+        {
+            public int Count { get; set; }
+            public IEnumerable<RepositoryResponce> List { get; set; }
+        }
+
     }
 }

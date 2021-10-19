@@ -58,25 +58,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             DateTime now = DateTime.Now;
             package.Addtime = now;
             package.Lasttime = now;
+            package.Count = packageInRequest.Count;
+            package.Name = packageInRequest.Name;
+            package.Weight = packageInRequest.Weight;
 
-            int totalCount = 0;
-            foreach (var packageDetailInRequest in packageInRequest.PackageDetails)
-            {
-                Packagedetail packagedetail = new Packagedetail();
-                packagedetail.Id = _idGenerator.NextId();
-                packagedetail.Packageid = package.Id;
-                packagedetail.Name = packageDetailInRequest.Name;
-                packagedetail.Unit = packageDetailInRequest.Unit;
-                packagedetail.Count = packageDetailInRequest.Count;
-                packagedetail.Status = 1;
-                packagedetail.Adduser = UserInfo.Id;
-                packagedetail.Lastuser = UserInfo.Id;
-                packagedetail.Addtime = now;
-                packagedetail.Lasttime = now;
-                totalCount += packageDetailInRequest.Count;
-                await _packageService.AddAsync(packagedetail);
-            }
-            package.Count = totalCount;
             await _packageService.AddAsync(package);
 
             var users = await _packageService.GetAppusers(packageInRequest.Expressnumber);
@@ -105,6 +90,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 packageimage.Addtime = now;
                 await _packageService.AddAsync(packageimage);
             }
+
             foreach (var vedio in packageInRequest.Videos)
             {
                 Packagevideo packagevideo = new Packagevideo();
@@ -116,6 +102,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 packagevideo.Addtime = now;
                 await _packageService.AddAsync(packagevideo);
             }
+
+            Packagenote packagenote = new Packagenote();
+            packagenote.Id = _idGenerator.NextId();
+            packagenote.Packageid = package.Id;
+            packagenote.Status = 1;
+            packagenote.Adduser = UserInfo.Id;
+            packagenote.Addtime = now;
+            packagenote.Isclosed = 0;
+            packagenote.Operator = 1;
+            packagenote.Operatoruser = UserInfo.Id;
+            await _packageService.AddAsync(packagenote);
+
             await _packageService.CommitAsync();
 
             CommonResult commonResult = new CommonResult();
@@ -133,10 +131,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IList<PackageInView>>> Get([FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 0, [FromQuery] int pageSize = 0)
+        public async Task<RickWebResult<PackageInResponseList>> Get([FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _packageService.GetList(expressNumber, startTime.HasValue? startTime.Value:DateTime.MinValue, endTime.HasValue ? endTime.Value : DateTime.MinValue, index, pageSize);
-            return RickWebResult.Success(result);
+            PackageInResponseList packageInResponseList = new PackageInResponseList();
+            var results = await _packageService.GetList(expressNumber, startTime.HasValue ? startTime.Value : DateTime.MinValue, endTime.HasValue ? endTime.Value : DateTime.MinValue, index, pageSize);
+            packageInResponseList.Count = results.Item2;
+            packageInResponseList.List = results.Item1;
+            return RickWebResult.Success(packageInResponseList);
         }
 
         /// <summary>
@@ -158,7 +159,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Expressnumber { get; set; }
         public long CourierId { get; set; }
         public string CourierName { get; set; }
-        public IList<PackageDetailInRequest> PackageDetails { get; set; }
+        public string Name { get; set; }
+        public decimal Weight { get; set; }
+        public int Count { get; set; }
+
+        //public IList<PackageDetailInRequest> PackageDetails { get; set; }
         public IList<long> Images { get; set; }
         public IList<long> Videos { get; set; }
     }
@@ -168,6 +173,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Name { get; set; }
         public string Unit { get; set; }
         public int Count { get; set; }
+    }
+    public class PackageInResponseList
+    {
+        public int Count { get; set; }
+        public IList<PackageInView> List { get; set; }
     }
 
 }

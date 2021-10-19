@@ -41,9 +41,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<AgentResponse>>> Get()
+        public async Task<RickWebResult<IEnumerable<AgentResponse>>> Get([FromQuery] int? status)
         {
-            var results = await _agentService.QueryAsync<Agent>(t => t.Status == 1);
+            var results = await _agentService.QueryAsync<Agent>(t => !status.HasValue || t.Status == status);
             return RickWebResult.Success(results.Select(t => new AgentResponse()
             {
                 Id = t.Id,

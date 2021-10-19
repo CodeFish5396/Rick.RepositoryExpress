@@ -9,7 +9,7 @@
             代理商
             </summary>
         </member>
-        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AgentController.Get">
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AgentController.Get(System.Nullable{System.Int32})">
             <summary>
             查询代理商
             </summary>
@@ -116,7 +116,7 @@
             国家
             </summary>
         </member>
-        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.NationController.Get">
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.NationController.Get(System.Nullable{System.Int64},System.String,System.String,System.Nullable{System.Int32},System.Int32,System.Int32)">
             <summary>
             查询国家
             </summary>
@@ -127,6 +127,20 @@
             创建国家
             </summary>
             <param name="nationRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.NationController.Put(Rick.RepositoryExpress.SysWebApi.Controllers.NationPutRequest)">
+            <summary>
+            修改国家
+            </summary>
+            <param name="nationPutRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.NationController.Delete(System.Int64)">
+            <summary>
+            删除国家
+            </summary>
+            <param name="id"></param>
             <returns></returns>
         </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInController">
@@ -162,6 +176,24 @@
             包裹入库，扫码查询
             </summary>
             <param name="expressnumber"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RepositoryController.Get(System.Nullable{System.Int64},System.String,System.Nullable{System.Int32},System.Int32,System.Int32)">
+            <summary>
+            查询仓库
+            </summary>
+            <param name="id"></param>
+            <param name="name"></param>
+            <param name="status"></param>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RepositoryController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.RepositoryController.RepositoryRequest)">
+            <summary>
+            新增仓库
+            </summary>
+            <param name="repositoryRequest"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RootController.Get">

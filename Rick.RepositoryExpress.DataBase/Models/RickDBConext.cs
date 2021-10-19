@@ -829,6 +829,11 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasMaxLength(45)
                     .HasColumnName("location");
 
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("name");
+
                 entity.Property(e => e.Remark)
                     .HasMaxLength(450)
                     .HasColumnName("remark");
@@ -838,6 +843,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Status)
                     .HasColumnName("status")
                     .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Weight)
+                    .HasPrecision(10)
+                    .HasColumnName("weight");
             });
 
             modelBuilder.Entity<Packageandexpressclaim>(entity =>

@@ -95,10 +95,10 @@ namespace Rick.RepositoryExpress.Service
         {
             return await rickDBConext.Set<T>().Where(expression).ToListAsync();
         }
-        public async Task<IList<T>> QueryAsync<T>(Expression<Func<T, bool>> expression, int index, int pageSize) where T : class
-        {
-            return await rickDBConext.Set<T>().Where(expression).Skip(pageSize * index).Take(pageSize).ToListAsync();
-        }
+        //public async Task<IList<T>> QueryAsync<T>(Expression<Func<T, bool>> expression, int index, int pageSize) where T : class
+        //{
+        //    return await rickDBConext.Set<T>().Where(expression).Skip(pageSize * (index-1)).Take(pageSize).ToListAsync();
+        //}
         public async Task<int> CountAsync<T>(Expression<Func<T, bool>> expression) where T : class
         {
             return await rickDBConext.Set<T>().Where(expression).CountAsync();

@@ -22,21 +22,33 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
     {
         private readonly ILogger<NationController> _logger;
         private readonly IIdGeneratorService _idGenerator;
-        private readonly ISysuserService _sysuserService;
+        private readonly INationService _nationService;
         private readonly RedisClientService _redisClientService;
 
-        public NationController(ILogger<NationController> logger, ISysuserService sysuserService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
+        public NationController(ILogger<NationController> logger, INationService nationService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
             _logger = logger;
-            _sysuserService = sysuserService;
+            _nationService = nationService;
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
         }
 
+        /// <summary>
+        /// 查询所有国家
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<NationResponseList>> Get()
+        public async Task<RickWebResult<IEnumerable<NationResponse>>> Get()
         {
-            
+            var result = await _nationService.QueryAsync<Nation>(nation => nation.Status == 1);
+            return RickWebResult.Success(result.OrderBy(t => t.Order).Select(nation => new NationResponse()
+            {
+                Id = nation.Id,
+                Code = nation.Code,
+                Name = nation.Name,
+                Order = nation.Order
+            }));
+
         }
 
         public class NationRequest
@@ -45,6 +57,11 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         }
         public class NationResponse
         {
+            public long Id { get; set; }
+
+            public string Code { get; set; }
+            public string Name { get; set; }
+            public int Order { get; set; }
 
         }
         public class NationResponseList

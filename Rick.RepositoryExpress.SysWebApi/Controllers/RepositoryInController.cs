@@ -44,7 +44,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<RepositoryInResponceList>> Get([FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<RepositoryInResponseList>> Get([FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             int count = await _packageService.CountAsync<Package>(t => (string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber)
                           && (startTime != DateTime.MinValue || t.Addtime >= startTime)
@@ -54,13 +54,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                           && (startTime != DateTime.MinValue || t.Addtime >= startTime)
                           && (endTime != DateTime.MinValue || t.Addtime <= endTime))
                 .OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize);
-            RepositoryInResponceList repositoryInResponceList = new RepositoryInResponceList();
+            RepositoryInResponseList repositoryInResponceList = new RepositoryInResponseList();
             repositoryInResponceList.Count = count;
 
             repositoryInResponceList.List = await (from package in results
                                                    join user in _packageService.Query<Sysuser>(t => true)
                                                    on package.Lastuser equals user.Id
-                                                   select new RepositoryInResponce()
+                                                   select new RepositoryInResponse()
                                                    {
                                                        Id = package.Id,
                                                        Expressnumber = package.Expressnumber,
@@ -83,7 +83,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="repositoryInRequest"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<RickWebResult<RepositoryInResponce>> Post([FromBody] RepositoryInRequest repositoryInRequest)
+        public async Task<RickWebResult<RepositoryInResponse>> Post([FromBody] RepositoryInRequest repositoryInRequest)
         {
             await _packageService.BeginTransactionAsync();
             Package package = await _packageService.FindAsync<Package>(repositoryInRequest.Id);
@@ -107,7 +107,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             await _packageService.CommitAsync();
 
-            RepositoryInResponce repositoryInResponce = new RepositoryInResponce() {
+            RepositoryInResponse repositoryInResponce = new RepositoryInResponse() {
                 Id = package.Id,
                 Expressnumber = package.Expressnumber,
                 Code = package.Code,
@@ -129,7 +129,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Location { get; set; }
         }
 
-        public class RepositoryInResponce
+        public class RepositoryInResponse
         {
             public long Id { get; set; }
             public string Expressnumber { get; set; }
@@ -144,10 +144,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Location { get; set; }
 
         }
-        public class RepositoryInResponceList
+        public class RepositoryInResponseList
         {
             public int Count { get; set; }
-            public IList<RepositoryInResponce> List { get; set; }
+            public IList<RepositoryInResponse> List { get; set; }
         }
     }
 }

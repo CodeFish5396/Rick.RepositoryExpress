@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Rick.RepositoryExpress.Utils.Wechat;
 using Rick.RepositoryExpress.RedisService;
 using Rick.RepositoryExpress.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {

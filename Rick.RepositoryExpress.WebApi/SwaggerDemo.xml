@@ -4,6 +4,13 @@
         <name>Rick.RepositoryExpress.WebApi</name>
     </assembly>
     <members>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.ChannelController.Get(System.Nullable{System.Int64})">
+            <summary>
+            获取发货渠道
+            </summary>
+            <param name="nationId"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.ClaimController.Post(Rick.RepositoryExpress.WebApi.Controllers.ClaimController.ExpressclaimRequest)">
             <summary>
             包裹预报
@@ -23,6 +30,12 @@
             上传文件
             </summary>
             <param name="fileUploadRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.NationController.Get">
+            <summary>
+            查询所有国家
+            </summary>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OpenIdController.Get(System.String)">
@@ -49,6 +62,20 @@
             获取仓库列表
             </summary>
             <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserAddressController.Post(Rick.RepositoryExpress.WebApi.Controllers.UserAddressController.UserAddressRequest)">
+            <summary>
+            创建地址
+            </summary>
+            <param name="userAddressRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserAddressController.Get(System.Boolean)">
+            <summary>
+            获取地址
+            </summary>
+            <param name="isDefault"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserController.Get">

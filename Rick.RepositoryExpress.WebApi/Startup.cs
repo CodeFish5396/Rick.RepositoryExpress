@@ -57,7 +57,8 @@ namespace Rick.RepositoryExpress.WebApi
             services.AddScoped<INationService, NationService>();
             services.AddScoped<IChannelService, ChannelService>();
             services.AddScoped<IAgentService, AgentService>();
-
+            services.AddScoped<IPackageService, PackageService>();
+            services.AddScoped<IAppuseraddressService, AppuseraddressService>();
 
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));

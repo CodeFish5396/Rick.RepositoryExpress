@@ -18,6 +18,12 @@
             <param name="expressclaimRequest"></param>
             <returns></returns>
         </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.CourierController.Get">
+            <summary>
+            查询所有快递
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.FileController.Get(System.Int64)">
             <summary>
             文件Url
@@ -57,11 +63,67 @@
             用户登录凭证，消息头里Token携带
             </summary>
         </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OrderApplyController.Post(Rick.RepositoryExpress.WebApi.Controllers.OrderApplyController.OrderApplyRequest)">
+            <summary>
+            申请打包
+            </summary>
+            <param name="orderApplyRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OrderApplyController.Get(System.Int32,System.Int32)">
+            <summary>
+            查询已出货录单的打包申请
+            </summary>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OrderApplyController.Put(System.Int64)">
+            <summary>
+            确认发货
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.RecivedClaimController.Get(System.Int32,System.Int32)">
+            <summary>
+            查询已到库订单
+            </summary>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.RepositoryController.Get(System.Int64)">
             <summary>
             获取仓库列表
             </summary>
             <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UnrecivedClaimController.Get(System.Int32,System.Int32)">
+            <summary>
+            查询未到库订单
+            </summary>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.WebApi.Controllers.UserAccountController">
+            <summary>
+            用户账户
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserAccountController.Get">
+            <summary>
+            获取账户余额
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserAccountController.Post(Rick.RepositoryExpress.WebApi.Controllers.UserAccountController.UserAccountResquest)">
+            <summary>
+            用户充值
+            </summary>
+            <param name="userAccountResquest"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserAddressController.Post(Rick.RepositoryExpress.WebApi.Controllers.UserAddressController.UserAddressRequest)">
@@ -82,6 +144,13 @@
             <summary>
             获取用户信息
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserController.Post(Rick.RepositoryExpress.WebApi.Controllers.UserController.UserPostRequest)">
+            <summary>
+            修改用户名称
+            </summary>
+            <param name="userPostRequest"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserLoginController.Get(System.Int64,System.Int64)">

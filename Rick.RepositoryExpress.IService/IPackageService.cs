@@ -9,8 +9,10 @@ namespace Rick.RepositoryExpress.IService
 {
     public interface IPackageService : IBaseService
     {
+        Task<IList<Expressclaim>> GetExpressclaims(string expressNumber);
         Task<IList<PackageInPreDetailView>> GetAppusers(string expressNumber);
-        Task<(IList<PackageInView>, int)> GetList(string expressNumber, DateTime startTime, DateTime endTime, int index, int pageSize);
+
+        //Task<(IList<PackageInView>, int)> GetList(string expressNumber, DateTime startTime, DateTime endTime, int index, int pageSize);
 
     }
 }

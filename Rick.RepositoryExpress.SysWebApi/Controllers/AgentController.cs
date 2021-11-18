@@ -92,10 +92,83 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
         }
 
+        /// <summary>
+        /// 修改代理商
+        /// </summary>
+        /// <param name="agentPutRequest"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<RickWebResult<AgentResponse>> Put([FromBody] AgentPutRequest agentPutRequest)
+        {
+            await _agentService.BeginTransactionAsync();
+
+            Agent agent = await _agentService.FindAsync<Agent>(t => t.Id == agentPutRequest.Id);
+            DateTime now = DateTime.Now;
+            agent.Name = agentPutRequest.Name;
+            agent.Contact = agentPutRequest.Contact;
+            agent.Mobile = agentPutRequest.Mobile;
+            agent.Address = agentPutRequest.Address;
+
+            agent.Status = 1;
+            agent.Lasttime = now;
+            agent.Lastuser = UserInfo.Id;
+            await _agentService.UpdateAsync(agent);
+            await _agentService.CommitAsync();
+            AgentResponse agentResponse = new AgentResponse();
+            agentResponse.Id = agent.Id;
+            agentResponse.Name = agent.Name;
+            agentResponse.Contact = agent.Contact;
+            agentResponse.Mobile = agent.Mobile;
+            agentResponse.Address = agent.Address;
+
+            agentResponse.Status = agent.Status;
+            return RickWebResult.Success(agentResponse);
+
+        }
+
+        /// <summary>
+        /// 删除代理商
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<RickWebResult<object>> Delete([FromQuery] long id)
+        {
+            await _agentService.BeginTransactionAsync();
+
+            Agent agent = await _agentService.FindAsync<Agent>(t => t.Id == id);
+            DateTime now = DateTime.Now;
+
+            agent.Status = 0;
+            agent.Lasttime = now;
+            agent.Lastuser = UserInfo.Id;
+            await _agentService.UpdateAsync(agent);
+            await _agentService.CommitAsync();
+            AgentResponse agentResponse = new AgentResponse();
+            agentResponse.Id = agent.Id;
+            agentResponse.Name = agent.Name;
+            agentResponse.Contact = agent.Contact;
+            agentResponse.Mobile = agent.Mobile;
+            agentResponse.Address = agent.Address;
+
+            agentResponse.Status = agent.Status;
+            return RickWebResult.Success(new object());
+
+        }
+
     }
 
     public class AgentRequest
     {
+        public string Contact { get; set; }
+        public string Mobile { get; set; }
+        public string Address { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class AgentPutRequest
+    {
+        public long Id { get; set; }
         public string Contact { get; set; }
         public string Mobile { get; set; }
         public string Address { get; set; }

@@ -10,6 +10,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public long Id { get; set; }
         public string Openid { get; set; }
         public string Mobile { get; set; }
+        public string Usercode { get; set; }
         public string Countrycode { get; set; }
         public string Name { get; set; }
         public string Headportrait { get; set; }

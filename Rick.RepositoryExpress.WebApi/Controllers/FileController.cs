@@ -65,6 +65,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         /// <param name="fileUploadRequest"></param>
         /// <returns></returns>
         [HttpPost]
+        [DisableRequestSizeLimit]
         public async Task<RickWebResult<FileUploadResult>> Post([FromForm] FileUploadRequest fileUploadRequest)
         {
             await _fileService.BeginTransactionAsync();

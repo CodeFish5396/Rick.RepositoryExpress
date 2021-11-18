@@ -59,6 +59,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 Recivermobil = repository.Recivermobil,
                 Region = repository.Region,
                 Address = repository.Address,
+                Status = repository.Status
             });
             return RickWebResult.Success(repositoryResponceList);
         }
@@ -100,6 +101,78 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             return RickWebResult.Success(repositoryResponce);
         }
 
+        /// <summary>
+        /// 修改仓库
+        /// </summary>
+        /// <param name="repositoryPutRequest"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<RickWebResult<RepositoryResponce>> Put([FromBody] RepositoryPutRequest repositoryPutRequest)
+        {
+            await _repositoryService.BeginTransactionAsync();
+
+            Repository repository = await _repositoryService.FindAsync<Repository>(t=>t.Id == repositoryPutRequest.Id);
+            repository.Name = repositoryPutRequest.Name;
+            repository.Recivername = repositoryPutRequest.Recivername;
+            repository.Recivermobil = repositoryPutRequest.Recivermobil;
+            repository.Region = repositoryPutRequest.Region;
+            repository.Address = repositoryPutRequest.Address;
+            repository.Status = repositoryPutRequest.Status;
+            repository.Lastuser = UserInfo.Id;
+            DateTime now = DateTime.Now;
+            repository.Lasttime = now;
+
+            await _repositoryService.UpdateAsync(repository);
+            await _repositoryService.CommitAsync();
+
+            RepositoryResponce repositoryResponce = new RepositoryResponce();
+            repositoryResponce.Id = repository.Id;
+            repositoryResponce.Name = repository.Name;
+            repositoryResponce.Recivername = repository.Recivername;
+            repositoryResponce.Recivermobil = repository.Recivermobil;
+            repositoryResponce.Region = repository.Region;
+            repositoryResponce.Address = repository.Address;
+            repositoryResponce.Status = repository.Status;
+
+            return RickWebResult.Success(repositoryResponce);
+        }
+
+        /// <summary>
+        /// 删除仓库
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<RickWebResult<object>> Delete([FromQuery] long id)
+        {
+            await _repositoryService.BeginTransactionAsync();
+
+            var repositories = await _repositoryService.QueryAsync<Repository>(t => id == t.Id);
+            foreach (var repository in repositories)
+            {
+                repository.Status = 0;
+                repository.Lastuser = UserInfo.Id;
+                DateTime now = DateTime.Now;
+                repository.Lasttime = now;
+                await _repositoryService.UpdateAsync(repository);
+            }
+            await _repositoryService.CommitAsync();
+
+            return RickWebResult.Success(new object());
+        }
+
+        public class RepositoryPutRequest
+        {
+            public long Id { get; set; }
+            public string Name { get; set; }
+            public string Recivername { get; set; }
+            public string Recivermobil { get; set; }
+            public string Region { get; set; }
+            public string Address { get; set; }
+            public int Status { get; set; }
+
+        }
+
         public class RepositoryRequest
         {
             public string Name { get; set; }
@@ -116,6 +189,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Recivermobil { get; set; }
             public string Region { get; set; }
             public string Address { get; set; }
+            public int Status { get; set; }
+
         }
         public class RepositoryResponceList
         {

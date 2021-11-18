@@ -18,7 +18,7 @@ using System.IO;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
-    [Route("api/[controller]/{id?}")]
+    [Route("api/[controller]")]
     [ApiController]
     public class FileController : RickControllerBase
     {
@@ -41,7 +41,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<FileContentResult> Get(long id)
+        public async Task<FileContentResult> Get([FromQuery]long id)
         {
             Fileinfo fileinfo = await _fileService.FindAsync<Fileinfo>(id);
             string path = filePath + fileinfo.Filename + fileinfo.Ext;
@@ -65,6 +65,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="fileUploadRequest"></param>
         /// <returns></returns>
         [HttpPost]
+        [DisableRequestSizeLimit]
         public async Task<RickWebResult<FileUploadResult>> Post([FromForm] FileUploadRequest fileUploadRequest)
         {
             await _fileService.BeginTransactionAsync();

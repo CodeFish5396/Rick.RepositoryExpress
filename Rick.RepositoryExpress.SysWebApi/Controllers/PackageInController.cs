@@ -14,13 +14,15 @@ using Rick.RepositoryExpress.Utils.Wechat;
 using Rick.RepositoryExpress.RedisService;
 using Rick.RepositoryExpress.Utils;
 using Rick.RepositoryExpress.DataBase.ViewModels;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
     /// <summary>
     /// 入库录单，录入货物信息
     /// </summary>
-    [Route("api/[controller]/{id?}")]
+    [Route("api/[controller]")]
     [ApiController]
     public class PackageInController : RickControllerBase
     {
@@ -62,21 +64,29 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             package.Name = packageInRequest.Name;
             package.Weight = packageInRequest.Weight;
 
+
+            Expressinfo expressinfo = new Expressinfo();
+
+            expressinfo.Id = _idGenerator.NextId();
+            expressinfo.Expressnumber = packageInRequest.Expressnumber;
+            expressinfo.Status = 1;
+            expressinfo.Adduser = UserInfo.Id;
+            expressinfo.Lastuser = UserInfo.Id;
+            expressinfo.Addtime = now;
+            expressinfo.Lasttime = now;
+            expressinfo.Source = 2;
+            await _packageService.AddAsync(expressinfo);
+
+            package.Expressinfoid = expressinfo.Id;
+
             await _packageService.AddAsync(package);
 
-            var users = await _packageService.GetAppusers(packageInRequest.Expressnumber);
-            foreach (var user in users)
+            var expressclaims = await _packageService.GetExpressclaims(packageInRequest.Expressnumber);
+            foreach (var expressclaim in expressclaims)
             {
-                Packageandexpressclaim packageandexpressclaim = new Packageandexpressclaim();
-                packageandexpressclaim.Id = _idGenerator.NextId();
-                packageandexpressclaim.Packageid = package.Id;
-                packageandexpressclaim.Expressclaimid = user.ExpressclaimId;
-                packageandexpressclaim.Status = 1;
-                packageandexpressclaim.Adduser = UserInfo.Id;
-                packageandexpressclaim.Lastuser = UserInfo.Id;
-                packageandexpressclaim.Addtime = now;
-                packageandexpressclaim.Lasttime = now;
-                await _packageService.AddAsync(packageandexpressclaim);
+                expressclaim.Packageid = package.Id;
+                expressclaim.Status = (int)ExpressClaimStatus.已到库;
+                await _packageService.UpdateAsync(expressclaim);
             }
 
             foreach (var image in packageInRequest.Images)
@@ -110,7 +120,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             packagenote.Adduser = UserInfo.Id;
             packagenote.Addtime = now;
             packagenote.Isclosed = 0;
-            packagenote.Operator = 1;
+            packagenote.Operator = (int)PackageNoteStatus.入库录单;
             packagenote.Operatoruser = UserInfo.Id;
             await _packageService.AddAsync(packagenote);
 
@@ -134,22 +144,57 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public async Task<RickWebResult<PackageInResponseList>> Get([FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             PackageInResponseList packageInResponseList = new PackageInResponseList();
-            var results = await _packageService.GetList(expressNumber, startTime.HasValue ? startTime.Value : DateTime.MinValue, endTime.HasValue ? endTime.Value : DateTime.MinValue, index, pageSize);
-            packageInResponseList.Count = results.Item2;
-            packageInResponseList.List = results.Item1;
+
+            var baseQuery = from package in _packageService.Query<Package>(t => (t.Status == 1 && string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber) && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
+                            join exclaim in _packageService.Query<Expressclaim>()
+                            on package.Id equals exclaim.Packageid
+                            into exclaimtemp
+                            from exclaimt in exclaimtemp.DefaultIfEmpty()
+                            join user in _packageService.Query<Appuser>()
+                            on exclaimt.Appuser equals user.Id
+                            into usertemp
+                            from usert in usertemp.DefaultIfEmpty()
+                            join courier in _packageService.Query<Courier>()
+                            on package.Courierid equals courier.Id
+                            into courierTemp
+                            from courier in courierTemp.DefaultIfEmpty()
+                            select new PackageInResponse()
+                            {
+                                Userid = usert == null ? 0 : usert.Id,
+                                Usercode = usert == null ? string.Empty : usert.Usercode,
+                                Username = usert == null ? string.Empty : usert.Name,
+                                Packageid = package.Id,
+                                Count = package.Count,
+                                Name = package.Name,
+                                Weight = package.Weight,
+                                Addtime = package.Addtime,
+                                Courierid = package.Courierid,
+                                Couriername = courier == null ? string.Empty : courier.Name,
+                                Expressnumber = package.Expressnumber,
+                                Lastuser = package.Lastuser,
+                                Lasttime = package.Lasttime
+                            };
+
+            packageInResponseList.Count = await baseQuery.CountAsync();
+            packageInResponseList.List = await baseQuery.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            IEnumerable<long> ids = packageInResponseList.List.Select(t => t.Packageid);
+
+            var imageInfos = await (from image in _packageService.Query<Packageimage>(t => ids.Contains(t.Packageid))
+                                    select image
+                                    ).ToListAsync();
+            var vedioInfos = await (from vedio in _packageService.Query<Packagevideo>(t => ids.Contains(t.Packageid))
+                                    select vedio
+                        ).ToListAsync();
+
+            foreach (var packageInResponse in packageInResponseList.List)
+            {
+                packageInResponse.Images = imageInfos.Where(t => t.Packageid == packageInResponse.Packageid).Select(t => t.Fileinfoid).ToList();
+                packageInResponse.Videos = vedioInfos.Where(t => t.Packageid == packageInResponse.Packageid).Select(t => t.Fileinfoid).ToList();
+            }
+
             return RickWebResult.Success(packageInResponseList);
         }
-
-        /// <summary>
-        /// 获取详情
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        //[HttpGet]
-        //public async Task<RickWebResult<CommonResult>> Get([FromQuery] long id = 0)
-        //{
-
-        //}
 
     }
 
@@ -162,8 +207,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Name { get; set; }
         public decimal Weight { get; set; }
         public int Count { get; set; }
-
-        //public IList<PackageDetailInRequest> PackageDetails { get; set; }
         public IList<long> Images { get; set; }
         public IList<long> Videos { get; set; }
     }
@@ -177,7 +220,29 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
     public class PackageInResponseList
     {
         public int Count { get; set; }
-        public IList<PackageInView> List { get; set; }
+        public IList<PackageInResponse> List { get; set; }
+    }
+    public class PackageInResponse
+    {
+        public long Userid { get; set; }
+        public string Usercode { get; set; }
+
+        public long Packageid { get; set; }
+        public string Name { get; set; }
+        public decimal? Weight { get; set; }
+
+        public int Count { get; set; }
+        public string Username { get; set; }
+        public DateTime Addtime { get; set; }
+        public DateTime Lasttime { get; set; }
+        public long Courierid { get; set; }
+        public string Couriername { get; set; }
+        public string Expressnumber { get; set; }
+        public long Lastuser { get; set; }
+        public string Lastusername { get; set; }
+        public List<long> Images { get; set; }
+        public List<long> Videos { get; set; }
+
     }
 
 }

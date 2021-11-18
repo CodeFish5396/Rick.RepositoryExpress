@@ -14,5 +14,6 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public long Adduser { get; set; }
         public DateTime Addtime { get; set; }
         public string Remark { get; set; }
+        public long Currencyid { get; set; }
     }
 }

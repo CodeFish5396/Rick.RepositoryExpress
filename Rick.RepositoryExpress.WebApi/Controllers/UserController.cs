@@ -38,19 +38,52 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
 
             UserLoginInfo userLoginInfo = new UserLoginInfo();
             userLoginInfo.Name = appuser.Name;
+            userLoginInfo.UserCode = appuser.Usercode;
             userLoginInfo.Openid = appuser.Openid;
             userLoginInfo.Mobile = appuser.Mobile;
             userLoginInfo.Countrycode = appuser.Countrycode;
             return RickWebResult.Success(userLoginInfo);
         }
 
+        /// <summary>
+        /// 修改用户名称
+        /// </summary>
+        /// <param name="userPostRequest"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<RickWebResult<UserLoginInfo>> Post([FromQuery] UserPostRequest userPostRequest)
+        {
+            await _appuserService.BeginTransactionAsync();
+            Appuser appuser = await _appuserService.FindAsync<Appuser>(UserInfo.Id);
+            appuser.Name = userPostRequest.Name;
+            appuser.Lasttime = DateTime.Now;
+
+            await _appuserService.UpdateAsync(appuser);
+            await _appuserService.CommitAsync();
+
+            UserLoginInfo userLoginInfo = new UserLoginInfo();
+            userLoginInfo.Name = appuser.Name;
+            userLoginInfo.UserCode = appuser.Usercode;
+
+            userLoginInfo.Openid = appuser.Openid;
+            userLoginInfo.Mobile = appuser.Mobile;
+            userLoginInfo.Countrycode = appuser.Countrycode;
+            return RickWebResult.Success(userLoginInfo);
+
+        }
+
         public class UserLoginInfo
         {
             public string Name { get; set; }
+            public string UserCode { get; set; }
             public string Openid { get; set; }
             public string Mobile { get; set; }
             public string Countrycode { get; set; }
 
+        }
+        public class UserPostRequest
+        {
+            public string Name { get; set; }
         }
 
     }

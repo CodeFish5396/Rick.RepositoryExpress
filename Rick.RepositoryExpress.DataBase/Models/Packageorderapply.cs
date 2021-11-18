@@ -9,7 +9,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
     {
         public long Id { get; set; }
         public long Channelid { get; set; }
-        public long Countryid { get; set; }
+        public long Nationid { get; set; }
         public long Addressid { get; set; }
         public long Appuser { get; set; }
         public int Orderstatus { get; set; }
@@ -18,8 +18,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public int Status { get; set; }
         public DateTime Addtime { get; set; }
         public long Adduser { get; set; }
-        public DateTime Lastuser { get; set; }
-        public long Lasttime { get; set; }
+        public long Lastuser { get; set; }
+        public DateTime Lasttime { get; set; }
         public string Remark { get; set; }
     }
 }

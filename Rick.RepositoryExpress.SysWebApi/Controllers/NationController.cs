@@ -41,11 +41,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<NationResponseList>> Get([FromQuery] long? id, [FromQuery] string name, [FromQuery] string code, [FromQuery] int? status, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<NationResponseList>> Get([FromQuery] string name, [FromQuery] string code, [FromQuery] int? status, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            int count = await _nationService.CountAsync<Nation>(t => (!id.HasValue || t.Id == id) && (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name) && (string.IsNullOrEmpty(code) || t.Code == code));
+            int count = await _nationService.CountAsync<Nation>(t =>(!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name) && (string.IsNullOrEmpty(code) || t.Code == code));
 
-            var results = _nationService.Query<Nation>(t => (!id.HasValue || t.Id == id) && (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name) && (string.IsNullOrEmpty(code) || t.Code == code))
+            var results = _nationService.Query<Nation>(t => (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name) && (string.IsNullOrEmpty(code) || t.Code == code))
                 .OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize);
             NationResponseList nationResponseList = new NationResponseList();
             nationResponseList.Count = count;
@@ -53,7 +53,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             {
                 Id = t.Id,
                 Code = t.Code,
-                Name = t.Name
+                Name = t.Name,
+                Status = t.Status
             });
             return RickWebResult.Success(nationResponseList);
         }
@@ -157,6 +158,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public long Id { get; set; }
         public string Code { get; set; }
         public string Name { get; set; }
+        public int Status { get; set; }
+
     }
     public class NationResponseList
     {

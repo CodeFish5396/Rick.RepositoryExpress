@@ -41,9 +41,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<CurrencyResponse>>> Get([FromQuery]int status)
+        public async Task<RickWebResult<IEnumerable<CurrencyResponse>>> Get([FromQuery]int? status)
         {
-            var results = await _currencyService.QueryAsync<Currency>(t => t.Status == status);
+            var results = await _currencyService.QueryAsync<Currency>(t => !status.HasValue || t.Status == status);
             return RickWebResult.Success(results.Select(t => new CurrencyResponse()
             {
                 Id = t.Id,

@@ -32,6 +32,10 @@ namespace Rick.RepositoryExpress.RedisService
         {
             return redisConnection.GetDatabase(dataBaseNum).StringSet(key, value, expiry);
         }
+        internal long UserCodeGet()
+        {
+            return redisConnection.GetDatabase(dataBaseNum).HashIncrement("Code", "User");
+        }
 
         internal async Task<bool> LockTakeAsync(string key,string value)
         {

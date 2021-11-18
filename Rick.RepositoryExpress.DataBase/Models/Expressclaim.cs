@@ -9,6 +9,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
     {
         public long Id { get; set; }
         public long Expressinfoid { get; set; }
+        public long? Packageid { get; set; }
         public long Repositoryid { get; set; }
         public long Appuser { get; set; }
         public string Remark { get; set; }

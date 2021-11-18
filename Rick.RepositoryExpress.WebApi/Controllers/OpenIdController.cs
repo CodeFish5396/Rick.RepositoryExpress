@@ -75,6 +75,8 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     appuser.Lasttime = now;
                     appuser.Status = 1;
                     appuser.AddUser = appuser.Id;
+                    string userCode = "000000" + _redisClientService.UserCodeGet();
+                    appuser.Usercode = "DR" + userCode.Substring(userCode.Length - 6);
                     await _appuserService.AddAsync(appuser);
                     await _appuserService.CommitAsync();
                 }

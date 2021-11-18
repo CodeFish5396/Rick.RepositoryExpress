@@ -53,12 +53,14 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                 await _expressclaimService.BeginTransactionAsync();
                 expressinfo.Id = _idGenerator.NextId();
                 expressinfo.Expressnumber = expressclaimRequest.Expressnumber;
+                expressinfo.Courierid = expressclaimRequest.Courierid;
                 expressinfo.Status = 1;
                 expressinfo.Adduser = UserInfo.Id;
                 expressinfo.Lastuser = UserInfo.Id;
                 DateTime now = DateTime.Now;
                 expressinfo.Addtime = now;
                 expressinfo.Lasttime = now;
+                expressinfo.Source = 1;
                 await _expressclaimService.AddAsync(expressinfo);
                 Expressclaim expressclaim = new Expressclaim();
                 expressclaim.Id = _idGenerator.NextId();
@@ -68,7 +70,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                 expressclaim.Remark = expressclaimRequest.Remark;
                 expressclaim.Count = expressclaimRequest.Count;
                 expressclaim.Cansendasap = expressclaimRequest.Cansendasap;
-                expressclaim.Status = 1;
+                expressclaim.Status = (int)ExpressClaimStatus.正常;
                 expressclaim.Adduser = UserInfo.Id;
                 expressclaim.Lastuser = UserInfo.Id;
                 expressclaim.Addtime = now;
@@ -78,6 +80,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                 foreach (ExpressclaimdetailRequest expressclaimdetailRequest in expressclaimRequest.details)
                 {
                     Expressclaimdetail expressclaimdetail = new Expressclaimdetail();
+                    expressclaimdetail.Id = _idGenerator.NextId();
                     expressclaimdetail.Expressclaimid = expressclaim.Id;
                     expressclaimdetail.Name = expressclaimdetailRequest.Name;
                     expressclaimdetail.Unitprice = expressclaimdetailRequest.Unitprice;
@@ -101,6 +104,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         public class ExpressclaimRequest
         {
             public long Repositoryid { get; set; }
+            public long Courierid { get; set; }
             public string Expressnumber { get; set; }
             public string Remark { get; set; }
             public int Count { get; set; }
@@ -111,7 +115,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         {
             public string Name { get; set; }
             public decimal? Unitprice { get; set; }
-            public string Count { get; set; }
+            public int Count { get; set; }
         }
 
     }

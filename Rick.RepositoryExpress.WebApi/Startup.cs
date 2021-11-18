@@ -59,6 +59,13 @@ namespace Rick.RepositoryExpress.WebApi
             services.AddScoped<IAgentService, AgentService>();
             services.AddScoped<IPackageService, PackageService>();
             services.AddScoped<IAppuseraddressService, AppuseraddressService>();
+            services.AddScoped<IPackageService, PackageService>();
+            services.AddScoped<IPackageOrderApplyService, PackageOrderApplyService>();
+            services.AddScoped<IAppuseraccountService, AppuseraccountService>();
+            services.AddScoped<IPackageorderapplyexpressService, PackageorderapplyexpressService>();
+            services.AddScoped<IIncomeService, IncomeService>();
+            services.AddScoped<IAccountsubjectService, AccountsubjectService>();
+            services.AddScoped<IAgentFeeService, AgentFeeService>();
 
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));
@@ -81,6 +88,15 @@ namespace Rick.RepositoryExpress.WebApi
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+            app.Use(async (context, next) =>
+            {
+                string customMethod = context.Request.Headers["X-HTTPMETHOD"];
+                if (!string.IsNullOrEmpty(customMethod))
+                {
+                    context.Request.Method = customMethod.ToUpper();
+                }
+                await next();
+            });
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

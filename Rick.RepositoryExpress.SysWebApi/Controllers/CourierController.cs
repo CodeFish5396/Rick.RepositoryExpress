@@ -92,10 +92,71 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             return RickWebResult.Success(courierResponse);
         }
 
+        /// <summary>
+        /// 修改快递公司
+        /// </summary>
+        /// <param name="courierPutRequest"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<RickWebResult<CourierResponse>> Put([FromBody] CourierPutRequest courierPutRequest)
+        {
+            await _courierService.BeginTransactionAsync();
+
+            Courier courier = await _courierService.FindAsync<Courier>(t => t.Id == courierPutRequest.Id);
+
+            courier.Name = courierPutRequest.Name;
+            courier.Code = courierPutRequest.Code;
+            courier.Extname = courierPutRequest.Extname;
+            courier.Status = 1;
+            DateTime now = DateTime.Now;
+
+            courier.Lasttime = now;
+            courier.Lastuser = UserInfo.Id;
+            await _courierService.UpdateAsync(courier);
+            await _courierService.CommitAsync();
+            CourierResponse courierResponse = new CourierResponse();
+            courierResponse.Id = courier.Id;
+            courierResponse.Name = courier.Name;
+            courierResponse.Code = courier.Code;
+            courierResponse.Extname = courier.Extname;
+            courierResponse.Status = courier.Status;
+            return RickWebResult.Success(courierResponse);
+        }
+
+        /// <summary>
+        /// 删除快递公司
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<RickWebResult<object>> Delete([FromQuery] long id)
+        {
+            await _courierService.BeginTransactionAsync();
+
+            Courier courier = await _courierService.FindAsync<Courier>(t => t.Id == id);
+
+            courier.Status = 0;
+            DateTime now = DateTime.Now;
+
+            courier.Lasttime = now;
+            courier.Lastuser = UserInfo.Id;
+            await _courierService.UpdateAsync(courier);
+            await _courierService.CommitAsync();
+            return RickWebResult.Success(new object());
+        }
     }
 
     public class CourierRequest
     {
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string Extname { get; set; }
+    }
+
+    public class CourierPutRequest
+    {
+        public long Id { get; set; }
+
         public string Code { get; set; }
         public string Name { get; set; }
         public string Extname { get; set; }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Rick.RepositoryExpress.SysWebApi.Models;
+using Rick.RepositoryExpress.WebApi.Models;
 using Rick.RepositoryExpress.DataBase.Models;
 using Rick.RepositoryExpress.IService;
 using Rick.RepositoryExpress.Common;
@@ -13,25 +13,28 @@ using Microsoft.AspNetCore.Authorization;
 using Rick.RepositoryExpress.Utils.Wechat;
 using Rick.RepositoryExpress.RedisService;
 using Rick.RepositoryExpress.Utils;
+using Microsoft.EntityFrameworkCore;
 
-namespace Rick.RepositoryExpress.SysWebApi.Controllers
+namespace Rick.RepositoryExpress.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SysUserController : RickControllerBase
+    public class OrderExpressController : RickControllerBase
     {
-        private readonly ILogger<SysUserController> _logger;
+        private readonly ILogger<OrderExpressController> _logger;
         private readonly IIdGeneratorService _idGenerator;
-        private readonly ISysuserService _sysuserService;
+        private readonly IPackageorderapplyexpressService _packageorderapplyexpressService;
         private readonly RedisClientService _redisClientService;
 
-        public SysUserController(ILogger<SysUserController> logger, ISysuserService sysuserService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
+        public OrderExpressController(ILogger<OrderExpressController> logger, IPackageorderapplyexpressService packageorderapplyexpressService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
             _logger = logger;
-            _sysuserService = sysuserService;
+            _packageorderapplyexpressService = packageorderapplyexpressService;
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
         }
 
+
+        
     }
 }

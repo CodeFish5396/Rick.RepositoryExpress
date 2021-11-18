@@ -11,7 +11,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public long Expressclaimid { get; set; }
         public string Name { get; set; }
         public decimal? Unitprice { get; set; }
-        public string Count { get; set; }
+        public int Count { get; set; }
         public int Status { get; set; }
         public long Adduser { get; set; }
         public DateTime Addtime { get; set; }

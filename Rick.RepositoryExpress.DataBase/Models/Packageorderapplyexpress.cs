@@ -15,8 +15,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public int Status { get; set; }
         public DateTime Addtime { get; set; }
         public long Adduser { get; set; }
-        public DateTime Lastuser { get; set; }
-        public long Lasttime { get; set; }
+        public long Lastuser { get; set; }
+        public DateTime Lasttime { get; set; }
         public string Remark { get; set; }
         public string Innernumber { get; set; }
         public string Batchnumber { get; set; }

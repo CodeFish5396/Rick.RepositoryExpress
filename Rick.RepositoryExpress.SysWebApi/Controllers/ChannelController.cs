@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Rick.RepositoryExpress.Utils.Wechat;
 using Rick.RepositoryExpress.RedisService;
 using Rick.RepositoryExpress.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
@@ -39,16 +40,60 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询快递通道
         /// </summary>
+        /// <param name="name"></param>
+        /// <param name="status"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<ChannelResponse>>> Get()
+        public async Task<RickWebResult<IList<ChannelResponse>>> Get([FromQuery] string name, [FromQuery] int? status)
         {
-            var results = await _channelService.QueryAsync<Channel>(t => t.Status == 1);
-            return RickWebResult.Success(results.Select(t => new ChannelResponse()
+            var channels = _channelService.Query<Channel>(t => (string.IsNullOrEmpty(name) || t.Name == name) && (!status.HasValue || t.Status == status));
+            var temp = await (from channel in channels
+                       join channelDetail in _channelService.Query<Channeldetail>(t => t.Status == 1)
+                       on channel.Id equals channelDetail.Channelid
+                       join nation in _channelService.Query<Nation>(t => 1 == 1)
+                       on channelDetail.Nationid equals nation.Id
+                       join agent in _channelService.Query<Agent>(t => 1 == 1)
+                       on channelDetail.Agentid equals agent.Id
+                       select new
+                       {
+                           channel.Id,
+                           channel.Name,
+                           channelDetail.Nationid,
+                           NationName = nation.Name,
+                           channelDetail.Agentid,
+                           AgentName = agent.Name,
+                           channelDetail.Unitprice
+                       }).ToListAsync();
+
+            var results = from t in temp
+                          group t by new { t.Id, t.Name };
+            List<ChannelResponse> ChannelResponses = new List<ChannelResponse>();
+            foreach (var r in results)
             {
-                Id = t.Id,
-                Name = t.Name
-            }));
+                ChannelResponse channelResponse = new ChannelResponse();
+                channelResponse.details = new List<ChannelResponsedetail>();
+                channelResponse.Id = r.Key.Id;
+                channelResponse.Name = r.Key.Name;
+                foreach (var d in r)
+                {
+                    ChannelResponsedetail channelResponsedetail = new ChannelResponsedetail();
+                    channelResponsedetail.Nationid = d.Nationid;
+                    channelResponsedetail.NationName = d.NationName;
+                    channelResponsedetail.Agentid = d.Agentid;
+                    channelResponsedetail.AgentName = d.AgentName;
+                    channelResponsedetail.Unitprice = d.Unitprice;
+                    channelResponse.details.Add(channelResponsedetail);
+                }
+                ChannelResponses.Add(channelResponse);
+            }
+
+            return RickWebResult.Success((IList<ChannelResponse>)ChannelResponses);
+            //var results = await _channelService.QueryAsync<Channel>(t => t.Status == 1);
+            //return RickWebResult.Success(results.Select(t => new ChannelResponse()
+            //{
+            //    Id = t.Id,
+            //    Name = t.Name
+            //}));
         }
 
         /// <summary>
@@ -99,6 +144,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
     public class ChannelRequest
     {
+
         public string Name { get; set; }
         public IList<ChannelRequestdetail> details { get; set; }
     }
@@ -120,8 +166,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
     }
     public class ChannelResponsedetail
     {
-        public long Id { get; set; }
-        public long Channelid { get; set; }
         public long Nationid { get; set; }
         public string NationName { get; set; }
 

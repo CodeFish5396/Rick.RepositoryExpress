@@ -17,6 +17,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Converters;
+using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Rick.RepositoryExpress.SysWebApi
 {
@@ -79,14 +82,26 @@ namespace Rick.RepositoryExpress.SysWebApi
             services.AddScoped<IAgentService, AgentService>();
             services.AddScoped<IPackageService, PackageService>();
             services.AddScoped<IAppuseraddressService, AppuseraddressService>();
+            services.AddScoped<IPackageService, PackageService>();
+            services.AddScoped<IPackageOrderApplyService, PackageOrderApplyService>();
+            services.AddScoped<IAppuseraccountService, AppuseraccountService>();
+            services.AddScoped<IPackageorderapplyexpressService, PackageorderapplyexpressService>();
+            services.AddScoped<IIncomeService, IncomeService>();
+            services.AddScoped<IAccountsubjectService, AccountsubjectService>();
+            services.AddScoped<IAgentFeeService, AgentFeeService>();
+
 
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));
             services.AddSingleton(new RedisClientService(redisConnectionString, redisDbNum));
+
             services.AddControllersWithViews(configure =>
             {
                 configure.Filters.Add<CustomExceptionFilterAttribute>();
                 configure.Filters.Add<CustomAuthorizationFilterAttribute>();
+            })
+            .AddJsonOptions(options => {
+                options.JsonSerializerOptions.Converters.Add(new DateTimeJsonConverter());
             });
         }
 

@@ -16,7 +16,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public string Location { get; set; }
         public string Name { get; set; }
         public int Count { get; set; }
-        public decimal Weight { get; set; }
+        public decimal? Weight { get; set; }
+        public decimal? Volume { get; set; }
         public string Remark { get; set; }
         public int Status { get; set; }
         public long Adduser { get; set; }

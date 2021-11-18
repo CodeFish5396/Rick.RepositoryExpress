@@ -27,7 +27,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Models
                 values["Action"] = httpContext.Request.Method;
                 //values.Remove(_route);
                 return values;
-
             }
         }
     }

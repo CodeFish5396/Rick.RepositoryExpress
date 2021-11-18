@@ -10,6 +10,10 @@ namespace Rick.RepositoryExpress.RedisService
         {
             redisHelper = new RedisHelper(connectionString, dbNum);
         }
+        public long UserCodeGet()
+        {
+            return redisHelper.UserCodeGet();
+        }
         public bool StringSet(string key, string value, TimeSpan? expiry = default(TimeSpan?))
         {
             return redisHelper.StringSet(key, value, expiry);

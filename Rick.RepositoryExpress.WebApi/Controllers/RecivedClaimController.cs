@@ -43,12 +43,14 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         [HttpGet]
         public async Task<RickWebResult<RecivedClaimResponseList>> Get([FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            await _expressclaimService.BeginTransactionAsync();
             var query = from expressclaim in _expressclaimService.Query<Expressclaim>(t => t.Status == (int)ExpressClaimStatus.已入库 && t.Appuser == UserInfo.Id)
                         join expressinfo in _expressclaimService.Query<Expressinfo>(t => 1 == 1)
                         on expressclaim.Expressinfoid equals expressinfo.Id
                         join package in _expressclaimService.Query<Package>(t => t.Status >= 1)
                         on expressclaim.Packageid equals package.Id
+                        join courier in _expressclaimService.Query<Courier>(t => 1 == 1)
+                        on expressinfo.Courierid equals courier.Id
+
                         select new RecivedClaimResponse()
                         {
                             Id = expressclaim.Id,
@@ -56,23 +58,53 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                             Weight = package.Weight,
                             Volume = package.Volume,
                             Expressnumber = expressinfo.Expressnumber,
-                            CourierName = string.Empty,
+                            Packageid = package.Id,
+                            CourierName = courier.Name,
                             CourierId = expressinfo.Courierid,
                             Addtime = package.Addtime
                         };
             var count = await query.CountAsync();
-            var results = await (query.OrderByDescending(t=>t.Addtime).Skip((index - 1) * pageSize).Take(pageSize)).ToListAsync();
-            await _expressclaimService.CommitAsync();
-
+            var results = await (query.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize)).ToListAsync();
             RecivedClaimResponseList recivedClaimResponseList = new RecivedClaimResponseList();
+
             recivedClaimResponseList.List = results;
             recivedClaimResponseList.Count = count;
+
+            IEnumerable<long> ids = recivedClaimResponseList.List.Select(t => t.Packageid);
+
+            var imageInfos = await (from image in _expressclaimService.Query<Packageimage>(t => ids.Contains(t.Packageid))
+                                    select image
+                                    ).ToListAsync();
+
+            var vedioInfos = await (from vedio in _expressclaimService.Query<Packagevideo>(t => ids.Contains(t.Packageid))
+                                    select vedio
+                        ).ToListAsync();
+
+            var expressclaimids = recivedClaimResponseList.List.Select(t => t.Id);
+            var expressclaimdetails = await (from expressclaimdetail in _expressclaimService.Query<Expressclaimdetail>(t => expressclaimids.Contains(t.Expressclaimid))
+                                 select new RecivedClaimResponseDetail()
+                                 {
+                                     Id = expressclaimdetail.Id,
+                                     Expressclaimid = expressclaimdetail.Expressclaimid,
+                                     Name = expressclaimdetail.Name,
+                                     Unitprice = expressclaimdetail.Unitprice,
+                                     Count = expressclaimdetail.Count
+                                 }).ToListAsync();
+
+            foreach (var packageInResponse in recivedClaimResponseList.List)
+            {
+                packageInResponse.Images = imageInfos.Where(t => t.Packageid == packageInResponse.Packageid).Select(t => t.Fileinfoid).ToList();
+                packageInResponse.Videos = vedioInfos.Where(t => t.Packageid == packageInResponse.Packageid).Select(t => t.Fileinfoid).ToList();
+                packageInResponse.Details = expressclaimdetails.Where(t => t.Expressclaimid == packageInResponse.Id).ToList();
+            }
+
             return RickWebResult.Success(recivedClaimResponseList);
         }
 
         public class RecivedClaimResponse
         {
             public long Id { get; set; }
+            public long Packageid { get; set; }
             public string PackageName { get; set; }
             public string Expressnumber { get; set; }
             public string CourierName { get; set; }
@@ -81,11 +113,24 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public Decimal? Weight { get; set; }
             public Decimal? Volume { get; set; }
 
+            public IList<long> Images { get; set; }
+            public IList<long> Videos { get; set; }
+
+            public IList<RecivedClaimResponseDetail> Details { get; set; }
         }
         public class RecivedClaimResponseList
         {
             public int Count { get; set; }
             public IList<RecivedClaimResponse> List { get; set; }
+        }
+        public class RecivedClaimResponseDetail
+        {
+            public long Id { get; set; }
+            public long Expressclaimid { get; set; }
+            public string Name { get; set; }
+            public decimal? Unitprice { get; set; }
+            public int Count { get; set; }
+
         }
 
     }

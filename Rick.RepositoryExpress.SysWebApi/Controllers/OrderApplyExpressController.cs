@@ -67,6 +67,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Nationname = nation.Name,
                             Addressid = order.Addressid,
                             Appuser = order.Appuser,
+                            Appusercode = appuser.Usercode,
                             Appusername = appuser.Name,
                             Orderstatus = order.Orderstatus,
                             Ispayed = order.Ispayed,
@@ -78,6 +79,41 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             OrderApplyExpressResponseList orderApplyExpressList = new OrderApplyExpressResponseList();
             orderApplyExpressList.Count = await query.CountAsync();
             orderApplyExpressList.List = await query.OrderByDescending(t => t.Addtime).Skip(pageSize * (index - 1)).Take(pageSize).ToListAsync();
+
+            foreach (var item in orderApplyExpressList.List)
+            {
+                var orderid = item.Id;
+                var packageIds = await (from package in _packageOrderApplyService.Query<Packageorderapplydetail>(t => orderid == t.Packageorderapplyid && t.Status == 1)
+                                        select package.Packageid
+                        ).ToListAsync();
+
+                var packages = await (from package in _packageOrderApplyService.Query<Package>(t => packageIds.Contains(t.Id))
+                                      select new OrderApplyExpressResponseDetail()
+                                      {
+                                          PackageId = package.Id,
+                                          PackageName = package.Name,
+                                          Expressnumber = package.Expressnumber,
+                                          Location = package.Location,
+                                          Name = package.Name,
+                                          Count = package.Count,
+                                          Weight = package.Weight
+                                      }
+                            ).ToListAsync();
+                item.Details = packages;
+                var imageInfos = await (from image in _packageOrderApplyService.Query<Packageimage>(t => packageIds.Contains(t.Packageid))
+                                        select image
+                            ).ToListAsync();
+
+                var vedioInfos = await (from vedio in _packageOrderApplyService.Query<Packagevideo>(t => packageIds.Contains(t.Packageid))
+                                        select vedio
+                            ).ToListAsync();
+                foreach (var Detail in item.Details)
+                {
+                    Detail.Images = imageInfos.Where(t => t.Packageid == Detail.PackageId).Select(t => t.Fileinfoid).ToList();
+                    Detail.Videos = vedioInfos.Where(t => t.Packageid == Detail.PackageId).Select(t => t.Fileinfoid).ToList();
+                }
+            }
+
             return RickWebResult.Success(orderApplyExpressList);
 
         }
@@ -152,13 +188,29 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Addressid { get; set; }
             public long Appuser { get; set; }
             public string Appusername { get; set; }
+            public string Appusercode { get; set; }
+
             public int Orderstatus { get; set; }
             public sbyte? Ispayed { get; set; }
             public DateTime? Paytime { get; set; }
             public int Status { get; set; }
             public DateTime Addtime { get; set; }
+            public List<OrderApplyExpressResponseDetail> Details { get; set; }
 
         }
+        public class OrderApplyExpressResponseDetail
+        {
+            public long PackageId { get; set; }
+            public string PackageName { get; set; }
+            public string Expressnumber { get; set; }
+            public string Location { get; set; }
+            public string Name { get; set; }
+            public int Count { get; set; }
+            public decimal? Weight { get; set; }
+            public IList<long> Images { get; set; }
+            public IList<long> Videos { get; set; }
+        }
+
         public class OrderApplyExpressResponseList
         {
             public int Count { get; set; }

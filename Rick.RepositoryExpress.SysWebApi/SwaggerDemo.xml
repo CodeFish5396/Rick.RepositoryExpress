@@ -111,6 +111,19 @@
             <param name="channelRequest"></param>
             <returns></returns>
         </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.ClaimController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32},System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            查询用户包裹预报
+            </summary>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="status"></param>
+            <param name="expressNumber"></param>
+            <param name="userCode"></param>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.CourierController">
             <summary>
             快递公司

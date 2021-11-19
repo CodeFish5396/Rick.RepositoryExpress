@@ -56,7 +56,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         on channeldetail.Channelid equals channel.Id
                         join nation in _packageOrderApplyService.Query<Nation>(t => true)
                         on channeldetail.Nationid equals nation.Id
-                        join appuser in _packageOrderApplyService.Query<Appuser>(t=>true)
+                        join appuser in _packageOrderApplyService.Query<Appuser>(t => true)
                         on order.Appuser equals appuser.Id
                         select new OrderApplyResponse()
                         {
@@ -79,13 +79,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             OrderApplyResponseList orderApplyResponseList = new OrderApplyResponseList();
             orderApplyResponseList.Count = await query.CountAsync();
             orderApplyResponseList.List = await query.OrderByDescending(t => t.Addtime).Skip(pageSize * (index - 1)).Take(pageSize).ToListAsync();
-            
 
             foreach (var item in orderApplyResponseList.List)
             {
                 var orderid = item.Id;
-                var packageIds = await (from package in _packageOrderApplyService.Query<Packageorderapplydetail>(t => orderid == t.Id && t.Status == 1)
-                                        select package.Id
+                var packageIds = await (from package in _packageOrderApplyService.Query<Packageorderapplydetail>(t => orderid == t.Packageorderapplyid && t.Status == 1)
+                                        select package.Packageid
                         ).ToListAsync();
 
                 var packages = await (from package in _packageOrderApplyService.Query<Package>(t => packageIds.Contains(t.Id))
@@ -114,7 +113,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     Detail.Videos = vedioInfos.Where(t => t.Packageid == Detail.PackageId).Select(t => t.Fileinfoid).ToList();
                 }
             }
-            
+
             //orderApplyResponseList.List
 
             return RickWebResult.Success(orderApplyResponseList);
@@ -212,7 +211,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Addressid { get; set; }
             public long Appuser { get; set; }
             public string AppuserCode { get; set; }
-
             public string Appusername { get; set; }
             public int Orderstatus { get; set; }
             public sbyte? Ispayed { get; set; }

@@ -88,6 +88,19 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 expressclaim.Status = (int)ExpressClaimStatus.已到库;
                 await _packageService.UpdateAsync(expressclaim);
             }
+            //foreach (var detail in packageInRequest.Details)
+            //{
+            //    Packagedetail packagedetail = new Packagedetail();
+            //    packagedetail.Id = _idGenerator.NextId();
+            //    packagedetail.Packageid = package.Id;
+            //    packagedetail.Status = 1;
+            //    packagedetail.Adduser = UserInfo.Id;
+            //    packagedetail.Addtime = now;
+            //    packagedetail.Count = detail.Count;
+            //    packagedetail.Name = detail.Name;
+            //    packagedetail.Unit = detail.Unit;
+            //    await _packageService.AddAsync(packagedetail);
+            //}
 
             foreach (var image in packageInRequest.Images)
             {
@@ -209,6 +222,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public int Count { get; set; }
         public IList<long> Images { get; set; }
         public IList<long> Videos { get; set; }
+        //public IList<PackageDetailInRequest> Details { get; set; }
+
     }
 
     public class PackageDetailInRequest

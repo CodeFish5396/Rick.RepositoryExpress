@@ -21,5 +21,9 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public long Lastuser { get; set; }
         public DateTime Lasttime { get; set; }
         public string Remark { get; set; }
+        public long? Packuser { get; set; }
+        public DateTime? Packtime { get; set; }
+        public long? Senduser { get; set; }
+        public DateTime? Sendtime { get; set; }
     }
 }

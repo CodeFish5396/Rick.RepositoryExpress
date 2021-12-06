@@ -40,6 +40,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询用户充值
         /// </summary>
+        /// <param name="userCode"></param>
+        /// <param name="userName"></param>
+        /// <param name="userMobile"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
         /// <param name="status"></param>
         /// <param name="currencyid"></param>
         /// <param name="userid"></param>
@@ -47,10 +52,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<UserAccountChargeResponseList>> Get([FromQuery] int? status, [FromQuery] long? currencyid, [FromQuery] long? userid, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<UserAccountChargeResponseList>> Get([FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime,[FromQuery] int? status, [FromQuery] long? currencyid, [FromQuery] long? userid, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from accountcharge in _appuseraccountService.Query<Appuseraccountcharge>(t => (!status.HasValue || t.Status == status) && (!currencyid.HasValue || t.Currencyid == currencyid) && (!userid.HasValue || t.Appuser == userid))
-                        join user in _appuseraccountService.Query<Appuser>(t => true)
+            var query = from accountcharge in _appuseraccountService.Query<Appuseraccountcharge>(t => (!status.HasValue || t.Status == status) && (!currencyid.HasValue || t.Currencyid == currencyid) && (!userid.HasValue || t.Appuser == userid) && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime<= endTime))
+                        join user in _appuseraccountService.Query<Appuser>(t => (string.IsNullOrEmpty(userCode) || t.Usercode == userCode) && (string.IsNullOrEmpty(userName) || t.Truename == userName) && (string.IsNullOrEmpty(userMobile) || t.Mobile == userMobile))
                         on accountcharge.Appuser equals user.Id
                         join currency in _appuseraccountService.Query<Currency>(t => true)
                         on accountcharge.Currencyid equals currency.Id
@@ -61,15 +66,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Id = accountcharge.Id,
                             Userid = accountcharge.Appuser,
                             Username = user.Name,
+                            Usercode = user.Usercode,
+                            Usermobile = user.Mobile,
                             Currencyid = accountcharge.Currencyid,
                             CurrencyName = tc == null ? string.Empty : tc.Name,
                             Amount = accountcharge.Amount,
                             Status = accountcharge.Status,
-                            AddTime = accountcharge.Addtime
+                            Addtime = accountcharge.Addtime
                         };
             int count = await query.CountAsync();
 
-            var queryGroup = from q in query.OrderByDescending(t => t.AddTime).Skip((index - 1) * pageSize).Take(pageSize)
+            var queryGroup = from q in query.OrderByDescending(t => t.Id).Skip((index - 1) * pageSize).Take(pageSize)
                              join image in _appuseraccountService.Query<Appuseraccountchargeimage>(t => t.Status == 1)
                              on q.Id equals image.Appuseraccountchargeid
                              into imageTemp
@@ -79,15 +86,20 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                  Id = q.Id,
                                  Userid = q.Userid,
                                  Username = q.Username,
+                                 Usercode = q.Usercode,
+                                 Usermobile = q.Usermobile,
+
                                  Currencyid = q.Currencyid,
                                  CurrencyName = q.CurrencyName,
                                  Amount = q.Amount,
                                  Status = q.Status,
+                                 Addtime = q.Addtime,
+
                                  FileId = image == null ? 0 : image.Fileinfoid
                              };
 
             var queryR = from r in (await queryGroup.ToListAsync())
-                         group r by new { r.Id, r.Userid, r.Username, r.Currencyid, r.CurrencyName, r.Amount, r.Status };
+                         group r by new { r.Id, r.Userid, r.Username,r.Usercode,r.Usermobile ,r.Currencyid, r.CurrencyName, r.Amount, r.Status,r.Addtime };
 
             UserAccountChargeResponseList userAccountResponseList = new UserAccountChargeResponseList();
             userAccountResponseList.List = new List<UserAccountChargeResponse>();
@@ -99,9 +111,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 userAccountChargeResponse.Id = r.Key.Id;
                 userAccountChargeResponse.Userid = r.Key.Userid;
                 userAccountChargeResponse.Username = r.Key.Username;
+                userAccountChargeResponse.Usercode = r.Key.Usercode;
+                userAccountChargeResponse.Usermobile = r.Key.Usermobile;
                 userAccountChargeResponse.Currencyid = r.Key.Currencyid;
                 userAccountChargeResponse.CurrencyName = r.Key.CurrencyName;
                 userAccountChargeResponse.Amount = r.Key.Amount;
+                userAccountChargeResponse.Addtime = r.Key.Addtime;
                 userAccountChargeResponse.Status = r.Key.Status;
                 foreach (var image in r)
                 {
@@ -180,7 +195,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             appuseraccountcharge.Amount = userAccountPatchRequest.Amount;
             appuseraccountcharge.Currencyid = userAccountPatchRequest.Currencyid;
             await _appuseraccountService.UpdateAsync(appuseraccountcharge);
-            Appuseraccount appuseraccount = (await _appuseraccountService.QueryAsync<Appuseraccount>(t => t.Appuser == appuseraccountcharge.Appuser && t.Status == 1)).SingleOrDefault();
+            Appuseraccount appuseraccount = (await _appuseraccountService.QueryAsync<Appuseraccount>(t => t.Appuser == appuseraccountcharge.Appuser && t.Currencyid == userAccountPatchRequest.Currencyid && t.Status == 1)).SingleOrDefault();
             if (appuseraccount == null)
             {
                 appuseraccount = new Appuseraccount();
@@ -214,9 +229,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             public long Userid { get; set; }
             public string Username { get; set; }
+            public string Usercode { get; set; }
+            public string Usermobile { get; set; }
+
             public long Currencyid { get; set; }
             public string CurrencyName { get; set; }
             public decimal Amount { get; set; }
+            public DateTime Addtime { get; set; }
             public int Status { get; set; }
             public List<long> Images { get; set; }
         }

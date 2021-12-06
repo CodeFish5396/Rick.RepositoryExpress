@@ -89,7 +89,7 @@ namespace Rick.RepositoryExpress.SysWebApi
             services.AddScoped<IIncomeService, IncomeService>();
             services.AddScoped<IAccountsubjectService, AccountsubjectService>();
             services.AddScoped<IAgentFeeService, AgentFeeService>();
-
+            services.AddScoped<ISysmenuService, SysmenuService>();
 
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));

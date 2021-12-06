@@ -42,6 +42,14 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             userLoginInfo.Openid = appuser.Openid;
             userLoginInfo.Mobile = appuser.Mobile;
             userLoginInfo.Countrycode = appuser.Countrycode;
+            userLoginInfo.Truename = appuser.Truename;
+            userLoginInfo.Countryname = appuser.Countryname;
+            userLoginInfo.Cityname = appuser.Cityname;
+            userLoginInfo.Gender = appuser.Gender;
+            userLoginInfo.Birthdate = appuser.Birthdate;
+            userLoginInfo.Email = appuser.Email;
+            userLoginInfo.Address = appuser.Address;
+
             return RickWebResult.Success(userLoginInfo);
         }
 
@@ -55,7 +63,14 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         {
             await _appuserService.BeginTransactionAsync();
             Appuser appuser = await _appuserService.FindAsync<Appuser>(UserInfo.Id);
-            appuser.Name = userPostRequest.Name;
+            appuser.Name = string.IsNullOrEmpty(userPostRequest.Name) ? appuser.Name : userPostRequest.Name;
+            appuser.Truename = string.IsNullOrEmpty(userPostRequest.Truename) ? appuser.Truename : userPostRequest.Truename;
+            appuser.Countryname = string.IsNullOrEmpty(userPostRequest.Countryname) ? appuser.Countryname : userPostRequest.Countryname;
+            appuser.Cityname = string.IsNullOrEmpty(userPostRequest.Cityname) ? appuser.Cityname : userPostRequest.Cityname;
+            appuser.Gender = string.IsNullOrEmpty(userPostRequest.Gender) ? appuser.Gender : userPostRequest.Gender;
+            appuser.Birthdate = string.IsNullOrEmpty(userPostRequest.Birthdate) ? appuser.Birthdate : userPostRequest.Birthdate == "null" ? appuser.Birthdate : Convert.ToDateTime(userPostRequest.Birthdate);
+            appuser.Email = string.IsNullOrEmpty(userPostRequest.Email) ? appuser.Email : userPostRequest.Email;
+            appuser.Address = string.IsNullOrEmpty(userPostRequest.Address) ? appuser.Address : userPostRequest.Address;
             appuser.Lasttime = DateTime.Now;
 
             await _appuserService.UpdateAsync(appuser);
@@ -64,12 +79,18 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             UserLoginInfo userLoginInfo = new UserLoginInfo();
             userLoginInfo.Name = appuser.Name;
             userLoginInfo.UserCode = appuser.Usercode;
+            userLoginInfo.Truename = appuser.Truename;
+            userLoginInfo.Countryname = appuser.Countryname;
+            userLoginInfo.Cityname = appuser.Cityname;
+            userLoginInfo.Gender = appuser.Gender;
+            userLoginInfo.Birthdate = appuser.Birthdate;
+            userLoginInfo.Email = appuser.Email;
+            userLoginInfo.Address = appuser.Address;
 
             userLoginInfo.Openid = appuser.Openid;
             userLoginInfo.Mobile = appuser.Mobile;
             userLoginInfo.Countrycode = appuser.Countrycode;
             return RickWebResult.Success(userLoginInfo);
-
         }
 
         public class UserLoginInfo
@@ -79,11 +100,26 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public string Openid { get; set; }
             public string Mobile { get; set; }
             public string Countrycode { get; set; }
+            public string Truename { get; set; }
+            public string Countryname { get; set; }
+            public string Cityname { get; set; }
+            public string Gender { get; set; }
+            public DateTime? Birthdate { get; set; }
+            public string Email { get; set; }
+            public string Address { get; set; }
 
         }
         public class UserPostRequest
         {
             public string Name { get; set; }
+            public string Truename { get; set; }
+            public string Countryname { get; set; }
+            public string Cityname { get; set; }
+            public string Gender { get; set; }
+            public string Birthdate { get; set; }
+            public string Email { get; set; }
+            public string Address { get; set; }
+
         }
 
     }

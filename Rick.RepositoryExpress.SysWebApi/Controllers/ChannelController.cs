@@ -48,22 +48,22 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             var channels = _channelService.Query<Channel>(t => (string.IsNullOrEmpty(name) || t.Name == name) && (!status.HasValue || t.Status == status));
             var temp = await (from channel in channels
-                       join channelDetail in _channelService.Query<Channeldetail>(t => t.Status == 1)
-                       on channel.Id equals channelDetail.Channelid
-                       join nation in _channelService.Query<Nation>(t => 1 == 1)
-                       on channelDetail.Nationid equals nation.Id
-                       join agent in _channelService.Query<Agent>(t => 1 == 1)
-                       on channelDetail.Agentid equals agent.Id
-                       select new
-                       {
-                           channel.Id,
-                           channel.Name,
-                           channelDetail.Nationid,
-                           NationName = nation.Name,
-                           channelDetail.Agentid,
-                           AgentName = agent.Name,
-                           channelDetail.Unitprice
-                       }).ToListAsync();
+                              join channelDetail in _channelService.Query<Channeldetail>(t => t.Status == 1)
+                              on channel.Id equals channelDetail.Channelid
+                              join nation in _channelService.Query<Nation>(t => 1 == 1)
+                              on channelDetail.Nationid equals nation.Id
+                              join agent in _channelService.Query<Agent>(t => 1 == 1)
+                              on channelDetail.Agentid equals agent.Id
+                              select new
+                              {
+                                  channel.Id,
+                                  channel.Name,
+                                  channelDetail.Nationid,
+                                  NationName = nation.Name,
+                                  channelDetail.Agentid,
+                                  AgentName = agent.Name,
+                                  channelDetail.Unitprice
+                              }).ToListAsync();
 
             var results = from t in temp
                           group t by new { t.Id, t.Name };
@@ -140,6 +140,79 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             return RickWebResult.Success(channelResponse);
         }
 
+        /// <summary>
+        /// 删除快递通道
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<RickWebResult<object>> Delete([FromQuery] long id)
+        {
+            await _channelService.BeginTransactionAsync();
+
+            Channel channel = await _channelService.FindAsync<Channel>(t => t.Id == id);
+            DateTime now = DateTime.Now;
+
+            channel.Status = 0;
+            channel.Lasttime = now;
+            channel.Lastuser = UserInfo.Id;
+            await _channelService.UpdateAsync(channel);
+            await _channelService.CommitAsync();
+            return RickWebResult.Success(new object());
+
+        }
+
+        /// <summary>
+        /// 修改快递通道
+        /// </summary>
+        /// <param name="channelRequest"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<RickWebResult<ChannelResponse>> Put([FromBody] ChannelPutRequest channelRequest)
+        {
+            await _channelService.BeginTransactionAsync();
+
+            Channel channelOld = await _channelService.FindAsync<Channel>(t => t.Id == channelRequest.id);
+            DateTime now = DateTime.Now;
+
+            channelOld.Status = 0;
+            channelOld.Lasttime = now;
+            channelOld.Lastuser = UserInfo.Id;
+            await _channelService.UpdateAsync(channelOld);
+
+            Channel channel = new Channel();
+            channel.Id = _idGenerator.NextId();
+            channel.Name = channelRequest.Name;
+            channel.Status = 1;
+            channel.Addtime = now;
+            channel.Lasttime = now;
+            channel.Adduser = UserInfo.Id;
+            channel.Lastuser = UserInfo.Id;
+            await _channelService.AddAsync(channel);
+
+            foreach (var detail in channelRequest.details)
+            {
+                Channeldetail channeldetail = new Channeldetail();
+                channeldetail.Id = _idGenerator.NextId();
+                channeldetail.Channelid = channel.Id;
+                channeldetail.Nationid = detail.Nationid;
+                channeldetail.Agentid = detail.Agentid;
+                channeldetail.Unitprice = detail.Unitprice;
+                channeldetail.Status = 1;
+                channeldetail.Addtime = now;
+                channeldetail.Lasttime = now;
+                channeldetail.Adduser = UserInfo.Id;
+                channeldetail.Lastuser = UserInfo.Id;
+                await _channelService.AddAsync(channeldetail);
+            }
+
+            await _channelService.CommitAsync();
+            ChannelResponse channelResponse = new ChannelResponse();
+            channelResponse.Id = channel.Id;
+            channelResponse.Name = channel.Name;
+            return RickWebResult.Success(channelResponse);
+        }
+
     }
 
     public class ChannelRequest
@@ -148,11 +221,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Name { get; set; }
         public IList<ChannelRequestdetail> details { get; set; }
     }
+
     public class ChannelRequestdetail
     {
         public long Nationid { get; set; }
         public long Agentid { get; set; }
         public decimal Unitprice { get; set; }
+    }
+    public class ChannelPutRequest
+    {
+        public long id { get; set; }
+        public string Name { get; set; }
+        public IList<ChannelRequestdetail> details { get; set; }
     }
 
     public class ChannelResponse

@@ -37,27 +37,44 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询用户确认发货
         /// </summary>
+        /// <param name="id"></param>
+        /// <param name="userCode"></param>
+        /// <param name="userName"></param>
+        /// <param name="userMobile"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="status"></param>
         /// <param name="orderStatus"></param>
-        /// <param name="expressNumber"></param>
-        /// <param name="userId"></param>
+        /// <param name="sendUserName"></param>
         /// <param name="index"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<OrderApplyExpressResponseList>> Get([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int? status, [FromQuery] int orderStatus, [FromQuery] string expressNumber, [FromQuery] long? userId, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<OrderApplyExpressResponseList>> Get([FromQuery] long? id, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int? status, [FromQuery] int? orderStatus, [FromQuery] string sendUserName, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from order in _packageOrderApplyService.Query<Packageorderapply>(t => (!status.HasValue || t.Status == status) && t.Orderstatus == (int)OrderApplyStatus.确认发货)
+            var query = from order in _packageOrderApplyService.Query<Packageorderapply>(t => (!status.HasValue || t.Status == status)
+                        && (!orderStatus.HasValue || t.Orderstatus == orderStatus)
+                        && (t.Orderstatus == (int)OrderApplyStatus.确认发货 || t.Orderstatus == (int)OrderApplyStatus.出货录单 || t.Orderstatus == (int)OrderApplyStatus.已发货)
+                        && (!id.HasValue || t.Id == id)
+                        && (!startTime.HasValue || t.Sendtime >= startTime)
+                        && (!endTime.HasValue || t.Sendtime <= endTime)
+                        )
                         join channeldetail in _packageOrderApplyService.Query<Channeldetail>(channel => 1 == 1)
                         on order.Channelid equals channeldetail.Id
                         join channel in _packageOrderApplyService.Query<Channel>(t => true)
                         on channeldetail.Channelid equals channel.Id
                         join nation in _packageOrderApplyService.Query<Nation>(t => true)
                         on channeldetail.Nationid equals nation.Id
-                        join appuser in _packageOrderApplyService.Query<Appuser>(t => true)
+                        join appuser in _packageOrderApplyService.Query<Appuser>(t => (string.IsNullOrEmpty(userCode) ||t.Usercode == userCode)
+                            && (string.IsNullOrEmpty(userName) || t.Truename == userName)
+                            && (string.IsNullOrEmpty(userMobile) || t.Mobile == userMobile)
+                        )
                         on order.Appuser equals appuser.Id
+                        join sysUser in _packageOrderApplyService.Query<Sysuser>()
+                        on order.Senduser equals sysUser.Id
+                        into sysUserTemp
+                        from sysUser in sysUserTemp.DefaultIfEmpty()
+                        where (string.IsNullOrEmpty(sendUserName) || (sysUser != null && sysUser.Name == sendUserName))
                         select new OrderApplyExpressResponse()
                         {
                             Id = order.Id,
@@ -68,12 +85,15 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Addressid = order.Addressid,
                             Appuser = order.Appuser,
                             Appusercode = appuser.Usercode,
-                            Appusername = appuser.Name,
+                            Appusername = appuser.Truename,
+                            Appusermobile = appuser.Mobile,
                             Orderstatus = order.Orderstatus,
-                            Ispayed = order.Ispayed,
                             Paytime = order.Paytime,
                             Status = order.Status,
-                            Addtime = order.Addtime
+                            Addtime = order.Addtime,
+                            Senduser = sysUser == null ? 0 : sysUser.Id,
+                            Sendusername = sysUser == null ? string.Empty : sysUser.Name,
+                            Sendtime = order.Sendtime
                         };
 
             OrderApplyExpressResponseList orderApplyExpressList = new OrderApplyExpressResponseList();
@@ -130,6 +150,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             DateTime now = DateTime.Now;
             Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(orderApplyExpressResquest.Id);
             packageorderapply.Orderstatus = (int)OrderApplyStatus.已发货;
+
+            packageorderapply.Lasttime = DateTime.Now;
+            packageorderapply.Lastuser = UserInfo.Id;
+            packageorderapply.Sendtime = packageorderapply.Lasttime;
+            packageorderapply.Senduser = UserInfo.Id;
+
             await _packageOrderApplyService.UpdateAsync(packageorderapply);
 
             var details = await _packageOrderApplyService.QueryAsync<Packageorderapplydetail>(t=>t.Packageorderapplyid == packageorderapply.Id);
@@ -176,7 +202,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Innernumber { get; set; }
             public string Batchnumber { get; set; }
             public decimal? Agentprice { get; set; }
-
         }
         public class OrderApplyExpressResponse
         {
@@ -189,12 +214,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Appuser { get; set; }
             public string Appusername { get; set; }
             public string Appusercode { get; set; }
-
+            public string Appusermobile { get; set; }
             public int Orderstatus { get; set; }
-            public sbyte? Ispayed { get; set; }
             public DateTime? Paytime { get; set; }
             public int Status { get; set; }
             public DateTime Addtime { get; set; }
+            public long Senduser { get; set; }
+            public string Sendusername { get; set; }
+            public DateTime? Sendtime { get; set; }
             public List<OrderApplyExpressResponseDetail> Details { get; set; }
 
         }
@@ -210,7 +237,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public IList<long> Images { get; set; }
             public IList<long> Videos { get; set; }
         }
-
         public class OrderApplyExpressResponseList
         {
             public int Count { get; set; }

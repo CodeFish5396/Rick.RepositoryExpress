@@ -18,5 +18,12 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public DateTime Lasttime { get; set; }
         public int Status { get; set; }
         public long? AddUser { get; set; }
+        public string Truename { get; set; }
+        public string Countryname { get; set; }
+        public string Cityname { get; set; }
+        public string Gender { get; set; }
+        public DateTime? Birthdate { get; set; }
+        public string Email { get; set; }
+        public string Address { get; set; }
     }
 }

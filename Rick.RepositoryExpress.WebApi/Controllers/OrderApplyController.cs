@@ -115,30 +115,39 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                         select new OrderApplyResponse()
                         {
                             Id = packageorderapply.Id,
+                            ExpressId = packageorderapplyexpress.Id,
                             Channelid = packageorderapply.Channelid,
                             Nationid = packageorderapply.Nationid,
                             NationName = nation.Name,
                             Addressid = packageorderapply.Addressid,
                             Addtime = packageorderapply.Addtime,
-                            Remark = packageorderapply.Remark,
-                            Count = packageorderapplyexpress.Count,
-                            Weight = packageorderapplyexpress.Weight,
+                            Remark = packageorderapplyexpress.Remark,
                             Mailcode = packageorderapplyexpress.Mailcode,
-                            Customprice = packageorderapplyexpress.Customprice,
-                            Sueprice = packageorderapplyexpress.Sueprice,
-                            Overlengthprice = packageorderapplyexpress.Overlengthprice,
-                            Overweightprice = packageorderapplyexpress.Overweightprice,
-                            Oversizeprice = packageorderapplyexpress.Oversizeprice,
-                            Paperprice = packageorderapplyexpress.Paperprice,
-                            Boxprice = packageorderapplyexpress.Boxprice,
-                            Bounceprice = packageorderapplyexpress.Bounceprice,
                             Price = packageorderapplyexpress.Price
                         };
 
             OrderApplyResponseList orderApplyResponseList = new OrderApplyResponseList();
             orderApplyResponseList.Count = await query.CountAsync();
             orderApplyResponseList.List = await query.OrderByDescending(t => t.Addtime).Skip(pageSize * (index - 1)).Take(pageSize).ToListAsync();
+            foreach (var item in orderApplyResponseList.List)
+            {
+                Packageorderapplyexpress packageorderapplyexpress = await _packageOrderApplyService.FindAsync<Packageorderapplyexpress>(item.ExpressId);
+                var packageorderapplyexpressdetails = await _packageOrderApplyService.Query<Packageorderapplyexpressdetail>(t => t.Packageorderapplyexpressid == packageorderapplyexpress.Id).ToListAsync();
+                item.Details = packageorderapplyexpressdetails.Select(ppp => new OrderApplyResponseDetail() {
+                    Count = ppp.Count,
+                    Weight = ppp.Weight,
+                    Customprice = ppp.Customprice,
+                    Sueprice = ppp.Sueprice,
+                    Overlengthprice = ppp.Overlengthprice,
+                    Overweightprice = ppp.Overweightprice,
+                    Oversizeprice = ppp.Oversizeprice,
+                    Paperprice = ppp.Paperprice,
+                    Boxprice = ppp.Boxprice,
+                    Bounceprice = ppp.Bounceprice,
+                    Price = ppp.Price
+                }).ToList();
 
+            }
             return RickWebResult.Success(orderApplyResponseList);
         }
 
@@ -151,13 +160,54 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         public async Task<RickWebResult<object>> Put([FromQuery] long id)
         {
             await _packageOrderApplyService.BeginTransactionAsync();
-            Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(id);
-            Packageorderapplyexpress packageorderapplyexpress = (await _packageOrderApplyService.QueryAsync<Packageorderapplyexpress>(t=>t.Packageorderapplyid == packageorderapply.Id && t.Status == 1)).Single();
-            packageorderapply.Orderstatus = (int)OrderApplyStatus.确认发货;
-            await _packageOrderApplyService.UpdateAsync(packageorderapply);
+            DateTime now = DateTime.Now;
 
-            await _packageOrderApplyService.CommitAsync();
-            return RickWebResult.Success(new object());
+            Appuseraccount appuseraccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == UserInfo.Id && t.Currencyid == 15502590835934208 && t.Status == 1)).FirstOrDefault();
+            if (appuseraccount == null)
+            {
+                appuseraccount = new Appuseraccount();
+                appuseraccount.Id = _idGenerator.NextId();
+                appuseraccount.Status = 1;
+                appuseraccount.Adduser = UserInfo.Id;
+                appuseraccount.Lastuser = UserInfo.Id;
+                appuseraccount.Addtime = now;
+                appuseraccount.Lasttime = now;
+                appuseraccount.Appuser = UserInfo.Id;
+                appuseraccount.Amount = 0;
+                appuseraccount.Currencyid = 15502590835934208;
+
+                await _packageOrderApplyService.AddAsync(appuseraccount);
+                await _packageOrderApplyService.CommitAsync();
+
+                return RickWebResult.Error(new object(), 996, "您的余额不足");
+            }
+            else
+            {
+                Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(id);
+                Packageorderapplyexpress packageorderapplyexpress = (await _packageOrderApplyService.QueryAsync<Packageorderapplyexpress>(t => t.Packageorderapplyid == packageorderapply.Id && t.Status == 1)).Single();
+                packageorderapply.Orderstatus = (int)OrderApplyStatus.确认发货;
+                packageorderapply.Paytime = DateTime.Now;
+                packageorderapply.Ispayed = 1;
+                await _packageOrderApplyService.UpdateAsync(packageorderapply);
+                appuseraccount.Amount -= (decimal)packageorderapplyexpress.Price;
+
+                await _packageOrderApplyService.UpdateAsync(appuseraccount);
+
+                Appuseraccountconsume appuseraccountconsume = new Appuseraccountconsume();
+
+                appuseraccountconsume.Id = _idGenerator.NextId();
+                appuseraccountconsume.Status = 1;
+                appuseraccountconsume.Adduser = UserInfo.Id;
+                appuseraccountconsume.Addtime = now;
+                appuseraccountconsume.Appuser = UserInfo.Id;
+                appuseraccountconsume.Amount = (decimal)packageorderapplyexpress.Price;
+
+                await _packageOrderApplyService.AddAsync(appuseraccountconsume);
+
+                await _packageOrderApplyService.CommitAsync();
+                return RickWebResult.Success(new object());
+            }
+            
 
         }
 
@@ -172,16 +222,24 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         public class OrderApplyResponse
         {
             public long Id { get; set; }
+            public long ExpressId { get; set; }
             public long Channelid { get; set; }
             public long Nationid { get; set; }
             public string NationName { get; set; }
             public long Addressid { get; set; }
             public DateTime Addtime { get; set; }
             public string Remark { get; set; }
+            public decimal? Price { get; set; }
+            public string Mailcode { get; set; }
+
+            public List<OrderApplyResponseDetail> Details { get; set; }
+        }
+
+        public class OrderApplyResponseDetail
+        {
             public int? Count { get; set; }
             public decimal? Weight { get; set; }
-            public string Mailcode { get; set; }
-            public string Customprice { get; set; }
+            public decimal? Customprice { get; set; }
             public decimal? Sueprice { get; set; }
             public decimal? Overlengthprice { get; set; }
             public decimal? Overweightprice { get; set; }
@@ -191,7 +249,9 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public decimal? Bounceprice { get; set; }
             public decimal? Price { get; set; }
 
+
         }
+
 
         public class OrderApplyResponseList
         {

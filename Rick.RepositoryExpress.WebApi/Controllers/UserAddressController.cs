@@ -44,6 +44,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         {
             await _appuseraddressService.BeginTransactionAsync();
             Appuseraddress appuseraddress = new Appuseraddress();
+            appuseraddress.Appuser = UserInfo.Id;
             appuseraddress.Id = _idGenerator.NextId();
             appuseraddress.Nationid = userAddressRequest.Nationid;
             appuseraddress.Name = userAddressRequest.Name;
@@ -79,11 +80,12 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         [HttpGet]
         public async Task<RickWebResult<IEnumerable<UserAddressResponse>>> Get([FromQuery] bool isDefault)
         {
-            var results = await _appuseraddressService.Query<Appuseraddress>(t=>t.Status == 1)
-                .OrderByDescending(t=>t.Weight).ThenByDescending(t=>t.Lasttime).ToListAsync();
+            var results = await _appuseraddressService.Query<Appuseraddress>(t => t.Status == 1 && t.Appuser == UserInfo.Id)
+                .OrderByDescending(t => t.Weight).ThenByDescending(t => t.Lasttime).ToListAsync();
+            IEnumerable<UserAddressResponse> userAddressResponses;
             if (isDefault)
             {
-                IEnumerable<UserAddressResponse> userAddressResponses = Enumerable.Repeat(results.FirstOrDefault(), 1).Select(address => new UserAddressResponse
+                userAddressResponses = Enumerable.Repeat(results.FirstOrDefault(), 1).Select(address => new UserAddressResponse
                 {
                     Id = address.Id,
                     Nationid = address.Nationid,
@@ -93,11 +95,10 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     Address = address.Address,
                     Weight = address.Weight
                 });
-                return RickWebResult.Success(userAddressResponses);
             }
             else
             {
-                IEnumerable<UserAddressResponse> userAddressResponses = results.Select(address => new UserAddressResponse
+                userAddressResponses = results.Select(address => new UserAddressResponse
                 {
                     Id = address.Id,
                     Nationid = address.Nationid,
@@ -107,8 +108,82 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     Address = address.Address,
                     Weight = address.Weight
                 });
-                return RickWebResult.Success(userAddressResponses);
             }
+            var nationids = userAddressResponses.Select(t => t.Nationid);
+            var nations = await _appuseraddressService.Query<Nation>(t => nationids.Contains(t.Id)).ToListAsync();
+            foreach (var res in userAddressResponses)
+            {
+                res.NationName = nations.FirstOrDefault(t => t.Id == res.Nationid).Name;
+            }
+            return RickWebResult.Success(userAddressResponses);
+
+        }
+
+        /// <summary>
+        /// 删除用户地址
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<RickWebResult<object>> Delete([FromQuery] long id)
+        {
+            await _appuseraddressService.BeginTransactionAsync();
+            Appuseraddress appuseraddress = await _appuseraddressService.FindAsync<Appuseraddress>(id);
+            appuseraddress.Status = 0;
+            appuseraddress.Lasttime = DateTime.Now;
+            appuseraddress.Lastuser = UserInfo.Id;
+            await _appuseraddressService.UpdateAsync(appuseraddress);
+            await _appuseraddressService.CommitAsync();
+            return RickWebResult.Success(new object());
+        }
+
+        /// <summary>
+        /// 修改用户地址
+        /// </summary>
+        /// <param name="userAddressPutRequest"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<RickWebResult<UserAddressResponse>> Put([FromBody] UserAddressPutRequest userAddressPutRequest)
+        {
+            await _appuseraddressService.BeginTransactionAsync();
+            Appuseraddress appuseraddress = await _appuseraddressService.FindAsync<Appuseraddress>(userAddressPutRequest.Id);
+            appuseraddress.Status = 0;
+            appuseraddress.Lasttime = DateTime.Now;
+            appuseraddress.Lastuser = UserInfo.Id;
+
+            await _appuseraddressService.UpdateAsync(appuseraddress);
+
+            Appuseraddress appuseraddressPut = new Appuseraddress();
+            appuseraddressPut.Id = _idGenerator.NextId();
+            appuseraddressPut.Appuser = UserInfo.Id;
+
+            appuseraddressPut.Nationid = userAddressPutRequest.Nationid;
+            appuseraddressPut.Name = userAddressPutRequest.Name;
+            appuseraddressPut.Contactnumber = userAddressPutRequest.Contactnumber;
+            appuseraddressPut.Region = userAddressPutRequest.Region;
+            appuseraddressPut.Address = userAddressPutRequest.Address;
+            appuseraddressPut.Weight = userAddressPutRequest.Weight;
+            appuseraddressPut.Status = 1;
+            appuseraddressPut.Adduser = UserInfo.Id;
+            appuseraddressPut.Lastuser = UserInfo.Id;
+            DateTime now = DateTime.Now;
+            appuseraddressPut.Addtime = now;
+            appuseraddressPut.Lasttime = now;
+            await _appuseraddressService.AddAsync(appuseraddressPut);
+            var nation = await _appuseraddressService.FindAsync<Nation>(appuseraddressPut.Nationid);
+
+
+            UserAddressResponse userAddressResponse = new UserAddressResponse();
+            userAddressResponse.Id = appuseraddressPut.Id;
+            userAddressResponse.Nationid = appuseraddressPut.Nationid;
+            userAddressResponse.Name = appuseraddressPut.Name;
+            userAddressResponse.Contactnumber = appuseraddressPut.Contactnumber;
+            userAddressResponse.Region = appuseraddressPut.Region;
+            userAddressResponse.Address = appuseraddressPut.Address;
+            userAddressResponse.Weight = appuseraddressPut.Weight;
+            userAddressResponse.NationName = nation.Name;
+            await _appuseraddressService.CommitAsync();
+            return RickWebResult.Success(userAddressResponse);
         }
 
         public class UserAddressRequest
@@ -121,12 +196,24 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public int Weight { get; set; }
 
         }
+        public class UserAddressPutRequest
+        {
+            public long Id { get; set; }
+            public long Nationid { get; set; }
+            public string Name { get; set; }
+            public string Contactnumber { get; set; }
+            public string Region { get; set; }
+            public string Address { get; set; }
+            public int Weight { get; set; }
+        }
 
         public class UserAddressResponse
         {
             public long Id { get; set; }
             public int Weight { get; set; }
             public long Nationid { get; set; }
+            public string NationName { get; set; }
+
             public string Name { get; set; }
             public string Contactnumber { get; set; }
             public string Region { get; set; }

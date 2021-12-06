@@ -41,7 +41,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         [HttpGet]
         public async Task<RickWebResult<IEnumerable<RepositoryResponce>>> Get([FromQuery] long id)
         {
-            var result = (await _repositoryService.QueryAsync<Repository>(t => t.Companyid == UserInfo.Companyid && (t.Id == id || id <= 0)))
+            var result = (await _repositoryService.QueryAsync<Repository>(t => t.Status == 1 && t.Companyid == UserInfo.Companyid && (t.Id == id || id <= 0)))
                 .Select(repository => new RepositoryResponce()
                 {
                     Id = repository.Id,

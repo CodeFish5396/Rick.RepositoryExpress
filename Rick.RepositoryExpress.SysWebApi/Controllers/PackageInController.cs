@@ -147,6 +147,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询列表
         /// </summary>
+        /// <param name="id"></param>
+        /// <param name="userCode"></param>
+        /// <param name="userName"></param>
+        /// <param name="userMobile"></param>
         /// <param name="expressNumber"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
@@ -154,11 +158,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<PackageInResponseList>> Get([FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<PackageInResponseList>> Get([FromQuery] long? id, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             PackageInResponseList packageInResponseList = new PackageInResponseList();
 
-            var baseQuery = from package in _packageService.Query<Package>(t => (t.Status == 1 && string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber) && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
+            var baseQuery = from package in _packageService.Query<Package>(t => t.Status == 1 && (!id.HasValue || t.Id == id) && (string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber) && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
                             join exclaim in _packageService.Query<Expressclaim>()
                             on package.Id equals exclaim.Packageid
                             into exclaimtemp
@@ -171,20 +175,29 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             on package.Courierid equals courier.Id
                             into courierTemp
                             from courier in courierTemp.DefaultIfEmpty()
+                            join sysuser in _packageService.Query<Sysuser>()
+                            on package.Lastuser equals sysuser.Id
+                            where (string.IsNullOrEmpty(userCode) || (usert != null && usert.Usercode == userCode))
+                            && (string.IsNullOrEmpty(userName) || (usert != null && usert.Truename == userName))
+                            && (string.IsNullOrEmpty(userMobile) || (usert != null && usert.Mobile == userMobile))
                             select new PackageInResponse()
                             {
                                 Userid = usert == null ? 0 : usert.Id,
                                 Usercode = usert == null ? string.Empty : usert.Usercode,
                                 Username = usert == null ? string.Empty : usert.Name,
+                                Usertruename = usert == null ? string.Empty : usert.Truename,
+                                Userphone = usert == null ? string.Empty : usert.Mobile,
                                 Packageid = package.Id,
                                 Count = package.Count,
                                 Name = package.Name,
                                 Weight = package.Weight,
+                                Claimtime = exclaimt == null ? string.Empty : exclaimt.Addtime.ToString("yyyy-MM-dd HH:mm:ss"),
                                 Addtime = package.Addtime,
                                 Courierid = package.Courierid,
                                 Couriername = courier == null ? string.Empty : courier.Name,
                                 Expressnumber = package.Expressnumber,
                                 Lastuser = package.Lastuser,
+                                Lastusername = sysuser.Name,
                                 Lasttime = package.Lasttime
                             };
 
@@ -248,6 +261,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
         public int Count { get; set; }
         public string Username { get; set; }
+        public string Usertruename { get; set; }
+        public string Userphone { get; set; }
+        public string Claimtime { get; set; }
         public DateTime Addtime { get; set; }
         public DateTime Lasttime { get; set; }
         public long Courierid { get; set; }

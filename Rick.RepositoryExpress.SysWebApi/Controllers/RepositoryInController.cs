@@ -37,45 +37,74 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询包裹入库
         /// </summary>
+        /// <param name="id"></param>
+        /// <param name="userCode"></param>
+        /// <param name="userName"></param>
+        /// <param name="userMobile"></param>
         /// <param name="expressNumber"></param>
+        /// <param name="inUserName"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="index"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<RepositoryInResponseList>> Get([FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<RepositoryInResponseList>> Get([FromQuery] long? id, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] string expressNumber, [FromQuery] string inUserName, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            int count = await _packageService.CountAsync<Package>(t => (string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber)
-                          && (startTime != DateTime.MinValue || t.Addtime >= startTime)
-                          && (endTime != DateTime.MinValue || t.Addtime <= endTime));
+            bool isUser = !(string.IsNullOrEmpty(userCode) && string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(userMobile));
+            List<long> packageids = new List<long>();
+            if (isUser)
+            {
+                var appUsers = await (from appuser in _packageService.Query<Appuser>(t =>
+                                (string.IsNullOrEmpty(userCode) || t.Usercode == userCode)
+                                && (string.IsNullOrEmpty(userName) || t.Name == userName)
+                                && (string.IsNullOrEmpty(userMobile) || t.Mobile == userMobile)
+                              )
+                                      select appuser.Id).ToListAsync();
+                packageids = await (from claim in _packageService.Query<Expressclaim>(t => appUsers.Contains(t.Appuser) && t.Packageid.HasValue)
+                                    select (long)claim.Packageid).ToListAsync();
 
-            var results = _packageService.Query<Package>(t => (string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber)
-                          && (startTime != DateTime.MinValue || t.Addtime >= startTime)
-                          && (endTime != DateTime.MinValue || t.Addtime <= endTime))
-                .OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize);
-
+            }
+            var query = from package in _packageService.Query<Package>(t => (string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber)
+                          && (!startTime.HasValue || t.Addtime >= startTime)
+                          && (!endTime.HasValue || t.Addtime <= endTime)
+                          && (!id.HasValue || t.Addtime >= startTime)
+                          && (t.Status == (int)PackageStatus.已入库 || t.Status == (int)PackageStatus.已入柜)
+                          )
+                        join user in _packageService.Query<Sysuser>()
+                        on package.Repositoryinuser equals user.Id 
+                        into userTemp
+                        from user in userTemp.DefaultIfEmpty()
+                        select new RepositoryInResponse()
+                        {
+                            Id = package.Id,
+                            Expressnumber = package.Expressnumber,
+                            Code = package.Code,
+                            Name = package.Name,
+                            Weight = package.Weight,
+                            Count = package.Count,
+                            Inuser = package.Repositoryinuser,
+                            Inusername = user == null ? string.Empty : user.Name,
+                            Location = package.Location,
+                            Addtime = package.Addtime,
+                            Intime = package.Repositoryintime,
+                            Status = package.Status
+                        };
+            if (isUser)
+            {
+                query = from repositoryinresponse in query
+                        where packageids.Contains(repositoryinresponse.Id)
+                        select repositoryinresponse;
+            }
+            if (!string.IsNullOrEmpty(inUserName))
+            {
+                query = from repositoryinresponse in query
+                        where repositoryinresponse.Inusername == inUserName
+                        select repositoryinresponse;
+            }
             RepositoryInResponseList repositoryInResponceList = new RepositoryInResponseList();
-            repositoryInResponceList.Count = count;
-            repositoryInResponceList.List = await (from package in results
-                                                   join user in _packageService.Query<Sysuser>(t => true)
-                                                   on package.Lastuser equals user.Id
-                                                   join courier in _packageService.Query<Courier>(t => true)
-                                                   on package.Courierid equals courier.Id
-                                                   select new RepositoryInResponse()
-                                                   {
-                                                       Id = package.Id,
-                                                       Expressnumber = package.Expressnumber,
-                                                       Code = package.Code,
-                                                       CourierId = package.Courierid,
-                                                       CourierName = courier.Name,
-                                                       Name = package.Name,
-                                                       Weight = package.Weight,
-                                                       Count = package.Count,
-                                                       Lastuser = package.Lastuser,
-                                                       Lastusername = user.Name,
-                                                       Location = package.Location
-                                                   }).ToListAsync();
+            repositoryInResponceList.Count = await query.CountAsync();
+            repositoryInResponceList.List = await query.OrderByDescending(t => t.Id).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
 
             IEnumerable<long> ids = repositoryInResponceList.List.Select(t => t.Id);
 
@@ -90,11 +119,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             var users = await (from claim in _packageService.Query<Expressclaim>(t => t.Packageid.HasValue && ids.Contains((long)t.Packageid))
                                join user in _packageService.Query<Appuser>()
                                on claim.Appuser equals user.Id
-                               select new {
+                               select new
+                               {
                                    claim.Packageid,
                                    user.Id,
                                    user.Usercode,
-                                   user.Name
+                                   user.Truename,
+                                   user.Name,
+                                   user.Mobile
                                }
                         ).ToListAsync();
 
@@ -102,10 +134,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             {
                 packageInResponse.Images = imageInfos.Where(t => t.Packageid == packageInResponse.Id).Select(t => t.Fileinfoid).ToList();
                 packageInResponse.Videos = vedioInfos.Where(t => t.Packageid == packageInResponse.Id).Select(t => t.Fileinfoid).ToList();
-                packageInResponse.Users = users.Where(t => t.Packageid == packageInResponse.Id).Select(t => new RepositoryInUserInfoResponse() {
+                packageInResponse.Users = users.Where(t => t.Packageid == packageInResponse.Id).Select(t => new RepositoryInUserInfoResponse()
+                {
                     Userid = t.Id,
                     Usercode = t.Usercode,
-                    Username = t.Name
+                    Username = t.Truename,
+                    Usermobile = t.Mobile
                 }).ToList();
             }
 
@@ -126,7 +160,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             DateTime now = DateTime.Now;
             package.Lasttime = now;
             package.Lastuser = UserInfo.Id;
-
+            package.Status = (int)PackageStatus.已入柜;
+            package.Repositoryintime = now;
+            package.Repositoryinuser = UserInfo.Id;
             await _packageService.UpdateAsync(package);
 
             Packagenote packagenote = new Packagenote();
@@ -150,7 +186,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             await _packageService.CommitAsync();
 
-            RepositoryInResponse repositoryInResponce = new RepositoryInResponse() {
+            RepositoryInResponse repositoryInResponce = new RepositoryInResponse()
+            {
                 Id = package.Id,
                 Expressnumber = package.Expressnumber,
                 Code = package.Code,
@@ -158,8 +195,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 Name = package.Name,
                 Weight = package.Weight,
                 Count = package.Count,
-                Lastuser = package.Lastuser,
-                Lastusername = UserInfo.Name,
+                Inuser = package.Lastuser,
+                Inusername = UserInfo.Name,
+                Intime = now,
                 Location = package.Location
             };
 
@@ -182,9 +220,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Name { get; set; }
             public decimal? Weight { get; set; }
             public int Count { get; set; }
-            public long Lastuser { get; set; }
-            public string Lastusername { get; set; }
+            public long? Inuser { get; set; }
+            public string Inusername { get; set; }
             public string Location { get; set; }
+            public DateTime Addtime { get; set; }
+            public DateTime? Intime { get; set; }
+            public int Status { get; set; }
             public IList<long> Images { get; set; }
             public IList<long> Videos { get; set; }
             public IList<RepositoryInUserInfoResponse> Users { get; set; }
@@ -192,10 +233,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
         public class RepositoryInUserInfoResponse
         {
-
             public long Userid { get; set; }
             public string Usercode { get; set; }
             public string Username { get; set; }
+            public string Usermobile { get; set; }
 
         }
 

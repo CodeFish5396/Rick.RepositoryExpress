@@ -8,11 +8,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
     public partial class Sysmenu
     {
         public long Id { get; set; }
+        public string Index { get; set; }
         public string Name { get; set; }
         public long? Parentid { get; set; }
         public sbyte Isdirectory { get; set; }
-        public string Url { get; set; }
-        public string Typename { get; set; }
         public int Order { get; set; }
         public int Status { get; set; }
         public DateTime Addtime { get; set; }

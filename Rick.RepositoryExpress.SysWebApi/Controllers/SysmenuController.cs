@@ -15,6 +15,7 @@ using Rick.RepositoryExpress.RedisService;
 using Rick.RepositoryExpress.Utils;
 using Microsoft.EntityFrameworkCore;
 using Rick.RepositoryExpress.SysWebApi.Filters;
+using Newtonsoft.Json;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
@@ -44,6 +45,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public async Task<RickWebResult<List<SysmenuTreeResponse>>> Get()
         {
             var menus = await _sysmenuService.QueryAsync<Sysmenu>(t => t.Status == 1);
+            var functions = await _sysmenuService.QueryAsync<Sysfunction>(t => t.Status == 1);
             List<SysmenuTreeResponse> sysmenuTreeResponses = new List<SysmenuTreeResponse>();
             var fisrtLayerMenus = menus.Where(t => t.Parentid == 0).OrderBy(t => t.Order).Select(t => new SysmenuTreeResponse()
             {
@@ -57,6 +59,15 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             sysmenuTreeResponses.AddRange(fisrtLayerMenus);
             foreach (var fisrtLayerMenu in fisrtLayerMenus)
             {
+                if (fisrtLayerMenu.Isdirectory == 0)
+                {
+                    fisrtLayerMenu.Functions = functions.Select(t => new SysmenuFunctionResponse()
+                    {
+                        Functionid = t.Id,
+                        FunctionName = t.Name,
+                        IsChecked = false
+                    }).ToList();
+                }
                 var secondLayerMenus = menus.Where(t => t.Parentid == fisrtLayerMenu.Id).OrderBy(t => t.Order).Select(t => new SysmenuTreeResponse()
                 {
                     Id = t.Id,
@@ -69,6 +80,16 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 fisrtLayerMenu.Subs = secondLayerMenus;
                 foreach (var secondLayerMenu in fisrtLayerMenu.Subs)
                 {
+                    if (secondLayerMenu.Isdirectory == 0)
+                    {
+                        secondLayerMenu.Functions = functions.Select(t => new SysmenuFunctionResponse()
+                        {
+                            Functionid = t.Id,
+                            FunctionName = t.Name,
+                            IsChecked = false
+                        }).ToList();
+                    }
+
                     var thirdLayerMenus = menus.Where(t => t.Parentid == secondLayerMenu.Id).OrderBy(t => t.Order).Select(t => new SysmenuTreeResponse()
                     {
                         Id = t.Id,
@@ -79,8 +100,21 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         Order = t.Order
                     }).ToList();
                     secondLayerMenu.Subs = thirdLayerMenus;
+                    foreach (var thirdLayerMenu in secondLayerMenu.Subs)
+                    {
+                        if (thirdLayerMenu.Isdirectory == 0)
+                        {
+                            thirdLayerMenu.Functions = functions.Select(t => new SysmenuFunctionResponse()
+                            {
+                                Functionid = t.Id,
+                                FunctionName = t.Name,
+                                IsChecked = false
+                            }).ToList();
+                        }
+                    }
                 }
             }
+            _redisClientService.StringSet(ConstString.RickMenuTreeKey, JsonConvert.SerializeObject(sysmenuTreeResponses));
             return RickWebResult.Success(sysmenuTreeResponses);
         }
 
@@ -123,17 +157,25 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public sbyte Isdirectory { get; set; }
             public int Order { get; set; }
         }
-
-        public class SysmenuTreeResponse
-        {
-            public long Id { get; set; }
-            public string Index { get; set; }
-            public string Name { get; set; }
-            public long? Parentid { get; set; }
-            public sbyte Isdirectory { get; set; }
-            public int Order { get; set; }
-            public List<SysmenuTreeResponse> Subs { get; set; }
-        }
-
     }
+
+    public class SysmenuTreeResponse
+    {
+        public long Id { get; set; }
+        public string Index { get; set; }
+        public string Name { get; set; }
+        public long? Parentid { get; set; }
+        public sbyte Isdirectory { get; set; }
+        public int Order { get; set; }
+        public List<SysmenuFunctionResponse> Functions { get; set; }
+        public List<SysmenuTreeResponse> Subs { get; set; }
+    }
+
+    public class SysmenuFunctionResponse
+    {
+        public long Functionid { get; set; }
+        public string FunctionName { get; set; }
+        public bool IsChecked { get; set; }
+    }
+
 }

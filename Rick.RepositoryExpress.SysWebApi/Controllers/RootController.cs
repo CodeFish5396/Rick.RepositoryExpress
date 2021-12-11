@@ -46,9 +46,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             UserInfo userInfo = new UserInfo();
             userInfo.Id = sysuser.Id;
             userInfo.Name = sysuser.Name;
+            userInfo.IsDefaultRole = true;
             string token = AuthTokenHelper.Create(userInfo);
             UserLoginResult userLoginResult = new UserLoginResult();
             userLoginResult.Token = token;
+
+            _redisClientService.HashSet(ConstString.RickUserLoginKey, userInfo.Id.ToString(), userLoginResult.Token);
+
             return RickWebResult.Success(userLoginResult);
         }
 

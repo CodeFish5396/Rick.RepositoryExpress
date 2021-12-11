@@ -60,10 +60,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Addtime = role.Addtime,
                             Isdefault = role.Isdefault
                         };
-
             rolemenuListResponse.Count = await query.CountAsync();
             rolemenuListResponse.List = await query.OrderByDescending(t => t.Id).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
-
             return RickWebResult.Success(rolemenuListResponse);
         }
 
@@ -100,7 +98,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete]
-        public async Task<RickWebResult<object>> Detete([FromQuery] long id)
+        public async Task<RickWebResult<object>> Delete([FromQuery] long id)
         {
             await _roleService.BeginTransactionAsync();
 
@@ -112,6 +110,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             await _roleService.UpdateAsync(sysrole);
             await _roleService.CommitAsync();
+            _redisClientService.KeyDelete(ConstString.RickUserLoginKey);
             return RickWebResult.Success(new object());
         }
 
@@ -128,10 +127,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             Sysrole sysrole = await _roleService.FindAsync<Sysrole>(rolePostPutRequest.Id);
             sysrole.Name = rolePostPutRequest.Name;
             DateTime now = DateTime.Now;
-            sysrole.Status = 0;
+            sysrole.Status = 1;
             sysrole.Lasttime = now;
             sysrole.Lastuser = UserInfo.Id;
-
 
             await _roleService.UpdateAsync(sysrole);
             await _roleService.CommitAsync();

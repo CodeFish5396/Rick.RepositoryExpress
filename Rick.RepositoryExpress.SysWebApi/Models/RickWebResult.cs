@@ -39,6 +39,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Models
             rickWebResult.Detail = new object();
             return rickWebResult;
         }
+        public static RickWebResult<object> Noauthorized()
+        {
 
+            RickWebResult<object> rickWebResult = new RickWebResult<object>();
+            rickWebResult.Message = ConstString.Noauthorized;
+            rickWebResult.Code = 903;
+            rickWebResult.Detail = new object();
+            return rickWebResult;
+        }
     }
 }

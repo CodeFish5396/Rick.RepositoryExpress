@@ -43,6 +43,7 @@ namespace Rick.RepositoryExpress.WebApi
             var connectionString = Configuration.GetConnectionString("Database");
             var version = Configuration.GetConnectionString("Version");
             services.AddDbContext<RickDBConext>(options => options.UseMySql(connectionString, ServerVersion.Parse(version)));
+            services.AddScoped<ISysuserService, SysuserService>();
             services.AddScoped<IAppuserService, AppuserService>();
             services.AddScoped<IFileService, FileService>();
             services.AddSingleton<IIdGeneratorService, SnowFlakeService>();
@@ -74,7 +75,13 @@ namespace Rick.RepositoryExpress.WebApi
             {
                 configure.Filters.Add<CustomExceptionFilterAttribute>();
                 configure.Filters.Add<CustomAuthorizationFilterAttribute>();
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new DateTimeJsonConverter());
+                options.JsonSerializerOptions.Converters.Add(new LongToStringJsonConverter());
             });
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

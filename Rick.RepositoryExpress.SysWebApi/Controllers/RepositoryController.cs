@@ -13,11 +13,13 @@ using Microsoft.AspNetCore.Authorization;
 using Rick.RepositoryExpress.Utils.Wechat;
 using Rick.RepositoryExpress.RedisService;
 using Rick.RepositoryExpress.Utils;
+using Rick.RepositoryExpress.SysWebApi.Filters;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Menu("仓库管理")]
     public class RepositoryController : RickControllerBase
     {
         private readonly ILogger<RepositoryController> _logger;

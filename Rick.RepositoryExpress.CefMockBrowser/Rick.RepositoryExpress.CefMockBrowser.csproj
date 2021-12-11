@@ -7,6 +7,11 @@
 
   <ItemGroup>
     <PackageReference Include="CefSharp.OffScreen.NETCore" Version="93.1.111" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Rick.RepositoryExpress.Common\Rick.RepositoryExpress.Common.csproj" />
   </ItemGroup>
 
 </Project>

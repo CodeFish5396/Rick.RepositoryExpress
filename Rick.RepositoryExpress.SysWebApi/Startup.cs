@@ -102,6 +102,7 @@ namespace Rick.RepositoryExpress.SysWebApi
             })
             .AddJsonOptions(options => {
                 options.JsonSerializerOptions.Converters.Add(new DateTimeJsonConverter());
+                options.JsonSerializerOptions.Converters.Add(new LongToStringJsonConverter());
             });
         }
 

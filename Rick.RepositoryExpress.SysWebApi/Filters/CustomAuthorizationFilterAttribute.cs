@@ -9,6 +9,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rick.RepositoryExpress.SysWebApi.Models;
 using Rick.RepositoryExpress.IService;
+using Rick.RepositoryExpress.RedisService;
+using Rick.RepositoryExpress.Common;
+using Rick.RepositoryExpress.DataBase.Models;
+using Newtonsoft.Json;
 
 namespace Rick.RepositoryExpress.SysWebApi.Filters
 {
@@ -16,12 +20,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Filters
     {
         private readonly ILogger<CustomAuthorizationFilterAttribute> _logger;
         private readonly ISysuserService _sysuserService;
-
-        public CustomAuthorizationFilterAttribute(ILogger<CustomAuthorizationFilterAttribute> logger, ISysuserService sysuserService)
+        private readonly RedisClientService _redisClientService;
+        public CustomAuthorizationFilterAttribute(ILogger<CustomAuthorizationFilterAttribute> logger, ISysuserService sysuserService, RedisClientService redisClientService)
         {
             _logger = logger;
             _sysuserService = sysuserService;
-
+            _redisClientService = redisClientService;
         }
         public void OnAuthorization(AuthorizationFilterContext context)
         {
@@ -44,7 +48,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Filters
                         }
                         else
                         {
-                            _logger.LogInformation(token);
                             //解析Token获得UserId等
                             UserInfo userInfo = AuthTokenHelper.Get(token);
                             if (attributes.Where(t => typeof(AdminAttribute) == t.GetType()).Count() > 0)
@@ -52,6 +55,76 @@ namespace Rick.RepositoryExpress.SysWebApi.Filters
                                 if (userInfo.Name != "root")
                                 {
                                     context.Result = new OkObjectResult(RickWebResult.Unauthorized());
+                                }
+                            }
+                            else
+                            {
+                                string cachedToken = _redisClientService.HashGet(ConstString.RickUserLoginKey, userInfo.Id.ToString());
+                                if (string.IsNullOrEmpty(cachedToken) || cachedToken != token)
+                                {
+                                    context.Result = new OkObjectResult(RickWebResult.Unauthorized());
+                                }
+                                else if (!userInfo.IsDefaultRole)
+                                {
+                                    string functionTypeName = string.Empty;
+                                    string[] menuNames = null;
+
+                                    //MenuAttribute 菜单index
+                                    MenuAttribute menuAttribute = attributes.FirstOrDefault(t => typeof(MenuAttribute) == t.GetType()) as MenuAttribute;
+                                    if (menuAttribute != null)
+                                    {
+                                        menuNames = menuAttribute.Names;
+                                    }
+                                    else
+                                    {
+                                        menuAttribute = descriptor.ControllerTypeInfo.GetCustomAttributes(true).FirstOrDefault(t => typeof(MenuAttribute) == t.GetType()) as MenuAttribute;
+                                        if (menuAttribute != null)
+                                        {
+                                            menuNames = menuAttribute.Names;
+                                        }
+                                    }
+
+                                    //FunctionAttribute Function名称
+                                    FunctionAttribute functionAttribute = attributes.FirstOrDefault(t => typeof(FunctionAttribute) == t.GetType()) as FunctionAttribute;
+                                    if (functionAttribute != null)
+                                    {
+                                        functionTypeName = functionAttribute.TypeName;
+                                    }
+                                    else
+                                    {
+                                        string actionName = descriptor.ActionName;
+                                        switch (actionName)
+                                        {
+                                            case "Get":
+                                                functionTypeName = "Retrieve";
+                                                break;
+                                            case "Post":
+                                                functionTypeName = "Create";
+                                                break;
+                                            case "Put":
+                                                functionTypeName = "Update";
+                                                break;
+                                            case "Patch":
+                                                functionTypeName = "Update";
+                                                break;
+                                            case "Delete":
+                                                functionTypeName = "Delete";
+                                                break;
+                                            default:
+                                                functionTypeName = string.Empty;
+                                                break;
+                                        }
+                                    }
+
+                                    if (menuNames != null && menuNames.Length > 0 && !string.IsNullOrEmpty(functionTypeName))
+                                    {
+                                        string cachedRoleMenuFunctionInfos = _redisClientService.HashGet(ConstString.RickRoleMenuFunctionInfosKey, userInfo.Id.ToString());
+                                        List<RoleMenuFunctionInfo> RoleMenuFunctionInfos = JsonConvert.DeserializeObject<List<RoleMenuFunctionInfo>>(cachedRoleMenuFunctionInfos);
+                                        if (!RoleMenuFunctionInfos.Any(t => menuNames.Contains(t.Menuname) && t.FunctionTypeName == functionTypeName))
+                                        {
+                                            context.Result = new OkObjectResult(RickWebResult.Noauthorized());
+                                        }
+                                    }
                                 }
                             }
                             context.HttpContext.Items.Add("TokenUserInfo", userInfo);

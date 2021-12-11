@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Snowflake.Core;
+using System;
 
 namespace Rick.RepositoryExpress.Common
 {
     public class SnowFlakeService : IIdGeneratorService
     {
+        private IdWorker idWorker;
         private static long workerId;
-        private static long twepoch = 687888001020L; //唯一时间，这是一个避免重复的随机量，自行设定不要大于当前时间戳
+        private static long twepoch = 1609430400000L; //唯一时间，这是一个避免重复的随机量，自行设定不要大于当前时间戳
+                                      
         private static long sequence = 0L;
         private static int workerIdBits = 4; //机器码字节数。4个字节用来保存机器码(定义为Long类型会出现，最大偏移64位，所以左移64位没有意义)
         public static long maxWorkerId = -1L ^ -1L << workerIdBits; //最大机器ID
@@ -22,35 +25,40 @@ namespace Rick.RepositoryExpress.Common
                 throw new Exception(string.Format("worker Id can't be greater than {0} or less than 0 ", workerId));
             //To Do 暂时写死，后期应改成配置中心配置
             SnowFlakeService.workerId = 10001;
+
+            idWorker = new IdWorker(1,1,100);
         }
 
         public long NextId()
         {
-            lock (lockObject)
-            {
-                long timestamp = TimeGen();
-                if (this.lastTimestamp == timestamp)
-                { //同一微妙中生成ID
-                    SnowFlakeService.sequence = (SnowFlakeService.sequence + 1) & SnowFlakeService.sequenceMask; //用&运算计算该微秒内产生的计数是否已经到达上限
-                    if (SnowFlakeService.sequence == 0)
-                    {
-                        //一微妙内产生的ID计数已达上限，等待下一微妙
-                        timestamp = TillNextMillis(this.lastTimestamp);
-                    }
-                }
-                else
-                { //不同微秒生成ID
-                    SnowFlakeService.sequence = 0; //计数清0
-                }
-                if (timestamp < lastTimestamp)
-                { //如果当前时间戳比上一次生成ID时时间戳还小，抛出异常，因为不能保证现在生成的ID之前没有生成过
-                    throw new Exception(string.Format("Clock moved backwards.  Refusing to generate id for {0} milliseconds",
-                        this.lastTimestamp - timestamp));
-                }
-                this.lastTimestamp = timestamp; //把当前时间戳保存为最后生成ID的时间戳
-                long nextId = (timestamp - twepoch << timestampLeftShift) | SnowFlakeService.workerId << SnowFlakeService.workerIdShift | SnowFlakeService.sequence;
-                return nextId;
-            }
+            //lock (lockObject)
+            //{
+            //    long timestamp = TimeGen();
+            //    if (this.lastTimestamp == timestamp)
+            //    { //同一微妙中生成ID
+            //        SnowFlakeService.sequence = (SnowFlakeService.sequence + 1) & SnowFlakeService.sequenceMask; //用&运算计算该微秒内产生的计数是否已经到达上限
+            //        if (SnowFlakeService.sequence == 0)
+            //        {
+            //            //一微妙内产生的ID计数已达上限，等待下一微妙
+            //            timestamp = TillNextMillis(this.lastTimestamp);
+            //        }
+            //    }
+            //    else
+            //    { //不同微秒生成ID
+            //        SnowFlakeService.sequence = 0; //计数清0
+            //    }
+            //    if (timestamp < lastTimestamp)
+            //    { //如果当前时间戳比上一次生成ID时时间戳还小，抛出异常，因为不能保证现在生成的ID之前没有生成过
+            //        throw new Exception(string.Format("Clock moved backwards.  Refusing to generate id for {0} milliseconds",
+            //            this.lastTimestamp - timestamp));
+            //    }
+            //    this.lastTimestamp = timestamp; //把当前时间戳保存为最后生成ID的时间戳
+            //    long nextId = (timestamp - twepoch << timestampLeftShift) | SnowFlakeService.workerId << SnowFlakeService.workerIdShift | SnowFlakeService.sequence;
+            //    Console.WriteLine(SnowFlakeService.sequence);
+            //    Console.WriteLine(nextId);
+            //    return nextId;
+            //}
+            return idWorker.NextId();
         }
 
         /// <summary>

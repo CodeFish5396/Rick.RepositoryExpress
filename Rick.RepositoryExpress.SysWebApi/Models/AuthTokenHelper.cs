@@ -17,12 +17,15 @@ namespace Rick.RepositoryExpress.SysWebApi.Models
             string payload = JsonConvert.SerializeObject(userInfo);
             payload = AesClass.AesEncrypt(payload, ConstString.RickAesKey);
             string ticks = DateTime.Now.Ticks.ToString();
-            return $"{guid}.{payload}.{ticks}";
+            string rawResult = $"{guid}.{payload}.{ticks}";
+            string result = GZipString.GZipCompressString(rawResult);
+            return result;
         }
 
         public static UserInfo Get(string token)
         {
-            string[] payloads = token.Split(".");
+            string rawToken = GZipString.GetStringByString(token);
+            string[] payloads = rawToken.Split(".");
             string payload = payloads[1];
             payload = AesClass.AesDecrypt(payload, ConstString.RickAesKey);
             UserInfo userInfo = JsonConvert.DeserializeObject<UserInfo>(payload);
@@ -37,6 +40,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Models
         public string Name { get; set; }
         public long Companyid { get; set; }
         public string Companyname { get; set; }
+        public bool IsDefaultRole { get; set; }
+        public string RoleMenuFunctionInfos { get; set; }
+        //public List<RoleMenuFunctionInfo> RoleMenuFunctionInfos { get; set; }
+
+    }
+
+    public class RoleMenuFunctionInfo
+    {
+        public string Menuname { get; set; }
+        public string Menuindex { get; set; }
+        public string FunctionTypeName { get; set; }
 
     }
 }

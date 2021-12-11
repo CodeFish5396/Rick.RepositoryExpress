@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using CefSharp.OffScreen;
 using CefSharp;
 using System.Collections.Generic;
+using Rick.RepositoryExpress.Common;
+//using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace Rick.RepositoryExpress.CefMockBrowser
 {
@@ -14,31 +17,49 @@ namespace Rick.RepositoryExpress.CefMockBrowser
         private static ChromiumWebBrowser browser;
         static void Main(string[] args)
         {
-            var settings = new CefSettings()
-            {
-                //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
-                CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
-            };
-            Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
-            List<QueryDhlOrder> QueryDhlOrderS = new List<QueryDhlOrder>();
-            for (int i = 0; i < 10; i++)
-            {
-                QueryDhlOrder queryDhlOrder = new QueryDhlOrder("3826859713");
-                queryDhlOrder.TryQuery();
-            }
-            //Parallel.For(1, 2, i =>
+            var obj = new { id= 1468118496494882816 };
+            //string res = JsonConvert.SerializeObject(obj);
+            string res = JsonSerializer.Serialize(obj);
+            Console.WriteLine(res);
+            //SnowFlakeService snowFlakeService = new SnowFlakeService();
+            //List<long> ids = new List<long>();
+            //for (int i = 0; i < 100; i++)
+            //{
+            //    long id = snowFlakeService.NextId();
+            //    if (ids.Contains(id))
+            //    {
+            //        Console.WriteLine("产生重复ID");
+            //    }
+            //    else
+            //    {
+            //        ids.Add(id);
+            //    }
+            //}
+            //var settings = new CefSettings()
+            //{
+            //    //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
+            //    CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
+            //};
+            //Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
+            //List<QueryDhlOrder> QueryDhlOrderS = new List<QueryDhlOrder>();
+            //for (int i = 0; i < 10; i++)
             //{
             //    QueryDhlOrder queryDhlOrder = new QueryDhlOrder("3826859713");
             //    queryDhlOrder.TryQuery();
-            //});
-            Cef.Shutdown();
-            Console.ReadKey();
+            //}
+            ////Parallel.For(1, 2, i =>
+            ////{
+            ////    QueryDhlOrder queryDhlOrder = new QueryDhlOrder("3826859713");
+            ////    queryDhlOrder.TryQuery();
+            ////});
+            //Cef.Shutdown();
+            //Console.ReadKey();
 
-            //Parallel.For(1,100,i=> {
-            //    QueryDhlOrder queryDhlOrder = new QueryDhlOrder("3826859713");
-            //    queryDhlOrder.TryQuery();
-            //    Console.ReadKey();
-            //});
+            ////Parallel.For(1,100,i=> {
+            ////    QueryDhlOrder queryDhlOrder = new QueryDhlOrder("3826859713");
+            ////    queryDhlOrder.TryQuery();
+            ////    Console.ReadKey();
+            ////});
         }
 
         #region 注释

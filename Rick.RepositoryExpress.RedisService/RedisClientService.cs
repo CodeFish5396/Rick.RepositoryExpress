@@ -22,6 +22,20 @@ namespace Rick.RepositoryExpress.RedisService
         {
             return redisHelper.StringGet(key);
         }
+        public bool HashSet(string key, string hashkey, string value)
+        {
+            return redisHelper.HashSet(key, hashkey, value);
+        }
+
+        public string HashGet(string key, string hashkey)
+        {
+            return redisHelper.HashGet(key, hashkey);
+        }
+        public bool KeyDelete(string key)
+        {
+            return redisHelper.KeyDelete(key);
+        }
+
         public async Task<bool> LockTakeAsync(string key, string value)
         {
             return await redisHelper.LockTakeAsync(key, value);

@@ -321,7 +321,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
                 entity.Property(e => e.Amount)
-                    .HasPrecision(10)
+                    .HasPrecision(10, 2)
                     .HasColumnName("amount");
 
                 entity.Property(e => e.Appuser).HasColumnName("appuser");
@@ -356,7 +356,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
                 entity.Property(e => e.Amount)
-                    .HasPrecision(10)
+                    .HasPrecision(10, 2)
                     .HasColumnName("amount");
 
                 entity.Property(e => e.Appuser).HasColumnName("appuser");
@@ -1644,7 +1644,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
                 entity.Property(e => e.Index)
-                    .HasMaxLength(45)
+                    .HasMaxLength(200)
                     .HasColumnName("index");
 
                 entity.Property(e => e.Isdirectory).HasColumnName("isdirectory");
@@ -1687,9 +1687,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Companyid).HasColumnName("companyid");
 
-                entity.Property(e => e.Isdefault)
-                    .HasColumnName("isdefault")
-                    .HasDefaultValueSql("'1'");
+                entity.Property(e => e.Isdefault).HasColumnName("isdefault");
 
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")

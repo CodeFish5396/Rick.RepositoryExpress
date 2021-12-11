@@ -444,7 +444,7 @@
             <param name="rolePostRequest"></param>
             <returns></returns>
         </member>
-        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RoleController.Detete(System.Int64)">
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RoleController.Delete(System.Int64)">
             <summary>
             删除角色
             </summary>
@@ -456,6 +456,20 @@
             修改角色
             </summary>
             <param name="rolePostPutRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RolemenufunctionController.Get(System.Int64)">
+            <summary>
+            查询角色权限
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RolemenufunctionController.Put(Rick.RepositoryExpress.SysWebApi.Controllers.RolemenufunctionController.RolemenufunctionPutRequest)">
+            <summary>
+            修改角色权限
+            </summary>
+            <param name="rolemenufunctionPutRequest"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RootController.Get">
@@ -493,6 +507,13 @@
             新增用户
             </summary>
             <param name="sysUserRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.SysUserController.Put(Rick.RepositoryExpress.SysWebApi.Controllers.SysUserController.SysUserPutRequest)">
+            <summary>
+            修改用户，添加权限
+            </summary>
+            <param name="sysUserPutRequest"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.SysUserController.Patch(System.Int64)">
@@ -555,6 +576,22 @@
             <param name="username"></param>
             <param name="password"></param>
             <param name="companyId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserLoginController.Put(System.String,System.String,System.String,System.Int64)">
+            <summary>
+            修改密码
+            </summary>
+            <param name="username"></param>
+            <param name="oldpassword"></param>
+            <param name="newpassword"></param>
+            <param name="companyId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserLogoutController.Get">
+            <summary>
+            用户退出登录
+            </summary>
             <returns></returns>
         </member>
     </members>

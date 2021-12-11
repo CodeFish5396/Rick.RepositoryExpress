@@ -44,7 +44,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<SysUserResponseList>> Get([FromQuery] string mobile, [FromQuery]string name,[FromQuery] int? status, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<SysUserResponseList>> Get([FromQuery] string mobile, [FromQuery] string name, [FromQuery] int? status, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             SysUserResponseList sysUserResponseList = new SysUserResponseList();
             var query = from user in _sysuserService.Query<Sysuser>(t => t.Name != "root" && (!status.HasValue || t.Status == status)
@@ -64,19 +64,22 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             var userIds = sysUserResponseList.List.Select(t => t.Id);
             var userRoles = await _sysuserService.QueryAsync<Sysuserrole>(t => t.Status == 1 && t.Companyid == UserInfo.Companyid && userIds.Contains(t.Userid));
             var roleIds = userRoles.Select(t => t.Roleid);
-            var roles = await _sysuserService.QueryAsync<Sysrole>(t =>roleIds.Contains(t.Id));
+            var roles = await _sysuserService.QueryAsync<Sysrole>(t => t.Companyid == UserInfo.Companyid && t.Status == 1);
+
             foreach (var user in sysUserResponseList.List)
             {
-                user.Roles = (from userrole in userRoles
-                              join role in roles
-                              on userrole.Roleid equals role.Id
-                             select new SysUserRoleResponse()
-                             {
-                                 Id = userrole.Id,
-                                 Roleid = userrole.Roleid,
-                                 Rolename = role.Name
-                             }).ToList();
+                user.Roles =  (from role in roles
+                              select new SysUserRoleResponse()
+                              {
+                                  Roleid = role.Id,
+                                  Rolename = role.Name,
+                              }).ToList();
+                foreach (var userrole in user.Roles)
+                {
+                    userrole.IsChecked = userRoles.Any(t => t.Userid == user.Id && t.Roleid == userrole.Roleid);
+                }
             }
+
             return RickWebResult.Success(sysUserResponseList);
         }
 
@@ -138,16 +141,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             sysuser.Lastuser = UserInfo.Id;
             await _sysuserService.UpdateAsync(sysuser);
 
-            var userRoles = await _sysuserService.QueryAsync<Sysuserrole>(t => t.Status == 1 && t.Companyid == UserInfo.Companyid && t.Userid == sysUserPutRequest.Id);
-            foreach (var userrole in userRoles)
-            {
-                userrole.Status = 0;
-                sysuser.Lasttime = now;
-                sysuser.Lastuser = UserInfo.Id;
-                await _sysuserService.UpdateAsync(userrole);
-            }
+            var olduserRoles = await _sysuserService.QueryAsync<Sysuserrole>(t => t.Status == 1 && t.Companyid == UserInfo.Companyid && t.Userid == sysUserPutRequest.Id);
 
-            foreach (SysUserRolePutRequest sysUserRolePutRequest in sysUserPutRequest.Roles)
+            var currentCheckedRoles = sysUserPutRequest.Roles.Where(t => t.IsChecked);
+
+            //1、新增角色权限
+            var newRoles = currentCheckedRoles.Where(currentCheckedRole => !olduserRoles.Any(t => currentCheckedRole.Roleid == t.Roleid));
+            foreach (SysUserRolePutRequest sysUserRolePutRequest in newRoles)
             {
                 Sysuserrole sysuserrole = new Sysuserrole();
                 sysuserrole.Id = _idGenerator.NextId();
@@ -160,6 +160,16 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 sysuserrole.Adduser = UserInfo.Id;
                 sysuserrole.Lastuser = UserInfo.Id;
                 await _sysuserService.AddAsync(sysuserrole);
+            }
+
+            //2、删除角色权限
+            var deleteRoles = olduserRoles.Where(olduserRole => !currentCheckedRoles.Any(t => t.Roleid == olduserRole.Roleid));
+            foreach (Sysuserrole deleteRole in deleteRoles)
+            {
+                deleteRole.Status = 0;
+                deleteRole.Lasttime = now;
+                deleteRole.Lastuser = UserInfo.Id;
+                await _sysuserService.UpdateAsync(deleteRole);
             }
 
             await _sysuserService.CommitAsync();
@@ -217,13 +227,15 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             public long Roleid { get; set; }
             public string Rolename { get; set; }
+            public bool IsChecked { get; set; }
+
         }
 
         public class SysUserRoleResponse
         {
-            public long Id { get; set; }
             public long Roleid { get; set; }
             public string Rolename { get; set; }
+            public bool IsChecked { get; set; }
         }
 
     }

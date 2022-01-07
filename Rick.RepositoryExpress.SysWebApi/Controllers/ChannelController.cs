@@ -58,15 +58,15 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                               {
                                   channel.Id,
                                   channel.Name,
+                                  channel.Unitprice,
                                   channelDetail.Nationid,
                                   NationName = nation.Name,
                                   channelDetail.Agentid,
                                   AgentName = agent.Name,
-                                  channelDetail.Unitprice
                               }).ToListAsync();
 
             var results = from t in temp
-                          group t by new { t.Id, t.Name };
+                          group t by new { t.Id, t.Name,t.Unitprice };
             List<ChannelResponse> ChannelResponses = new List<ChannelResponse>();
             foreach (var r in results)
             {
@@ -74,6 +74,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 channelResponse.details = new List<ChannelResponsedetail>();
                 channelResponse.Id = r.Key.Id;
                 channelResponse.Name = r.Key.Name;
+                channelResponse.Unitprice = r.Key.Unitprice;
                 foreach (var d in r)
                 {
                     ChannelResponsedetail channelResponsedetail = new ChannelResponsedetail();
@@ -81,19 +82,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     channelResponsedetail.NationName = d.NationName;
                     channelResponsedetail.Agentid = d.Agentid;
                     channelResponsedetail.AgentName = d.AgentName;
-                    channelResponsedetail.Unitprice = d.Unitprice;
                     channelResponse.details.Add(channelResponsedetail);
                 }
                 ChannelResponses.Add(channelResponse);
             }
 
+            
+
             return RickWebResult.Success((IList<ChannelResponse>)ChannelResponses);
-            //var results = await _channelService.QueryAsync<Channel>(t => t.Status == 1);
-            //return RickWebResult.Success(results.Select(t => new ChannelResponse()
-            //{
-            //    Id = t.Id,
-            //    Name = t.Name
-            //}));
         }
 
         /// <summary>
@@ -110,11 +106,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             DateTime now = DateTime.Now;
             channel.Id = _idGenerator.NextId();
             channel.Name = channelRequest.Name;
+            channel.Unitprice = channelRequest.Unitprice;
+
             channel.Status = 1;
             channel.Addtime = now;
             channel.Lasttime = now;
             channel.Adduser = UserInfo.Id;
             channel.Lastuser = UserInfo.Id;
+
             await _channelService.AddAsync(channel);
 
             foreach (var detail in channelRequest.details)
@@ -124,7 +123,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 channeldetail.Channelid = channel.Id;
                 channeldetail.Nationid = detail.Nationid;
                 channeldetail.Agentid = detail.Agentid;
-                channeldetail.Unitprice = detail.Unitprice;
                 channeldetail.Status = 1;
                 channeldetail.Addtime = now;
                 channeldetail.Lasttime = now;
@@ -183,11 +181,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             Channel channel = new Channel();
             channel.Id = _idGenerator.NextId();
             channel.Name = channelRequest.Name;
+            channel.Unitprice = channelRequest.Unitprice;
             channel.Status = 1;
             channel.Addtime = now;
             channel.Lasttime = now;
             channel.Adduser = UserInfo.Id;
             channel.Lastuser = UserInfo.Id;
+
             await _channelService.AddAsync(channel);
 
             foreach (var detail in channelRequest.details)
@@ -197,7 +197,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 channeldetail.Channelid = channel.Id;
                 channeldetail.Nationid = detail.Nationid;
                 channeldetail.Agentid = detail.Agentid;
-                channeldetail.Unitprice = detail.Unitprice;
                 channeldetail.Status = 1;
                 channeldetail.Addtime = now;
                 channeldetail.Lasttime = now;
@@ -219,6 +218,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
     {
 
         public string Name { get; set; }
+        public decimal Unitprice { get; set; }
+
         public IList<ChannelRequestdetail> details { get; set; }
     }
 
@@ -226,12 +227,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
     {
         public long Nationid { get; set; }
         public long Agentid { get; set; }
-        public decimal Unitprice { get; set; }
     }
     public class ChannelPutRequest
     {
         public long id { get; set; }
         public string Name { get; set; }
+        public decimal Unitprice { get; set; }
         public IList<ChannelRequestdetail> details { get; set; }
     }
 
@@ -240,6 +241,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public long Id { get; set; }
 
         public string Name { get; set; }
+        public decimal Unitprice { get; set; }
         public IList<ChannelResponsedetail> details { get; set; }
 
 
@@ -252,7 +254,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public long Agentid { get; set; }
         public string AgentName { get; set; }
 
-        public decimal Unitprice { get; set; }
     }
+
 
 }

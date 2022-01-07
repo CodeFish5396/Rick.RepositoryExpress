@@ -77,6 +77,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     appuser.AddUser = appuser.Id;
                     string userCode = "000000" + _redisClientService.UserCodeGet();
                     appuser.Usercode = "DR" + userCode.Substring(userCode.Length - 6);
+                    appuser.Shareuser = data.ShareUserId;
                     await _appuserService.AddAsync(appuser);
                     await _appuserService.CommitAsync();
                 }
@@ -122,6 +123,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public string OpenId { get; set; }
             public string Iv { get; set; }
             public long CompanyId { get; set; }
+            public long? ShareUserId { get; set; }
 
         }
 

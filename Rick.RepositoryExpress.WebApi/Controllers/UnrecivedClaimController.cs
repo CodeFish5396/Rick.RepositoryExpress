@@ -37,20 +37,22 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         /// <summary>
         /// 查询未到库订单
         /// </summary>
+        /// <param name="expressnumber"></param>
         /// <param name="index"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<UnrecivedClaimResponseList>> Get([FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<UnrecivedClaimResponseList>> Get([FromQuery] string expressnumber, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from expressclaim in _expressclaimService.Query<Expressclaim>(t => (t.Status == (int)ExpressClaimStatus.正常 || t.Status == (int)ExpressClaimStatus.已到库) && t.Appuser == UserInfo.Id)
-                        join expressinfo in _expressclaimService.Query<Expressinfo>(t => 1 == 1)
+            var query = from expressclaim in _expressclaimService.Query<Expressclaim>(t => (t.Status == (int)ExpressClaimStatus.预报 || t.Status == (int)ExpressClaimStatus.已入库) && t.Appuser == UserInfo.Id)
+                        join expressinfo in _expressclaimService.Query<Expressinfo>(t => string.IsNullOrEmpty(expressnumber) || t.Expressnumber.Contains(expressnumber))
                         on expressclaim.Expressinfoid equals expressinfo.Id
                         join courier in _expressclaimService.Query<Courier>(t => 1 == 1)
                         on expressinfo.Courierid equals courier.Id
                         select new UnrecivedClaimResponse()
                         {
                             Id = expressclaim.Id,
+                            ExpressinfoId = expressinfo.Id,
                             Expressnumber = expressinfo.Expressnumber,
                             CourierName = courier.Name,
                             CourierId = expressinfo.Courierid,
@@ -82,7 +84,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         public class UnrecivedClaimResponse
         {
             public long Id { get; set; }
-
+            public long ExpressinfoId { get; set; }
             public string Expressnumber { get; set; }
             public string CourierName { get; set; }
             public long? CourierId { get; set; }

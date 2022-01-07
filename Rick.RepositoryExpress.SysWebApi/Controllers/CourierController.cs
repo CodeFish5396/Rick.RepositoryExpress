@@ -41,10 +41,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<CourierResponseList>> Get([FromQuery] string name, [FromQuery] int? status, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<CourierResponseList>> Get([FromQuery] string name, [FromQuery] int? status, [FromQuery] int? type, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            int count = await _courierService.CountAsync<Courier>(t => (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name));
-            var results = _courierService.Query<Courier>(t => (!status.HasValue || t.Status == status) && (string.IsNullOrEmpty(name) || t.Name == name))
+            int count = await _courierService.CountAsync<Courier>(t => (!status.HasValue || t.Status == status) && (!type.HasValue || t.Type == 0 || t.Type == type) && (string.IsNullOrEmpty(name) || t.Name == name));
+            var results = _courierService.Query<Courier>(t => (!status.HasValue || t.Status == status) && (!type.HasValue || t.Type == 0 || t.Type == type) && (string.IsNullOrEmpty(name) || t.Name == name))
                 .OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize);
             CourierResponseList courierResponseList = new CourierResponseList();
             courierResponseList.Count = count;
@@ -55,8 +55,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 Name = t.Name,
                 Extname = t.Extname,
                 Status = t.Status,
+                Type = t.Type,
+                Order = t.Order,
                 Addtime = t.Addtime
-            }); 
+            }).OrderBy(t=>t.Order).ThenByDescending(t=>t.Id);
             return RickWebResult.Success(courierResponseList);
         }
 
@@ -76,6 +78,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             courier.Name = courierRequest.Name;
             courier.Code = courierRequest.Code;
             courier.Extname = courierRequest.Extname;
+            courier.Type = courierRequest.Type;
+            courier.Order = courierRequest.Order;
             courier.Status = 1;
             courier.Addtime = now;
             courier.Lasttime = now;
@@ -107,6 +111,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             courier.Name = courierPutRequest.Name;
             courier.Code = courierPutRequest.Code;
             courier.Extname = courierPutRequest.Extname;
+            courier.Type = courierPutRequest.Type;
+            courier.Order = courierPutRequest.Order;
             courier.Status = 1;
             DateTime now = DateTime.Now;
 
@@ -151,6 +157,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Code { get; set; }
         public string Name { get; set; }
         public string Extname { get; set; }
+        public int Type { get; set; }
+        public int Order { get; set; }
+
     }
 
     public class CourierPutRequest
@@ -160,6 +169,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Code { get; set; }
         public string Name { get; set; }
         public string Extname { get; set; }
+        public int Type { get; set; }
+        public int Order { get; set; }
     }
 
     public class CourierResponse
@@ -170,6 +181,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Name { get; set; }
         public string Extname { get; set; }
         public int Status { get; set; }
+        public int Type { get; set; }
+        public int Order { get; set; }
         public DateTime Addtime { get; set; }
     }
     public class CourierResponseList

@@ -67,6 +67,10 @@ namespace Rick.RepositoryExpress.WebApi
             services.AddScoped<IIncomeService, IncomeService>();
             services.AddScoped<IAccountsubjectService, AccountsubjectService>();
             services.AddScoped<IAgentFeeService, AgentFeeService>();
+            services.AddScoped<ICurrencychangerateService, CurrencychangerateService>();
+            services.AddScoped<IRunFeeService, RunFeeService>();
+            services.AddScoped<ISyssettingService, SyssettingService>();
+            services.AddScoped<IMessageService, MessageService>();
 
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));
@@ -87,14 +91,18 @@ namespace Rick.RepositoryExpress.WebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                //app.UseExceptionHandler("/Home/Error");
+
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
             app.Use(async (context, next) =>
             {
                 string customMethod = context.Request.Headers["X-HTTPMETHOD"];
@@ -102,8 +110,9 @@ namespace Rick.RepositoryExpress.WebApi
                 {
                     context.Request.Method = customMethod.ToUpper();
                 }
-                await next();
+                await next.Invoke();
             });
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {

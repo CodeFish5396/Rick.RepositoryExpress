@@ -14,6 +14,16 @@ namespace Rick.RepositoryExpress.RedisService
         {
             return redisHelper.UserCodeGet();
         }
+        public string PackageCodeGet()
+        {
+            return redisHelper.PackageCodeGet();
+        }
+
+        public string OrderCodeGet()
+        {
+            return redisHelper.OrderCodeGet();
+        }
+
         public bool StringSet(string key, string value, TimeSpan? expiry = default(TimeSpan?))
         {
             return redisHelper.StringSet(key, value, expiry);

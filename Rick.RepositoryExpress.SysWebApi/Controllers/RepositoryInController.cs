@@ -37,7 +37,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询包裹入库
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="code"></param>
         /// <param name="userCode"></param>
         /// <param name="userName"></param>
         /// <param name="userMobile"></param>
@@ -49,7 +49,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<RepositoryInResponseList>> Get([FromQuery] long? id, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] string expressNumber, [FromQuery] string inUserName, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<RepositoryInResponseList>> Get([FromQuery] string code, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] string expressNumber, [FromQuery] string inUserName, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             bool isUser = !(string.IsNullOrEmpty(userCode) && string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(userMobile));
             List<long> packageids = new List<long>();
@@ -63,22 +63,27 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                       select appuser.Id).ToListAsync();
                 packageids = await (from claim in _packageService.Query<Expressclaim>(t => appUsers.Contains(t.Appuser) && t.Packageid.HasValue)
                                     select (long)claim.Packageid).ToListAsync();
-
             }
+
             var query = from package in _packageService.Query<Package>(t => (string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber)
                           && (!startTime.HasValue || t.Addtime >= startTime)
                           && (!endTime.HasValue || t.Addtime <= endTime)
-                          && (!id.HasValue || t.Addtime >= startTime)
-                          && (t.Status == (int)PackageStatus.已入库 || t.Status == (int)PackageStatus.已入柜)
+                          && (string.IsNullOrEmpty(code) || t.Code == code)
+                          && (t.Status >= (int)PackageStatus.已入库 && t.Status != (int)PackageStatus.已出库)
                           )
+                        join courier in _packageService.Query<Courier>()
+                        on package.Courierid equals courier.Id
                         join user in _packageService.Query<Sysuser>()
-                        on package.Repositoryinuser equals user.Id 
+                        on package.Repositoryinuser equals user.Id
                         into userTemp
                         from user in userTemp.DefaultIfEmpty()
                         select new RepositoryInResponse()
                         {
                             Id = package.Id,
+                            Repositoryid = package.Repositoryid,
                             Expressnumber = package.Expressnumber,
+                            CourierId = courier.Id,
+                            CourierName = courier.Name,
                             Code = package.Code,
                             Name = package.Name,
                             Weight = package.Weight,
@@ -88,8 +93,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Location = package.Location,
                             Addtime = package.Addtime,
                             Intime = package.Repositoryintime,
-                            Status = package.Status
+                            Status = package.Status,
+                            Changecode = package.Changecode,
+                            Refundcode = package.Refundcode,
+                            Checkremark = package.Checkremark,
+                            Refundremark = package.Refundremark,
+                            Changeremark = package.Changeremark,
+                            Repositoryregionid = package.Repositoryregionid,
+                            Repositoryshelfid = package.Repositoryshelfid,
+                            Repositorynumber = package.Repositorynumber
                         };
+
             if (isUser)
             {
                 query = from repositoryinresponse in query
@@ -129,6 +143,35 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                    user.Mobile
                                }
                         ).ToListAsync();
+            var relatedUserIds = users.Select(t => t.Id).ToList();
+            //var relatedPackages = await (from claim in _packageService.Query<Expressclaim>(t => relatedUserIds.Contains(t.Appuser))
+            //                             join package in _packageService.Query<Package>(t => t.Status == 2)
+            //                             on claim.Packageid equals package.Id
+            //                             select new
+            //                             {
+            //                                 package.Id,
+            //                                 claim.Appuser,
+            //                                 package.Location
+            //                             }
+            //            ).ToListAsync();
+
+            var relatedPackages = await (from claim in _packageService.Query<Expressclaim>(t => relatedUserIds.Contains(t.Appuser))
+                                         join package in _packageService.Query<Package>(t => t.Status == 2)
+                                         on claim.Packageid equals package.Id
+                                         join region in _packageService.Query<Repositoryregion>(t => t.Status == 2)
+                                         on package.Repositoryregionid equals region.Id
+                                         join shelf in _packageService.Query<Repositoryshelf>(t => t.Status == 2)
+                                         on package.Repositoryshelfid equals shelf.Id
+                                         select new
+                                         {
+                                             package.Id,
+                                             claim.Appuser,
+                                             package.Location,
+                                             Region = region,
+                                             Shelf = shelf,
+                                             Package = package
+                                         }
+                        ).ToListAsync();
 
             foreach (var packageInResponse in repositoryInResponceList.List)
             {
@@ -141,6 +184,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     Username = t.Truename,
                     Usermobile = t.Mobile
                 }).ToList();
+                foreach (var user in packageInResponse.Users)
+                {
+                    user.RelatedLocations = relatedPackages.Where(t => t.Id != packageInResponse.Id && t.Appuser == user.Userid).Select(t => t.Location).ToList();
+                    user.RelatedPackageLocations = relatedPackages.Where(t => t.Id != packageInResponse.Id && t.Appuser == user.Userid).Select(t => new RelatedLocationResponse() { 
+                        Id = t.Id,
+                        Repositoryregionid = t.Region.Id,
+                        Repositoryregionname = t.Region.Name,
+                        Repositoryshelfid = t.Shelf.Id,
+                        Repositoryshelfname = t.Shelf.Name,
+                        Repositorynumber = t.Package.Repositorynumber
+                    }).ToList();
+                }
             }
 
             return RickWebResult.Success(repositoryInResponceList);
@@ -156,7 +211,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             await _packageService.BeginTransactionAsync();
             Package package = await _packageService.FindAsync<Package>(repositoryInRequest.Id);
-            package.Location = repositoryInRequest.Location;
+            if (package.Status != (int)PackageStatus.已入柜 || package.Status != (int)PackageStatus.已入库)
+            {
+                RickWebResult.Error<RepositoryInResponse>(null, 996, "包裹状态不正确");
+            }
+            Repositoryregion region = (await _packageService.QueryAsync<Repositoryregion>(t => t.Repositoryid == package.Repositoryid && t.Id == repositoryInRequest.Repositoryregionid)).FirstOrDefault();
+            Repositoryshelf shelf = (await _packageService.QueryAsync<Repositoryshelf>(t => t.Repositoryid == package.Repositoryid && t.Id == repositoryInRequest.Repositoryshelfid)).FirstOrDefault();
+            package.Repositoryregionid = region.Id;
+            package.Repositoryshelfid = shelf.Id;
+            package.Repositorynumber = repositoryInRequest.Repositorynumber;
+            string location = string.Format("{0}{1}{2}", region.Name, shelf.Name, repositoryInRequest.Repositorynumber);
+            package.Location = location;
             DateTime now = DateTime.Now;
             package.Lasttime = now;
             package.Lastuser = UserInfo.Id;
@@ -172,7 +237,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             packagenote.Adduser = UserInfo.Id;
             packagenote.Addtime = now;
             packagenote.Isclosed = 0;
-            packagenote.Operator = (int)PackageNoteStatus.包裹入库;
+            packagenote.Operator = (int)PackageNoteStatus.已揽收;
             packagenote.Operatoruser = UserInfo.Id;
             await _packageService.AddAsync(packagenote);
 
@@ -180,7 +245,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                        select ec).ToListAsync();
             foreach (var expressclaim in expressclaims)
             {
-                expressclaim.Status = (int)ExpressClaimStatus.已入库;
+                expressclaim.Status = (int)ExpressClaimStatus.已揽收;
                 await _packageService.UpdateAsync(expressclaim);
             }
 
@@ -207,12 +272,16 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public class RepositoryInRequest
         {
             public long Id { get; set; }
-            public string Location { get; set; }
+            public long Repositoryregionid { get; set; }
+            public long Repositoryshelfid { get; set; }
+            public string Repositorynumber { get; set; }
         }
 
         public class RepositoryInResponse
         {
             public long Id { get; set; }
+            public long Repositoryid { get; set; }
+
             public string Expressnumber { get; set; }
             public string Code { get; set; }
             public long CourierId { get; set; }
@@ -226,6 +295,16 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public DateTime Addtime { get; set; }
             public DateTime? Intime { get; set; }
             public int Status { get; set; }
+            public string Changecode { get; set; }
+            public string Refundcode { get; set; }
+
+            public string Checkremark { get; set; }
+            public string Refundremark { get; set; }
+            public string Changeremark { get; set; }
+            public long? Repositoryregionid { get; set; }
+            public long? Repositoryshelfid { get; set; }
+            public string Repositorynumber { get; set; }
+
             public IList<long> Images { get; set; }
             public IList<long> Videos { get; set; }
             public IList<RepositoryInUserInfoResponse> Users { get; set; }
@@ -237,6 +316,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Usercode { get; set; }
             public string Username { get; set; }
             public string Usermobile { get; set; }
+            public List<string> RelatedLocations { get; set; }
+            public List<RelatedLocationResponse> RelatedPackageLocations { get; set; }
+        }
+        public class RelatedLocationResponse
+        {
+            public long Id { get; set; }
+            public long Repositoryregionid { get; set; }
+            public string Repositoryregionname { get; set; }
+            public long Repositoryshelfid { get; set; }
+            public string Repositoryshelfname { get; set; }
+            public string Repositorynumber { get; set; }
 
         }
 
@@ -245,5 +335,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public int Count { get; set; }
             public IList<RepositoryInResponse> List { get; set; }
         }
+
     }
 }

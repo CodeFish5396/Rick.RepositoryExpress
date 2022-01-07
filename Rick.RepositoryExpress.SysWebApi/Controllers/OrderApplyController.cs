@@ -37,7 +37,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询用户的申请打包
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="code"></param>
         /// <param name="userCode"></param>
         /// <param name="userName"></param>
         /// <param name="userMobile"></param>
@@ -50,21 +50,19 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<OrderApplyResponseList>> Get([FromQuery] long? id, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int? status, [FromQuery] int? orderStatus, [FromQuery] string packageUserName, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<OrderApplyResponseList>> Get([FromQuery] string code, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int? status, [FromQuery] int? orderStatus, [FromQuery] string packageUserName, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from order in _packageOrderApplyService.Query<Packageorderapply>(t => (!id.HasValue || t.Id == id)
+            var query = from order in _packageOrderApplyService.Query<Packageorderapply>(t => (string.IsNullOrEmpty(code) || t.Code == code)
                         && (!status.HasValue || t.Status == status)
                         && (!orderStatus.HasValue || t.Orderstatus == orderStatus)
                         && (!startTime.HasValue || t.Addtime >= startTime)
                         && (!endTime.HasValue || t.Addtime <= endTime)
-                        && (t.Orderstatus == (int)OrderApplyStatus.发起申请 || t.Orderstatus == (int)OrderApplyStatus.出货录单)
+                        && (t.Orderstatus == (int)OrderApplyStatus.申请打包 || t.Orderstatus == (int)OrderApplyStatus.发货待确认)
                         )
-                        join channeldetail in _packageOrderApplyService.Query<Channeldetail>(channel => 1 == 1)
-                        on order.Channelid equals channeldetail.Id
                         join channel in _packageOrderApplyService.Query<Channel>(t => true)
-                        on channeldetail.Channelid equals channel.Id
+                        on order.Channelid equals channel.Id
                         join nation in _packageOrderApplyService.Query<Nation>(t => true)
-                        on channeldetail.Nationid equals nation.Id
+                        on order.Nationid equals nation.Id
                         join appuser in _packageOrderApplyService.Query<Appuser>(t =>
                             (string.IsNullOrEmpty(userCode) || t.Usercode == userCode)
                             && (string.IsNullOrEmpty(userName) || t.Truename == userName)
@@ -78,10 +76,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         where (string.IsNullOrEmpty(packageUserName) || (sysUser != null && sysUser.Name == packageUserName))
                         select new OrderApplyResponse()
                         {
+                            Code = order.Code,
                             Id = order.Id,
                             Channelid = order.Channelid,
                             Channelname = channel.Name,
-                            Channelprice = channeldetail.Unitprice,
+                            Channelprice = channel.Unitprice,
                             Nationid = order.Nationid,
                             Nationname = nation.Name,
                             Addressid = order.Addressid,
@@ -103,6 +102,28 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             orderApplyResponseList.Count = await query.CountAsync();
             orderApplyResponseList.List = await query.OrderByDescending(t => t.Id).Skip(pageSize * (index - 1)).Take(pageSize).ToListAsync();
 
+            var chaneelIds = orderApplyResponseList.List.Select(t => t.Channelid).ToList();
+            var channelPrices = await _packageOrderApplyService.QueryAsync<Channelprice>(t => t.Status == 1 && chaneelIds.Contains(t.Channelid));
+            foreach (OrderApplyResponse orderApplyResponse in orderApplyResponseList.List)
+            {
+                orderApplyResponse.Pricedetails = channelPrices.Where(t => t.Channelid == orderApplyResponse.Channelid && t.Nationid == orderApplyResponse.Nationid).Select(t => new ChannelResponsepricedetail()
+                {
+                    Id = t.Id,
+                    Channelid = t.Channelid,
+                    Nationid = t.Nationid,
+                    Minweight = t.Minweight,
+                    Maxweight = t.Maxweight,
+                    Price = t.Price
+                }).ToList();
+            }
+
+            var currencies = await _packageOrderApplyService.QueryAsync<Currency>(t => t.Status == 1 && (t.Isdefault == 1 || t.Islocal == 1));
+            var localCurrency = currencies.Single(t => t.Islocal == 1);
+            var defaultCurrency = currencies.Single(t => t.Isdefault == 1);
+            Currencychangerate currentRate = await _packageOrderApplyService.Query<Currencychangerate>(t => t.Status == 1 && t.Sourcecurrency == defaultCurrency.Id && t.Targetcurrency == localCurrency.Id).SingleAsync();
+            orderApplyResponseList.Currencychangerateid = currentRate.Id;
+            orderApplyResponseList.Currencychangerate = currentRate.Rate;
+
             foreach (var item in orderApplyResponseList.List)
             {
                 var orderid = item.Id;
@@ -116,12 +137,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 item.Details = packages.Select(package => new OrderApplyResponseDetail()
                 {
                     PackageId = package.Id,
+                    PackageCode = package.Code,
                     PackageName = package.Name,
                     Expressnumber = package.Expressnumber,
                     Location = package.Location,
                     Name = package.Name,
                     Count = package.Count,
-                    Weight = package.Weight
+                    Weight = package.Weight,
+                    Payedprice = package.Freightprice
                 }).ToList();
                 var imageInfos = await (from image in _packageOrderApplyService.Query<Packageimage>(t => packageIds.Contains(t.Packageid))
                                         select image
@@ -157,6 +180,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         Paperprice = t.Paperprice,
                         Boxprice = t.Boxprice,
                         Bounceprice = t.Bounceprice,
+                        Vacuumprice = t.Vacuumprice,
+                        PackAddPrice = t.Packaddprice,
+                        HasPackAddPrice = t.Packaddprice.HasValue && t.Packaddprice !=0,
+                        RemotePrice = t.Remoteprice,
+                        HasRemote = t.Remoteprice.HasValue && t.Remoteprice != 0,
+                        HasElectrified = t.Haselectrified.HasValue && t.Haselectrified != 0,
                         Price = t.Price,
                         Length = t.Length,
                         Width = t.Width,
@@ -171,14 +200,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         {
                             PackageId = package.Id,
                             PackageName = package.Name,
-                            Expressnumber = package.Expressnumber,
-                            Location = package.Location,
+                            //Expressnumber = package.Expressnumber,
+                            //Location = package.Location,
                         }).ToList();
-                        foreach (var orderapplypostresponsedetailPackages in orderapplypostresponsedetail.Packages)
-                        {
-                            orderapplypostresponsedetailPackages.Images = imageInfos.Where(t => t.Packageid == orderapplypostresponsedetailPackages.PackageId).Select(t => t.Fileinfoid).ToList();
-                            orderapplypostresponsedetailPackages.Videos = vedioInfos.Where(t => t.Packageid == orderapplypostresponsedetailPackages.PackageId).Select(t => t.Fileinfoid).ToList();
-                        }
+                        //foreach (var orderapplypostresponsedetailPackages in orderapplypostresponsedetail.Packages)
+                        //{
+                        //    orderapplypostresponsedetailPackages.Images = imageInfos.Where(t => t.Packageid == orderapplypostresponsedetailPackages.PackageId).Select(t => t.Fileinfoid).ToList();
+                        //    orderapplypostresponsedetailPackages.Videos = vedioInfos.Where(t => t.Packageid == orderapplypostresponsedetailPackages.PackageId).Select(t => t.Fileinfoid).ToList();
+                        //}
                     }
                 }
             }
@@ -195,22 +224,51 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public async Task<RickWebResult<object>> Post([FromBody] OrderApplyRequest orderApplyRequest)
         {
             await _packageOrderApplyService.BeginTransactionAsync();
+            DateTime now = DateTime.Now;
 
             Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(orderApplyRequest.Id);
-            packageorderapply.Orderstatus = (int)OrderApplyStatus.出货录单;
-            packageorderapply.Lasttime = DateTime.Now;
+            if (packageorderapply.Status != (int)OrderApplyStatus.申请打包)
+            {
+                RickWebResult.Error<object>(null, 996, "包裹状态不正确");
+            }
+
+            packageorderapply.Orderstatus = (int)OrderApplyStatus.发货待确认;
+            packageorderapply.Lasttime = now;
             packageorderapply.Lastuser = UserInfo.Id;
             packageorderapply.Packtime = packageorderapply.Lasttime;
             packageorderapply.Packuser = UserInfo.Id;
             await _packageOrderApplyService.UpdateAsync(packageorderapply);
-            var oldexpresses = await _packageOrderApplyService.QueryAsync<Packageorderapplyexpress>(t => t.Packageorderapplyid == packageorderapply.Id);
+            decimal freightPrice = 0m;
+            var packageorderapplydetailes = await _packageOrderApplyService.QueryAsync<Packageorderapplydetail>(t => t.Packageorderapplyid == packageorderapply.Id);
+            foreach (var packageorderapplydetaile in packageorderapplydetailes)
+            {
+                var package = await _packageOrderApplyService.FindAsync<Package>(packageorderapplydetaile.Packageid);
+
+                Packagenote packagenote = new Packagenote();
+                packagenote.Id = _idGenerator.NextId();
+                packagenote.Packageid = package.Id;
+                packagenote.Status = 1;
+                packagenote.Adduser = UserInfo.Id;
+                packagenote.Addtime = now;
+                packagenote.Isclosed = 0;
+                packagenote.Operator = (int)PackageNoteStatus.发货待确认;
+                packagenote.Operatoruser = UserInfo.Id;
+                await _packageOrderApplyService.AddAsync(packagenote);
+
+                freightPrice += package.Freightprice ?? 0;
+            }
+
+
+            var oldexpresses = await _packageOrderApplyService.QueryAsync<Packageorderapplyexpress>(t => t.Status == 1 && t.Packageorderapplyid == packageorderapply.Id);
             foreach (var old in oldexpresses)
             {
                 old.Status = 0;
                 await _packageOrderApplyService.UpdateAsync(old);
             }
+
+            Currencychangerate currentRate = await _packageOrderApplyService.FindAsync<Currencychangerate>(orderApplyRequest.Currencychangerateid);
+
             Packageorderapplyexpress packageorderapplyexpress = new Packageorderapplyexpress();
-            DateTime now = DateTime.Now;
             packageorderapplyexpress.Id = _idGenerator.NextId();
             packageorderapplyexpress.Packageorderapplyid = packageorderapply.Id;
             packageorderapplyexpress.Remark = orderApplyRequest.Remark;
@@ -221,6 +279,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             packageorderapplyexpress.Lasttime = now;
             packageorderapplyexpress.Adduser = UserInfo.Id;
             packageorderapplyexpress.Lastuser = UserInfo.Id;
+            packageorderapplyexpress.Currencychangerateid = currentRate.Id;
+            packageorderapplyexpress.Currencychangerate = currentRate.Rate;
+            packageorderapplyexpress.Targetprice = orderApplyRequest.Targetprice;
+            packageorderapplyexpress.Freightprice = freightPrice;
             await _packageOrderApplyService.AddAsync(packageorderapplyexpress);
 
             foreach (OrderApplyRequestdetail orderApplyRequestdetail in orderApplyRequest.Details)
@@ -239,10 +301,19 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 packageorderapplyexpressdetail.Overlengthprice = orderApplyRequestdetail.Overlengthprice;
                 packageorderapplyexpressdetail.Overweightprice = orderApplyRequestdetail.Overweightprice;
                 packageorderapplyexpressdetail.Oversizeprice = orderApplyRequestdetail.Oversizeprice;
+                packageorderapplyexpressdetail.Vacuumprice = orderApplyRequestdetail.Vacuumprice;
+                packageorderapplyexpressdetail.Remoteprice = orderApplyRequestdetail.RemotePrice;
+                packageorderapplyexpressdetail.Haselectrified = (sbyte)((orderApplyRequestdetail.Haselectrified.HasValue && orderApplyRequestdetail.Haselectrified == true) ? 1 : 0);
+                packageorderapplyexpressdetail.Packaddprice = orderApplyRequestdetail.PackAddPrice;
+
                 packageorderapplyexpressdetail.Paperprice = orderApplyRequestdetail.Paperprice;
                 packageorderapplyexpressdetail.Boxprice = orderApplyRequestdetail.Boxprice;
                 packageorderapplyexpressdetail.Bounceprice = orderApplyRequestdetail.Bounceprice;
                 packageorderapplyexpressdetail.Price = orderApplyRequestdetail.Price;
+                packageorderapplyexpressdetail.Currencychangerateid = currentRate.Id;
+                packageorderapplyexpressdetail.Currencychangerate = currentRate.Rate;
+                packageorderapplyexpressdetail.Targetprice = orderApplyRequestdetail.Targetprice;
+
                 foreach (long packageid in orderApplyRequestdetail.Packages)
                 {
                     Packageorderapplyexpresspackage packageorderapplyexpresspackage = new Packageorderapplyexpresspackage();
@@ -254,6 +325,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 await _packageOrderApplyService.AddAsync(packageorderapplyexpressdetail);
             }
 
+            Packageorderapplynote packageorderapplynote = new Packageorderapplynote();
+            packageorderapplynote.Id = _idGenerator.NextId();
+            packageorderapplynote.Packageorderapplyid = packageorderapply.Id;
+            packageorderapplynote.Status = 1;
+            packageorderapplynote.Adduser = UserInfo.Id;
+            packageorderapplynote.Addtime = now;
+            packageorderapplynote.Isclosed = 0;
+            packageorderapplynote.Operator = (int)OrderApplyStatus.发货待确认;
+            packageorderapplynote.Operatoruser = UserInfo.Id;
+            await _packageOrderApplyService.AddAsync(packageorderapplynote);
+
+
             await _packageOrderApplyService.CommitAsync();
             return RickWebResult.Success(new object());
         }
@@ -264,6 +347,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Remark { get; set; }
             public string Mailcode { get; set; }
             public decimal? Price { get; set; }
+            public long Currencychangerateid { get; set; }
+            public decimal? Targetprice { get; set; }
             public IList<OrderApplyRequestdetail> Details { get; set; }
         }
         public class OrderApplyRequestdetail
@@ -278,19 +363,28 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public decimal? Paperprice { get; set; }
             public decimal? Boxprice { get; set; }
             public decimal? Bounceprice { get; set; }
+            public decimal? Vacuumprice { get; set; }
             public decimal? Price { get; set; }
+            public decimal? Targetprice { get; set; }
             public decimal? Length { get; set; }
             public decimal? Width { get; set; }
             public decimal? Height { get; set; }
             public decimal? Volumeweight { get; set; }
+            public decimal? RemotePrice { get; set; }
+            public bool? Haselectrified { get; set; }
+            public decimal? PackAddPrice { get; set; }
+
             public List<long> Packages { get; set; }
         }
         public class OrderApplyResponse
         {
+            public string Code { get; set; }
             public long Id { get; set; }
             public long Channelid { get; set; }
             public string Channelname { get; set; }
             public decimal Channelprice { get; set; }
+            public List<ChannelResponsepricedetail> Pricedetails { get; set; }
+
             public long Nationid { get; set; }
             public string Nationname { get; set; }
             public long Addressid { get; set; }
@@ -327,6 +421,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public decimal? Overlengthprice { get; set; }
             public decimal? Overweightprice { get; set; }
             public decimal? Oversizeprice { get; set; }
+            public decimal? Vacuumprice { get; set; }
+            public decimal? RemotePrice { get; set; }
+            public bool HasElectrified { get; set; }
+            public bool HasPackAddPrice { get; set; }
+            public bool HasRemote { get; set; }
+            public decimal? PackAddPrice { get; set; }
             public decimal? Paperprice { get; set; }
             public decimal? Boxprice { get; set; }
             public decimal? Bounceprice { get; set; }
@@ -341,21 +441,20 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             public long PackageId { get; set; }
             public string PackageName { get; set; }
-            public string Expressnumber { get; set; }
-            public string Location { get; set; }
-            public IList<long> Images { get; set; }
-            public IList<long> Videos { get; set; }
         }
 
         public class OrderApplyResponseDetail
         {
             public long PackageId { get; set; }
+            public string PackageCode { get; set; }
             public string PackageName { get; set; }
             public string Expressnumber { get; set; }
             public string Location { get; set; }
             public string Name { get; set; }
             public int Count { get; set; }
             public decimal? Weight { get; set; }
+            public decimal? Payedprice { get; set; }
+
             public IList<long> Images { get; set; }
             public IList<long> Videos { get; set; }
         }
@@ -364,6 +463,19 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             public int Count { get; set; }
             public IList<OrderApplyResponse> List { get; set; }
+            public long? Currencychangerateid { get; set; }
+            public decimal? Currencychangerate { get; set; }
+
+        }
+
+        public class ChannelResponsepricedetail
+        {
+            public long Id { get; set; }
+            public long Channelid { get; set; }
+            public long Nationid { get; set; }
+            public decimal Minweight { get; set; }
+            public decimal Maxweight { get; set; }
+            public decimal Price { get; set; }
         }
 
     }

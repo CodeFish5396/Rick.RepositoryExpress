@@ -78,11 +78,11 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         /// <param name="isDefault"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<UserAddressResponse>>> Get([FromQuery] bool isDefault)
+        public async Task<RickWebResult<List<UserAddressResponse>>> Get([FromQuery] bool isDefault)
         {
             var results = await _appuseraddressService.Query<Appuseraddress>(t => t.Status == 1 && t.Appuser == UserInfo.Id)
                 .OrderByDescending(t => t.Weight).ThenByDescending(t => t.Lasttime).ToListAsync();
-            IEnumerable<UserAddressResponse> userAddressResponses;
+            List<UserAddressResponse> userAddressResponses = new List<UserAddressResponse>();
             if (isDefault)
             {
                 userAddressResponses = Enumerable.Repeat(results.FirstOrDefault(), 1).Select(address => new UserAddressResponse
@@ -94,7 +94,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     Region = address.Region,
                     Address = address.Address,
                     Weight = address.Weight
-                });
+                }).ToList();
             }
             else
             {
@@ -107,7 +107,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     Region = address.Region,
                     Address = address.Address,
                     Weight = address.Weight
-                });
+                }).ToList();
             }
             var nationids = userAddressResponses.Select(t => t.Nationid);
             var nations = await _appuseraddressService.Query<Nation>(t => nationids.Contains(t.Id)).ToListAsync();

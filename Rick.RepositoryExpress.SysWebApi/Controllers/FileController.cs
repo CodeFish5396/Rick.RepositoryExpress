@@ -50,7 +50,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             {
                 return null;
             }
-            using (var fileStream = new FileStream(filePath + fileinfo.Filename + fileinfo.Ext, FileMode.Open))
+            
+            using (var fileStream = new FileStream(filePath + fileinfo.Filename + fileinfo.Ext, FileMode.Open, FileAccess.Read))
             {
                 byte[] buffer = new byte[fi.Length];
                 await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));

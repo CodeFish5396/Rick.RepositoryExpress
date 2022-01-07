@@ -17,24 +17,27 @@ namespace Rick.RepositoryExpress.CefMockBrowser
         private static ChromiumWebBrowser browser;
         static void Main(string[] args)
         {
-            var obj = new { id= 1468118496494882816 };
-            //string res = JsonConvert.SerializeObject(obj);
-            string res = JsonSerializer.Serialize(obj);
-            Console.WriteLine(res);
-            //SnowFlakeService snowFlakeService = new SnowFlakeService();
-            //List<long> ids = new List<long>();
-            //for (int i = 0; i < 100; i++)
-            //{
-            //    long id = snowFlakeService.NextId();
-            //    if (ids.Contains(id))
-            //    {
-            //        Console.WriteLine("产生重复ID");
-            //    }
-            //    else
-            //    {
-            //        ids.Add(id);
-            //    }
-            //}
+            string date = DateTime.Now.ToString("ddHHmmssfff");
+            Console.WriteLine(date);
+            Console.ReadLine();
+            //var obj = new { id= 1468118496494882816 };
+            ////string res = JsonConvert.SerializeObject(obj);
+            //string res = JsonSerializer.Serialize(obj);
+            //Console.WriteLine(res);
+            ////SnowFlakeService snowFlakeService = new SnowFlakeService();
+            ////List<long> ids = new List<long>();
+            ////for (int i = 0; i < 100; i++)
+            ////{
+            ////    long id = snowFlakeService.NextId();
+            ////    if (ids.Contains(id))
+            ////    {
+            ////        Console.WriteLine("产生重复ID");
+            ////    }
+            ////    else
+            ////    {
+            ////        ids.Add(id);
+            ////    }
+            ////}
             //var settings = new CefSettings()
             //{
             //    //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data

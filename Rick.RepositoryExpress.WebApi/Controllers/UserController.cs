@@ -37,6 +37,8 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             Appuser appuser = await _appuserService.FindAsync<Appuser>(UserInfo.Id);
 
             UserLoginInfo userLoginInfo = new UserLoginInfo();
+            
+            userLoginInfo.Userid = appuser.Id;
             userLoginInfo.Name = appuser.Name;
             userLoginInfo.UserCode = appuser.Usercode;
             userLoginInfo.Openid = appuser.Openid;
@@ -95,6 +97,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
 
         public class UserLoginInfo
         {
+            public long Userid { get; set; }
             public string Name { get; set; }
             public string UserCode { get; set; }
             public string Openid { get; set; }

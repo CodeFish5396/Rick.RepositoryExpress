@@ -89,6 +89,20 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                 appuseraccountchargeimage.Addtime = now;
                 await _appuseraccountService.AddAsync(appuseraccountchargeimage);
             }
+            Appuser appuser = await _appuseraccountService.FindAsync<Appuser>(UserInfo.Id);
+
+            Message message = new Message();
+            message.Id = _idGenerator.NextId();
+            message.Status = 1;
+            message.Adduser = appuser.Id;
+            message.Lastuser = appuser.Id;
+            message.Addtime = now;
+            message.Lasttime = now;
+            message.Isclosed = 0;
+            message.Sender = UserInfo.Id;
+            message.Index = "userAccountCharge";
+            message.Message1 = string.Format("用户:{0}提交充值，请审核", appuser.Usercode);
+            await _appuseraccountService.AddAsync(message);
 
             await _appuseraccountService.CommitAsync();
             return RickWebResult.Success(new object());

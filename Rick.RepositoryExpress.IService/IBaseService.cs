@@ -32,6 +32,9 @@ namespace Rick.RepositoryExpress.IService
         public Task<int> UpdateAsync<T>(T t) where T : class;
         public Task CommitAsync();
         public Task BeginTransactionAsync();
+        public Task RollBackAsync();
+        public void RollBack();
+
 
     }
 }

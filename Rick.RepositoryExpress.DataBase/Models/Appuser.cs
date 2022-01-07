@@ -25,5 +25,6 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public DateTime? Birthdate { get; set; }
         public string Email { get; set; }
         public string Address { get; set; }
+        public long? Shareuser { get; set; }
     }
 }

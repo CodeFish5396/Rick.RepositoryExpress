@@ -40,24 +40,70 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         /// <param name="nationId"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<ChannelResponse>>> Get([FromQuery] long? nationId)
+        public async Task<RickWebResult<List<ChannelResponse>>> Get([FromQuery] long? nationId)
         {
             var channelDetails = _channelService.Query<Channeldetail>(t => t.Status == 1);
             var channels = _channelService.Query<Channel>(t => t.Status == 1);
             var nations = _channelService.Query<Nation>(t => t.Status == 1 && (!nationId.HasValue || t.Id == nationId));
-            IEnumerable<ChannelResponse> result = await (from cd in channelDetails
-                         join c in channels
-                         on cd.Channelid equals c.Id
-                         join n in nations
-                         on cd.Nationid equals n.Id
-                         select new ChannelResponse()
-                         {
-                             Id = cd.Id,
-                             Nationid = cd.Nationid,
-                             NationName = n.Name,
-                             Name = c.Name,
-                             Unitprice = cd.Unitprice
-                         }).ToListAsync();
+            List<ChannelResponse> result = await (from c in channels
+                                                  join cd in channelDetails
+                                                  on c.Id equals cd.Channelid
+                                                  join n in nations
+                                                  on cd.Nationid equals n.Id
+                                                  select new ChannelResponse()
+                                                  {
+                                                      Id = c.Id,
+                                                      Name = c.Name,
+                                                      Unitprice = c.Unitprice
+                                                  }).Distinct().ToListAsync();
+
+            var chaneelIds = result.Select(t => t.Id).ToList();
+            var channelPrices = await _channelService.QueryAsync<Channelprice>(t => t.Status == 1 && chaneelIds.Contains(t.Channelid));
+
+            var channeldescriptions = await _channelService.QueryAsync<Channeldescription>(cd => chaneelIds.Contains(cd.Channelid));
+            var channelLimits = await _channelService.QueryAsync<Channellimit>(cd => chaneelIds.Contains(cd.Channelid));
+            var Channeltypes = await _channelService.QueryAsync<Channeltype>(cd => chaneelIds.Contains(cd.Channelid));
+
+            var channelTypes = _redisClientService.StringGet("ChannelTypes").Split(",");
+
+            foreach (ChannelResponse channelResponse in result)
+            {
+                channelResponse.Pricedetails = (from channelPrice in channelPrices
+                                                join nation in nations
+                                                on channelPrice.Nationid equals nation.Id
+                                                where channelPrice.Channelid == channelResponse.Id
+                                                select new ChannelResponsepricedetail()
+                                                {
+                                                    Id = channelPrice.Id,
+                                                    Channelid = channelPrice.Channelid,
+                                                    Nationid = channelPrice.Nationid,
+                                                    Nationname = nation.Name,
+                                                    Minweight = channelPrice.Minweight,
+                                                    Maxweight = channelPrice.Maxweight,
+                                                    Price = channelPrice.Price
+                                                }).ToList();
+
+                channelResponse.Descriptions = channeldescriptions.Where(t => t.Channelid == channelResponse.Id).Select(t => new ChanneldescriptionResponse()
+                {
+                    Description = t.Description,
+                    Order = t.Order
+                }).OrderBy(t => t.Order).ToList();
+
+                channelResponse.Limits = channelLimits.Where(t => t.Channelid == channelResponse.Id).Select(t => new ChannellimitResponse()
+                {
+                    Name = t.Name,
+                    Value = t.Value,
+                    Order = t.Order
+                }).OrderBy(t => t.Order).ToList();
+
+                channelResponse.Types = channelTypes.Select(ctype => new ChanneltypeResponse()
+                {
+                    Name = ctype,
+                    Ischecked = Channeltypes.Any(t => t.Name == ctype && t.Channelid == channelResponse.Id)
+                }).ToList();
+
+
+            }
 
             return RickWebResult.Success(result);
         }
@@ -66,18 +112,51 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         {
 
         }
+
         public class ChannelResponse
         {
             public long Id { get; set; }
-            public long Nationid { get; set; }
-            public string NationName { get; set; }
             public string Name { get; set; }
             public decimal Unitprice { get; set; }
+            public List<ChannelResponsepricedetail> Pricedetails { get; set; }
+            public List<ChanneldescriptionResponse> Descriptions { get; set; }
+            public List<ChannellimitResponse> Limits { get; set; }
+            public List<ChanneltypeResponse> Types { get; set; }
+
 
         }
         public class ChannelResponseList
         {
 
+        }
+        public class ChannelResponsepricedetail
+        {
+            public long Id { get; set; }
+            public long Channelid { get; set; }
+            public long Nationid { get; set; }
+            public string Nationname { get; set; }
+            public decimal Minweight { get; set; }
+            public decimal Maxweight { get; set; }
+            public decimal Price { get; set; }
+
+        }
+
+        public class ChanneldescriptionResponse
+        {
+            public string Description { get; set; }
+            public int Order { get; set; }
+        }
+
+        public class ChannellimitResponse
+        {
+            public string Name { get; set; }
+            public string Value { get; set; }
+            public int Order { get; set; }
+        }
+        public class ChanneltypeResponse
+        {
+            public string Name { get; set; }
+            public bool Ischecked { get; set; }
         }
     }
 }

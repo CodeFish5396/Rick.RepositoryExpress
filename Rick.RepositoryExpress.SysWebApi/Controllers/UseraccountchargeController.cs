@@ -28,6 +28,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         private readonly IIdGeneratorService _idGenerator;
         private readonly IAppuseraccountService _appuseraccountService;
         private readonly RedisClientService _redisClientService;
+        private string accountSubjectCode = "100";
 
         public UseraccountchargeController(ILogger<UseraccountchargeController> logger, IAppuseraccountService appuseraccountService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
@@ -72,7 +73,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             CurrencyName = tc == null ? string.Empty : tc.Name,
                             Amount = accountcharge.Amount,
                             Status = accountcharge.Status,
-                            Addtime = accountcharge.Addtime
+                            Addtime = accountcharge.Addtime,
+                            Paytype = accountcharge.Paytype
                         };
             int count = await query.CountAsync();
 
@@ -88,7 +90,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                  Username = q.Username,
                                  Usercode = q.Usercode,
                                  Usermobile = q.Usermobile,
-
+                                 Paytype = q.Paytype,
                                  Currencyid = q.Currencyid,
                                  CurrencyName = q.CurrencyName,
                                  Amount = q.Amount,
@@ -99,7 +101,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                              };
 
             var queryR = from r in (await queryGroup.ToListAsync())
-                         group r by new { r.Id, r.Userid, r.Username,r.Usercode,r.Usermobile ,r.Currencyid, r.CurrencyName, r.Amount, r.Status,r.Addtime };
+                         group r by new { r.Id, r.Userid, r.Username,r.Usercode,r.Usermobile ,r.Currencyid, r.CurrencyName, r.Amount, r.Status,r.Addtime,r.Paytype };
 
             UserAccountChargeResponseList userAccountResponseList = new UserAccountChargeResponseList();
             userAccountResponseList.List = new List<UserAccountChargeResponse>();
@@ -118,6 +120,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 userAccountChargeResponse.Amount = r.Key.Amount;
                 userAccountChargeResponse.Addtime = r.Key.Addtime;
                 userAccountChargeResponse.Status = r.Key.Status;
+                userAccountChargeResponse.Paytype = r.Key.Paytype;
                 foreach (var image in r)
                 {
                     if (image.FileId != 0)
@@ -143,6 +146,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             await _appuseraccountService.BeginTransactionAsync();
             DateTime now = DateTime.Now;
 
+            //Account account = new Account();
+            //account.Id = _idGenerator.NextId();
+            //account.Currencyid = userAccountChargeRequest.Currencyid;
+            //account.Amount = userAccountChargeRequest.Amount;
+            //account.Status = 1;
+            //account.Addtime = now;
+            //account.Adduser = UserInfo.Id;
+            //account.Subjectcode = accountSubjectCode;
+            //account.Direction = 1;
+            //await _appuseraccountService.AddAsync(account);
+
             Appuseraccountcharge appuseraccountcharge = new Appuseraccountcharge();
             appuseraccountcharge.Id = _idGenerator.NextId();
             appuseraccountcharge.Status = 1;
@@ -151,6 +165,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             appuseraccountcharge.Currencyid = userAccountChargeRequest.Currencyid;
             appuseraccountcharge.Amount = userAccountChargeRequest.Amount;
             appuseraccountcharge.Addtime = now;
+            appuseraccountcharge.Paytype = userAccountChargeRequest.PayType;
             await _appuseraccountService.AddAsync(appuseraccountcharge);
 
             Appuseraccount appuseraccount = (await _appuseraccountService.QueryAsync<Appuseraccount>(t => t.Appuser == userAccountChargeRequest.Userid && t.Status == 1 && t.Currencyid == userAccountChargeRequest.Currencyid)).SingleOrDefault();
@@ -190,10 +205,26 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             await _appuseraccountService.BeginTransactionAsync();
             DateTime now = DateTime.Now;
+
+            Account account = new Account();
+            account.Id = _idGenerator.NextId();
+            account.Currencyid = userAccountPatchRequest.Currencyid;
+            account.Amount = userAccountPatchRequest.Amount;
+            account.Status = 1;
+            account.Addtime = now;
+            account.Adduser = UserInfo.Id;
+            account.Subjectcode = accountSubjectCode;
+            account.Direction = 1;
+            await _appuseraccountService.AddAsync(account);
+
+
             Appuseraccountcharge appuseraccountcharge = await _appuseraccountService.FindAsync<Appuseraccountcharge>(userAccountPatchRequest.Id); ;
             appuseraccountcharge.Status = 1;
             appuseraccountcharge.Amount = userAccountPatchRequest.Amount;
             appuseraccountcharge.Currencyid = userAccountPatchRequest.Currencyid;
+            appuseraccountcharge.Accountid = account.Id;
+            appuseraccountcharge.Paytype = userAccountPatchRequest.PayType;
+
             await _appuseraccountService.UpdateAsync(appuseraccountcharge);
             Appuseraccount appuseraccount = (await _appuseraccountService.QueryAsync<Appuseraccount>(t => t.Appuser == appuseraccountcharge.Appuser && t.Currencyid == userAccountPatchRequest.Currencyid && t.Status == 1)).SingleOrDefault();
             if (appuseraccount == null)
@@ -235,6 +266,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Currencyid { get; set; }
             public string CurrencyName { get; set; }
             public decimal Amount { get; set; }
+            public int Paytype { get; set; }
+
             public DateTime Addtime { get; set; }
             public int Status { get; set; }
             public List<long> Images { get; set; }
@@ -244,12 +277,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Userid { get; set; }
             public long Currencyid { get; set; }
             public decimal Amount { get; set; }
+            public int PayType { get; set; }
         }
         public class UserAccountPatchRequest
         {
             public long Id { get; set; }
             public long Currencyid { get; set; }
             public decimal Amount { get; set; }
+            public int PayType { get; set; }
         }
 
         public class UserAccountChargeResponseList

@@ -53,6 +53,26 @@ namespace Rick.RepositoryExpress.RedisService
             return redisConnection.GetDatabase(dataBaseNum).HashIncrement("Code", "User");
         }
 
+        internal string PackageCodeGet()
+        {
+            string date = DateTime.Now.ToString("ddHHmmssfff");
+            string current = redisConnection.GetDatabase(dataBaseNum).HashIncrement("Code", "Package" + date).ToString();
+
+            string packagecode = "00" + current;
+            packagecode = packagecode.Substring(packagecode.Length - 2);
+
+            string result = "DR" + date + packagecode + "GJ";
+            return result;
+        }
+        internal string OrderCodeGet()
+        {
+            string date = DateTime.Now.ToString("ddHHmmssfff");
+            string current = redisConnection.GetDatabase(dataBaseNum).HashIncrement("Code", "Order" + date).ToString();
+            string ordercode = "00" + current;
+            ordercode = ordercode.Substring(ordercode.Length - 2);
+            string result = "DR" + date + ordercode;
+            return result;
+        }
         internal async Task<bool> LockTakeAsync(string key,string value)
         {
             return await redisConnection.GetDatabase(dataBaseNum).LockTakeAsync(key, value, TimeSpan.FromSeconds(5));

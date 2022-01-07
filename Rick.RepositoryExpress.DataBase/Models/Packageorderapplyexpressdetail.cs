@@ -27,8 +27,13 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public decimal? Paperprice { get; set; }
         public decimal? Boxprice { get; set; }
         public decimal? Bounceprice { get; set; }
+        public decimal? Vacuumprice { get; set; }
         public decimal? Price { get; set; }
-        public decimal? Agentprice { get; set; }
-        public decimal? Agentcurrency { get; set; }
+        public decimal? Targetprice { get; set; }
+        public long? Currencychangerateid { get; set; }
+        public decimal? Currencychangerate { get; set; }
+        public decimal? Remoteprice { get; set; }
+        public sbyte? Haselectrified { get; set; }
+        public decimal? Packaddprice { get; set; }
     }
 }

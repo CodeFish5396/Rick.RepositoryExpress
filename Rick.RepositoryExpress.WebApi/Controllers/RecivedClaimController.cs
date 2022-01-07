@@ -37,14 +37,15 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         /// <summary>
         /// 查询已到库订单
         /// </summary>
+        /// <param name="expressnumber"></param>
         /// <param name="index"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<RecivedClaimResponseList>> Get([FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<RecivedClaimResponseList>> Get([FromQuery] string expressnumber, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from expressclaim in _expressclaimService.Query<Expressclaim>(t => t.Status == (int)ExpressClaimStatus.已入库 && t.Appuser == UserInfo.Id)
-                        join expressinfo in _expressclaimService.Query<Expressinfo>(t => 1 == 1)
+            var query = from expressclaim in _expressclaimService.Query<Expressclaim>(t => (t.Status == (int)ExpressClaimStatus.已揽收 || t.Status == (int)ExpressClaimStatus.已验货) && t.Appuser == UserInfo.Id)
+                        join expressinfo in _expressclaimService.Query<Expressinfo>(t => string.IsNullOrEmpty(expressnumber) || t.Expressnumber.Contains(expressnumber))
                         on expressclaim.Expressinfoid equals expressinfo.Id
                         join package in _expressclaimService.Query<Package>(t => t.Status >= 1)
                         on expressclaim.Packageid equals package.Id
@@ -55,6 +56,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                         {
                             Id = expressclaim.Id,
                             PackageName = package.Name,
+                            PackageCode = package.Code,
                             Weight = package.Weight,
                             Volume = package.Volume,
                             Expressnumber = expressinfo.Expressnumber,
@@ -106,6 +108,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public long Id { get; set; }
             public long Packageid { get; set; }
             public string PackageName { get; set; }
+            public string PackageCode { get; set; }
             public string Expressnumber { get; set; }
             public string CourierName { get; set; }
             public long? CourierId { get; set; }

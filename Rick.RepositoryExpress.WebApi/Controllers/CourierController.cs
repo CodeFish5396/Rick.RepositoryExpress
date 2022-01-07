@@ -36,11 +36,12 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         /// <summary>
         /// 查询所有快递
         /// </summary>
+        /// <param name="type"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<CourierResponse>>> Get()
+        public async Task<RickWebResult<IEnumerable<CourierResponse>>> Get([FromQuery]int? type)
         {
-            var result = await _courierService.QueryAsync<Courier>(nation => nation.Status == 1);
+            var result = await _courierService.QueryAsync<Courier>(courier => courier.Status == 1 && (!type.HasValue || courier.Type == 0 || courier.Type == type));
             return RickWebResult.Success(result.OrderBy(courier => courier.Id).Select(courier => new CourierResponse()
             {
                 Id = courier.Id,

@@ -54,21 +54,23 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             package.Expressnumber = packageInRequest.Expressnumber;
             package.Repositoryid = packageInRequest.Repositoryid;
             package.Courierid = packageInRequest.CourierId;
-            package.Status = 1;
+            package.Status = (int)PackageStatus.已入库;
             package.Adduser = UserInfo.Id;
             package.Lastuser = UserInfo.Id;
             DateTime now = DateTime.Now;
             package.Addtime = now;
             package.Lasttime = now;
             package.Count = packageInRequest.Count;
-            package.Name = packageInRequest.Name;
             package.Weight = packageInRequest.Weight;
+            package.Freightprice = packageInRequest.Freightprice;
 
+            package.Code = _redisClientService.PackageCodeGet();
 
             Expressinfo expressinfo = new Expressinfo();
 
             expressinfo.Id = _idGenerator.NextId();
             expressinfo.Expressnumber = packageInRequest.Expressnumber;
+            expressinfo.Courierid = package.Courierid;
             expressinfo.Status = 1;
             expressinfo.Adduser = UserInfo.Id;
             expressinfo.Lastuser = UserInfo.Id;
@@ -79,28 +81,24 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             package.Expressinfoid = expressinfo.Id;
 
-            await _packageService.AddAsync(package);
-
             var expressclaims = await _packageService.GetExpressclaims(packageInRequest.Expressnumber);
             foreach (var expressclaim in expressclaims)
             {
                 expressclaim.Packageid = package.Id;
-                expressclaim.Status = (int)ExpressClaimStatus.已到库;
+                expressclaim.Status = (int)ExpressClaimStatus.已入库;
                 await _packageService.UpdateAsync(expressclaim);
             }
-            //foreach (var detail in packageInRequest.Details)
-            //{
-            //    Packagedetail packagedetail = new Packagedetail();
-            //    packagedetail.Id = _idGenerator.NextId();
-            //    packagedetail.Packageid = package.Id;
-            //    packagedetail.Status = 1;
-            //    packagedetail.Adduser = UserInfo.Id;
-            //    packagedetail.Addtime = now;
-            //    packagedetail.Count = detail.Count;
-            //    packagedetail.Name = detail.Name;
-            //    packagedetail.Unit = detail.Unit;
-            //    await _packageService.AddAsync(packagedetail);
-            //}
+
+            var expressclaimids = expressclaims.Select(t => t.Id).ToList();
+            var expressclaimdetails = await _packageService.QueryAsync<Expressclaimdetail>(t => expressclaimids.Contains(t.Expressclaimid));
+            package.Name = string.Join(',', expressclaimdetails.Select(t => t.Name));
+
+            Currencychangerate currentRate = await _packageService.FindAsync<Currencychangerate>(packageInRequest.Currencychangerateid);
+            package.Currencychangerateid = currentRate.Id;
+            package.Currencychangerate = currentRate.Rate;
+            package.Localfreightprice = packageInRequest.Localfreightprice;
+
+            await _packageService.AddAsync(package);
 
             foreach (var image in packageInRequest.Images)
             {
@@ -133,7 +131,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             packagenote.Adduser = UserInfo.Id;
             packagenote.Addtime = now;
             packagenote.Isclosed = 0;
-            packagenote.Operator = (int)PackageNoteStatus.入库录单;
+            packagenote.Operator = (int)PackageNoteStatus.已入库;
             packagenote.Operatoruser = UserInfo.Id;
             await _packageService.AddAsync(packagenote);
 
@@ -147,7 +145,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询列表
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="code"></param>
         /// <param name="userCode"></param>
         /// <param name="userName"></param>
         /// <param name="userMobile"></param>
@@ -158,11 +156,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<PackageInResponseList>> Get([FromQuery] long? id, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<PackageInResponseList>> Get([FromQuery] string code, [FromQuery] string userCode, [FromQuery] string userName, [FromQuery] string userMobile, [FromQuery] string expressNumber, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             PackageInResponseList packageInResponseList = new PackageInResponseList();
 
-            var baseQuery = from package in _packageService.Query<Package>(t => t.Status == 1 && (!id.HasValue || t.Id == id) && (string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber) && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
+            var baseQuery = from package in _packageService.Query<Package>(t => t.Status == (int)PackageStatus.已入库 && (string.IsNullOrEmpty(code) || t.Code == code) && (string.IsNullOrEmpty(expressNumber) || t.Expressnumber == expressNumber) && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
                             join exclaim in _packageService.Query<Expressclaim>()
                             on package.Id equals exclaim.Packageid
                             into exclaimtemp
@@ -182,6 +180,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             && (string.IsNullOrEmpty(userMobile) || (usert != null && usert.Mobile == userMobile))
                             select new PackageInResponse()
                             {
+                                Code = package.Code,
                                 Userid = usert == null ? 0 : usert.Id,
                                 Usercode = usert == null ? string.Empty : usert.Usercode,
                                 Username = usert == null ? string.Empty : usert.Name,
@@ -198,8 +197,16 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                 Expressnumber = package.Expressnumber,
                                 Lastuser = package.Lastuser,
                                 Lastusername = sysuser.Name,
-                                Lasttime = package.Lasttime
+                                Lasttime = package.Lasttime,
+                                Status = package.Status,
+                                Freightprice = package.Freightprice
                             };
+            var currencies = await _packageService.QueryAsync<Currency>(t => t.Status == 1 && (t.Isdefault == 1 || t.Islocal == 1));
+            var localCurrency = currencies.Single(t => t.Islocal == 1);
+            var defaultCurrency = currencies.Single(t => t.Isdefault == 1);
+            Currencychangerate currentRate = await _packageService.Query<Currencychangerate>(t => t.Status == 1 && t.Sourcecurrency == defaultCurrency.Id && t.Targetcurrency == localCurrency.Id).SingleAsync();
+            packageInResponseList.Currencychangerateid = currentRate.Id;
+            packageInResponseList.Currencychangerate = currentRate.Rate;
 
             packageInResponseList.Count = await baseQuery.CountAsync();
             packageInResponseList.List = await baseQuery.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -230,12 +237,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Expressnumber { get; set; }
         public long CourierId { get; set; }
         public string CourierName { get; set; }
-        public string Name { get; set; }
         public decimal Weight { get; set; }
         public int Count { get; set; }
+        public decimal? Freightprice { get; set; }
         public IList<long> Images { get; set; }
         public IList<long> Videos { get; set; }
         //public IList<PackageDetailInRequest> Details { get; set; }
+        public long Currencychangerateid { get; set; }
+        public decimal? Localfreightprice { get; set; }
 
     }
 
@@ -247,18 +256,23 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
     }
     public class PackageInResponseList
     {
+        public long? Currencychangerateid { get; set; }
+        public decimal? Currencychangerate { get; set; }
+
         public int Count { get; set; }
         public IList<PackageInResponse> List { get; set; }
     }
     public class PackageInResponse
     {
+        public string Code { get; set; }
+
         public long Userid { get; set; }
         public string Usercode { get; set; }
 
         public long Packageid { get; set; }
         public string Name { get; set; }
         public decimal? Weight { get; set; }
-
+        public int Status { get; set; }
         public int Count { get; set; }
         public string Username { get; set; }
         public string Usertruename { get; set; }
@@ -273,6 +287,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Lastusername { get; set; }
         public List<long> Images { get; set; }
         public List<long> Videos { get; set; }
+        public decimal? Freightprice { get; set; }
 
     }
 

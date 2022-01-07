@@ -8,6 +8,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
     public partial class Packageorderapply
     {
         public long Id { get; set; }
+        public string Code { get; set; }
         public long Channelid { get; set; }
         public long Nationid { get; set; }
         public long Addressid { get; set; }

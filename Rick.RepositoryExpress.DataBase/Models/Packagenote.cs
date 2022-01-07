@@ -14,7 +14,6 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public int Status { get; set; }
         public int Isclosed { get; set; }
         public int Operator { get; set; }
-        public long? Referid { get; set; }
         public long? Operatoruser { get; set; }
     }
 }

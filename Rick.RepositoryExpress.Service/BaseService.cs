@@ -116,5 +116,43 @@ namespace Rick.RepositoryExpress.Service
         {
             await dbContextTransaction.CommitAsync();
         }
+        public async Task RollBackAsync()
+        {
+            await dbContextTransaction.RollbackAsync();
+        }
+        public void RollBack()
+        {
+            dbContextTransaction.Rollback();
+        }
+
+        public async Task CreateSavepointAsync(string name)
+        {
+            await dbContextTransaction.CreateSavepointAsync(name);
+        }
+        public void CreateSavepoint(string name)
+        {
+
+            dbContextTransaction.CreateSavepoint(name);
+        }
+
+        public async Task RollbackToSavepointAsync(string name)
+        {
+            await dbContextTransaction.RollbackToSavepointAsync(name);
+        }
+        public void RollbackToSavepoint(string name)
+        {
+            dbContextTransaction.RollbackToSavepoint(name);
+        }
+
+        public async Task ReleaseSavepointAsync(string name)
+        {
+            await dbContextTransaction.ReleaseSavepointAsync(name);
+        }
+
+        public void ReleaseSavepoint(string name)
+        {
+            dbContextTransaction.ReleaseSavepoint(name);
+        }
+
     }
 }

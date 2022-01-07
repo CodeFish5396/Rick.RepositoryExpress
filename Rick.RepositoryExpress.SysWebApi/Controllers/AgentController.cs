@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Rick.RepositoryExpress.Utils.Wechat;
 using Rick.RepositoryExpress.RedisService;
 using Rick.RepositoryExpress.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
@@ -41,10 +42,21 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<IEnumerable<AgentResponse>>> Get([FromQuery] int? status)
+        public async Task<RickWebResult<List<AgentResponse>>> Get([FromQuery] int? status)
         {
             var results = await _agentService.QueryAsync<Agent>(t => !status.HasValue || t.Status == status);
-            return RickWebResult.Success(results.Select(t => new AgentResponse()
+            var agentids = results.Select(t => t.Id);
+            var courieres = await (from ac in _agentService.Query<Agentandcourier>(t => t.Status == 1 && agentids.Contains(t.Agentid))
+                                   join c in _agentService.Query<Courier>(t => t.Status == 1)
+                                   on ac.Courierid equals c.Id
+                                   select new 
+                                   {
+                                       AgentId = ac.Agentid,
+                                       CourierId = c.Id,
+                                       CourierIdName = c.Name
+                                   }
+                                  ).ToListAsync();
+            var retResults = results.Select(t => new AgentResponse()
             {
                 Id = t.Id,
                 Mobile = t.Mobile,
@@ -52,7 +64,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 Address = t.Address,
                 Contact = t.Contact,
                 Status = t.Status
-            }));
+            }).ToList();
+            foreach (var ret in retResults)
+            {
+                ret.Courieres = courieres.Where(t => t.AgentId == ret.Id).Select(t => new AgentDetailResponse()
+                {
+                    CourierId = t.CourierId,
+                    CourierIdName = t.CourierIdName
+                }).Distinct().ToList();
+            }
+
+            return RickWebResult.Success(retResults);
         }
 
         /// <summary>
@@ -98,7 +120,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="agentPutRequest"></param>
         /// <returns></returns>
         [HttpPut]
-        public async Task<RickWebResult<AgentResponse>> Put([FromBody] AgentPutRequest agentPutRequest)
+        public async Task<RickWebResult<object>> Put([FromBody] AgentPutRequest agentPutRequest)
         {
             await _agentService.BeginTransactionAsync();
 
@@ -113,16 +135,33 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             agent.Lasttime = now;
             agent.Lastuser = UserInfo.Id;
             await _agentService.UpdateAsync(agent);
-            await _agentService.CommitAsync();
-            AgentResponse agentResponse = new AgentResponse();
-            agentResponse.Id = agent.Id;
-            agentResponse.Name = agent.Name;
-            agentResponse.Contact = agent.Contact;
-            agentResponse.Mobile = agent.Mobile;
-            agentResponse.Address = agent.Address;
 
-            agentResponse.Status = agent.Status;
-            return RickWebResult.Success(agentResponse);
+            var oldAgentCourieres = await _agentService.QueryAsync<Agentandcourier>(t => t.Agentid == agentPutRequest.Id && t.Status == 1);
+
+            //删除旧的
+            var deletedAC = oldAgentCourieres.Where(t => !agentPutRequest.Courieres.Any(c => c.CourierId == t.Courierid));
+            foreach (var del in deletedAC)
+            {
+                del.Status = 0;
+                await _agentService.UpdateAsync(del);
+            }
+
+            //添加新的
+            var newAC = agentPutRequest.Courieres.Where(nc => !oldAgentCourieres.Any(oc => oc.Courierid == nc.CourierId));
+            foreach (var newAgentC in newAC)
+            {
+                Agentandcourier agentandcourier = new Agentandcourier();
+                agentandcourier.Id = _idGenerator.NextId();
+                agentandcourier.Courierid = newAgentC.CourierId;
+                agentandcourier.Agentid = agentPutRequest.Id;
+                agentandcourier.Status = 1;
+                await _agentService.AddAsync(agentandcourier);
+            }
+
+            await _agentService.CommitAsync();
+
+
+            return RickWebResult.Success(new object());
 
         }
 
@@ -173,6 +212,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Mobile { get; set; }
         public string Address { get; set; }
         public string Name { get; set; }
+        public List<AgentPutDetai> Courieres { get; set; }
+
     }
 
     public class AgentResponse
@@ -184,6 +225,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
         public string Name { get; set; }
         public int Status { get; set; }
+        public List<AgentDetailResponse> Courieres { get; set; }
+
+    }
+    public class AgentDetailResponse
+    {
+        public long CourierId { get; set; }
+        public string CourierIdName { get; set; }
+    }
+
+    public class AgentPutDetai
+    {
+        public long CourierId { get; set; }
     }
 
 }

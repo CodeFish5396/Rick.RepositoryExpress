@@ -26,5 +26,17 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public DateTime Lasttime { get; set; }
         public long? Repositoryinuser { get; set; }
         public DateTime? Repositoryintime { get; set; }
+        public string Changecode { get; set; }
+        public string Refundcode { get; set; }
+        public decimal? Freightprice { get; set; }
+        public decimal? Localfreightprice { get; set; }
+        public decimal? Currencychangerate { get; set; }
+        public long? Currencychangerateid { get; set; }
+        public string Checkremark { get; set; }
+        public string Refundremark { get; set; }
+        public string Changeremark { get; set; }
+        public long? Repositoryregionid { get; set; }
+        public long? Repositoryshelfid { get; set; }
+        public string Repositorynumber { get; set; }
     }
 }

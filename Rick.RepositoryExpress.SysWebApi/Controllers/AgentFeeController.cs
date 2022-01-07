@@ -31,8 +31,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 代理商成本会计科目
         /// </summary>
-        private string accountSubjectId = "15532544810075136";
-        private string accountSubjectCode = "001";
+        private string accountSubjectId = "1475363832376463360";
+        private string accountSubjectCode = "200";
 
         public AgentFeeController(ILogger<AgentFeeController> logger, IAgentFeeService agentFeeService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
@@ -70,6 +70,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             agentfee.Status = 1;
             agentfee.Addtime = now;
             agentfee.Adduser = UserInfo.Id;
+            agentfee.Paytype = agentFeeRequest.Paytype;
             await _agentFeeService.AddAsync(agentfee);
 
             await _agentFeeService.CommitAsync();
@@ -90,7 +91,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             AgentFeeResponseList agentFeeResponseList = new AgentFeeResponseList();
 
-            var query = from account in _agentFeeService.Query<Account>(t => (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
+            var query = from account in _agentFeeService.Query<Account>(t => t.Subjectcode == accountSubjectCode && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
                         join agentfee in _agentFeeService.Query<Agentfee>()
                         on account.Id equals agentfee.Accountid
                         join currency in _agentFeeService.Query<Currency>(t => !currencyId.HasValue || t.Id == currencyId)
@@ -109,8 +110,21 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Amount = account.Amount,
                             Adduser = account.Adduser,
                             Addusername = user.Name,
-                            Addtime = account.Addtime
+                            Addtime = account.Addtime,
+                            Paytype = agentfee.Paytype,
                         };
+
+            var sumQuery = await (from agentfeeresponse in query
+                                  group agentfeeresponse.Amount by new { agentfeeresponse.Currencyid, agentfeeresponse.Currencyname }
+                                  into sumItem
+                                  select new AgentFeeResponseSum()
+                                  {
+                                      Currencyid = sumItem.Key.Currencyid,
+                                      Currencyname = sumItem.Key.Currencyname,
+                                      TotalAmount = sumItem.Sum()
+                                  }).ToListAsync();
+
+            agentFeeResponseList.SumList = sumQuery;
             agentFeeResponseList.Count = await query.CountAsync();
             agentFeeResponseList.List = await query.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
             return RickWebResult.Success(agentFeeResponseList);
@@ -127,21 +141,29 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Adduser { get; set; }
             public string Addusername { get; set; }
             public DateTime Addtime { get; set; }
-
+            public int Paytype { get; set; }
         }
         public class AgentFeeResponseList
         {
             public int Count { get; set; }
             public List<AgentFeeResponse> List { get; set; }
-        }
+            public List<AgentFeeResponseSum> SumList { get; set; }
 
+        }
+        public class AgentFeeResponseSum
+        {
+            public long Currencyid { get; set; }
+            public string Currencyname { get; set; }
+
+            public decimal TotalAmount { get; set; }
+        }
 
         public class AgentFeeRequest
         {
             public long Agentid { get; set; }
             public long Currencyid { get; set; }
             public decimal Amount { get; set; }
+            public int Paytype { get; set; }
         }
-
     }
 }

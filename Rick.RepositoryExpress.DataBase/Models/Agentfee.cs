@@ -13,5 +13,6 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public int Status { get; set; }
         public long Adduser { get; set; }
         public DateTime Addtime { get; set; }
+        public int Paytype { get; set; }
     }
 }

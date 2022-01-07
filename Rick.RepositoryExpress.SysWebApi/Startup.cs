@@ -20,6 +20,8 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Converters;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using System.Net.WebSockets;
+using System.Net;
 
 namespace Rick.RepositoryExpress.SysWebApi
 {
@@ -90,6 +92,10 @@ namespace Rick.RepositoryExpress.SysWebApi
             services.AddScoped<IAccountsubjectService, AccountsubjectService>();
             services.AddScoped<IAgentFeeService, AgentFeeService>();
             services.AddScoped<ISysmenuService, SysmenuService>();
+            services.AddScoped<ICurrencychangerateService, CurrencychangerateService>();
+            services.AddScoped<IRunFeeService, RunFeeService>();
+            services.AddScoped<ISyssettingService, SyssettingService>();
+            services.AddScoped<IMessageService, MessageService>();
 
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));
@@ -144,6 +150,12 @@ namespace Rick.RepositoryExpress.SysWebApi
                 }
             });
             app.UseStaticFiles();
+            var webSocketOptions = new WebSocketOptions()
+            {
+                KeepAliveInterval = TimeSpan.FromSeconds(60),
+            };
+
+            app.UseWebSockets(webSocketOptions);
 
             app.UseRouting();
 

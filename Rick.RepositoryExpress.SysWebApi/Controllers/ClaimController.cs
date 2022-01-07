@@ -78,18 +78,26 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             var packageids = expressclaimResponseList.List.Select(t => t.Packageid).Distinct();
             var packages = await _expressclaimService.QueryAsync<Package>(t => packageids.Contains(t.Id));
-
+            
+            var expressclaimids = expressclaimResponseList.List.Select(t => t.Id).Distinct().ToList();
+            var expressclaimdetails = await _expressclaimService.QueryAsync<Expressclaimdetail>(t => expressclaimids.Contains(t.Expressclaimid));
+            
             var repositorieids = expressclaimResponseList.List.Select(t => t.Repositoryid).Distinct();
             var repositories = await _expressclaimService.QueryAsync<Repository>(t => repositorieids.Contains(t.Id));
+
             foreach (var expressclaimresponse in expressclaimResponseList.List)
             {
                 var currentCourier = couriers.SingleOrDefault(t => t.Id == expressclaimresponse.Courierid);
                 expressclaimresponse.Couriername = currentCourier == null ? string.Empty : currentCourier.Name;
+
+                var currentexpressclaimdetails = expressclaimdetails.Where(t => t.Expressclaimid == expressclaimresponse.Id).ToList();
+                expressclaimresponse.Packagename = (currentexpressclaimdetails == null || currentexpressclaimdetails.Count == 0) ? string.Empty : string.Join(',', currentexpressclaimdetails.Select(t => t.Name).ToArray());
                 var currentPackage = packages.SingleOrDefault(t => t.Id == expressclaimresponse.Packageid);
-                expressclaimresponse.Packagename = currentPackage == null ? string.Empty : currentPackage.Name;
+
                 expressclaimresponse.Location = currentPackage == null ? string.Empty : currentPackage.Location;
                 expressclaimresponse.Repositoryname = repositories.Single(t => t.Id == expressclaimresponse.Repositoryid).Name;
             }
+            
             return RickWebResult.Success(expressclaimResponseList);
         }
         public class ExpressclaimResponse

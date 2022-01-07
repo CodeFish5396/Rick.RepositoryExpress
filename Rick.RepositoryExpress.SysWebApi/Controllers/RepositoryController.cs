@@ -62,7 +62,52 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 Region = repository.Region,
                 Address = repository.Address,
                 Status = repository.Status
-            });
+            }).ToList();
+            var repositortIds = repositoryResponceList.List.Select(t => t.Id).ToList();
+            var regions = await _repositoryService.QueryAsync<Repositoryregion>(t => t.Status == 1 && repositortIds.Contains(t.Repositoryid));
+            var shelfs = await _repositoryService.QueryAsync<Repositoryshelf>(t => t.Status == 1 && repositortIds.Contains(t.Repositoryid));
+            var layers = await _repositoryService.QueryAsync<Repositorylayer>(t => t.Status == 1 && repositortIds.Contains(t.Repositoryid));
+
+            foreach (RepositoryResponce repositoryResponce in repositoryResponceList.List)
+            {
+                repositoryResponce.Regions = regions.Where(r => r.Repositoryid == repositoryResponce.Id).Select(r=>new RepositoryRegionResponse() { 
+                    Id=r.Id,
+                    Repositoryid= repositoryResponce.Id,
+                    Name = r.Name,
+                    Order = r.Order,
+                    Status = r.Status,
+                    Addtime = r.Addtime
+                }).ToList();
+                foreach (RepositoryRegionResponse repositoryRegionResponse in repositoryResponce.Regions) 
+                {
+                    repositoryRegionResponse.Shelfs = shelfs.Where(s => s.Repositoryid == repositoryResponce.Id && s.Repositoryregionid == repositoryRegionResponse.Id)
+                        .Select(s => new RepositoryShelfResponse()
+                        {
+                            Id = s.Id,
+                            Repositoryid = repositoryResponce.Id,
+                            Repositoryregionid = repositoryRegionResponse.Id,
+                            Name = s.Name,
+                            Order = s.Order,
+                            Status = s.Status,
+                            Addtime = s.Addtime
+                        }).ToList();
+                    foreach (RepositoryShelfResponse repositoryShelfResponse in repositoryRegionResponse.Shelfs)
+                    {
+                        repositoryShelfResponse.Layers = layers.Where(s => s.Repositoryid == repositoryResponce.Id && s.Repositoryshelfid == repositoryShelfResponse.Id)
+                        .Select(s => new RepositoryLayerResponse()
+                        {
+                            Id = s.Id,
+                            Repositoryid = repositoryResponce.Id,
+                            Repositoryshelfid = s.Id,
+                            Name = s.Name,
+                            Order = s.Order,
+                            Status = s.Status,
+                            Addtime = s.Addtime
+                        }).ToList();
+                    }
+                }
+            }
+
             return RickWebResult.Success(repositoryResponceList);
         }
 
@@ -192,12 +237,49 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Region { get; set; }
             public string Address { get; set; }
             public int Status { get; set; }
+            public List<RepositoryRegionResponse> Regions { get; set; }
 
         }
+        public class RepositoryRegionResponse
+        {
+            public long Id { get; set; }
+            public long Repositoryid { get; set; }
+            public string Name { get; set; }
+            public int Order { get; set; }
+            public int Status { get; set; }
+            public DateTime Addtime { get; set; }
+            public List<RepositoryShelfResponse> Shelfs { get; set; }
+
+        }
+        public class RepositoryShelfResponse
+        {
+            public long Id { get; set; }
+            public long Repositoryid { get; set; }
+            public long Repositoryregionid { get; set; }
+            public string Name { get; set; }
+            public int Order { get; set; }
+            public int Status { get; set; }
+            public DateTime Addtime { get; set; }
+            public List<RepositoryLayerResponse> Layers { get; set; }
+
+        }
+        public class RepositoryLayerResponse
+        {
+            public long Id { get; set; }
+            public long Repositoryid { get; set; }
+            public long Repositoryshelfid { get; set; }
+            public string Name { get; set; }
+            public int Order { get; set; }
+            public int Status { get; set; }
+            public DateTime Addtime { get; set; }
+
+        }
+
+
         public class RepositoryResponceList
         {
             public int Count { get; set; }
-            public IEnumerable<RepositoryResponce> List { get; set; }
+            public List<RepositoryResponce> List { get; set; }
         }
 
     }

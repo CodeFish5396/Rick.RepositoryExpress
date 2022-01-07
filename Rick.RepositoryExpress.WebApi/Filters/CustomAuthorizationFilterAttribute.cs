@@ -44,7 +44,6 @@ namespace Rick.RepositoryExpress.WebApi.Filters
                         }
                         else
                         {
-                            _logger.LogInformation(token);
                             //解析Token获得UserId等
                             UserInfo userInfo = AuthTokenHelper.Get(token);
                             if (userInfo == null || userInfo.Id <= 0 || userInfo.Companyid <= 0)

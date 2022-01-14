@@ -42,64 +42,120 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         [HttpPost]
         public async Task<RickWebResult<object>> Post([FromBody] ExpressclaimRequest expressclaimRequest)
         {
-            if (await _redisClientService.LockTakeAsync("Rick.RepositoryExpress.WebApi.Controllers.ClaimController.Post" + expressclaimRequest.Expressnumber, "Post"))
-            {
-                Expressinfo expressinfo = await _expressclaimService.FindAsync<Expressinfo>(t => t.Expressnumber == expressclaimRequest.Expressnumber && t.Adduser == UserInfo.Id && t.Status == 1);
-                if (expressinfo != null)
-                {
-                    return RickWebResult.Error(new object(), 996, "不能重复提交");
-                }
-                expressinfo = new Expressinfo();
-
-                await _expressclaimService.BeginTransactionAsync();
-                expressinfo.Id = _idGenerator.NextId();
-                expressinfo.Expressnumber = expressclaimRequest.Expressnumber;
-                expressinfo.Courierid = expressclaimRequest.Courierid;
-                expressinfo.Status = 1;
-                expressinfo.Adduser = UserInfo.Id;
-                expressinfo.Lastuser = UserInfo.Id;
-                DateTime now = DateTime.Now;
-                expressinfo.Addtime = now;
-                expressinfo.Lasttime = now;
-                expressinfo.Source = 1;
-                await _expressclaimService.AddAsync(expressinfo);
-                Expressclaim expressclaim = new Expressclaim();
-                expressclaim.Id = _idGenerator.NextId();
-                expressclaim.Expressinfoid = expressinfo.Id;
-                expressclaim.Repositoryid = expressclaimRequest.Repositoryid;
-                expressclaim.Appuser = UserInfo.Id;
-                expressclaim.Remark = expressclaimRequest.Remark;
-                expressclaim.Count = expressclaimRequest.Count;
-                expressclaim.Cansendasap = expressclaimRequest.Cansendasap;
-                expressclaim.Status = (int)ExpressClaimStatus.预报;
-                expressclaim.Adduser = UserInfo.Id;
-                expressclaim.Lastuser = UserInfo.Id;
-                expressclaim.Addtime = now;
-                expressclaim.Lasttime = now;
-                await _expressclaimService.AddAsync(expressclaim);
-
-                foreach (ExpressclaimdetailRequest expressclaimdetailRequest in expressclaimRequest.details)
-                {
-                    Expressclaimdetail expressclaimdetail = new Expressclaimdetail();
-                    expressclaimdetail.Id = _idGenerator.NextId();
-                    expressclaimdetail.Expressclaimid = expressclaim.Id;
-                    expressclaimdetail.Name = expressclaimdetailRequest.Name;
-                    expressclaimdetail.Unitprice = expressclaimdetailRequest.Unitprice;
-                    expressclaimdetail.Count = expressclaimdetailRequest.Count;
-                    expressclaimdetail.Status = 1;
-                    expressclaimdetail.Adduser = UserInfo.Id;
-                    expressclaimdetail.Lastuser = UserInfo.Id;
-                    expressclaimdetail.Addtime = now;
-                    expressclaimdetail.Lasttime = now;
-                    await _expressclaimService.AddAsync(expressclaimdetail);
-                }
-                await _expressclaimService.CommitAsync();
-                return RickWebResult.Success(new object());
-            }
-            else
+            Expressinfo expressinfo = await _expressclaimService.FindAsync<Expressinfo>(t => t.Expressnumber == expressclaimRequest.Expressnumber && t.Adduser == UserInfo.Id && t.Status == 1);
+            if (expressinfo != null)
             {
                 return RickWebResult.Error(new object(), 996, "不能重复提交");
             }
+            expressinfo = new Expressinfo();
+
+            await _expressclaimService.BeginTransactionAsync();
+            expressinfo.Id = _idGenerator.NextId();
+            expressinfo.Expressnumber = expressclaimRequest.Expressnumber;
+            expressinfo.Courierid = expressclaimRequest.Courierid;
+            expressinfo.Status = 1;
+            expressinfo.Adduser = UserInfo.Id;
+            expressinfo.Lastuser = UserInfo.Id;
+            DateTime now = DateTime.Now;
+            expressinfo.Addtime = now;
+            expressinfo.Lasttime = now;
+            expressinfo.Source = 1;
+            await _expressclaimService.AddAsync(expressinfo);
+            Expressclaim expressclaim = new Expressclaim();
+            expressclaim.Id = _idGenerator.NextId();
+            expressclaim.Expressinfoid = expressinfo.Id;
+            expressclaim.Repositoryid = expressclaimRequest.Repositoryid;
+            expressclaim.Appuser = UserInfo.Id;
+            expressclaim.Remark = expressclaimRequest.Remark;
+            expressclaim.Count = expressclaimRequest.Count;
+            expressclaim.Cansendasap = expressclaimRequest.Cansendasap;
+            expressclaim.Status = (int)ExpressClaimStatus.预报;
+            expressclaim.Adduser = UserInfo.Id;
+            expressclaim.Lastuser = UserInfo.Id;
+            expressclaim.Addtime = now;
+            expressclaim.Lasttime = now;
+            await _expressclaimService.AddAsync(expressclaim);
+
+            foreach (ExpressclaimdetailRequest expressclaimdetailRequest in expressclaimRequest.details)
+            {
+                Expressclaimdetail expressclaimdetail = new Expressclaimdetail();
+                expressclaimdetail.Id = _idGenerator.NextId();
+                expressclaimdetail.Expressclaimid = expressclaim.Id;
+                expressclaimdetail.Name = expressclaimdetailRequest.Name;
+                expressclaimdetail.Unitprice = expressclaimdetailRequest.Unitprice;
+                expressclaimdetail.Count = expressclaimdetailRequest.Count;
+                expressclaimdetail.Status = 1;
+                expressclaimdetail.Adduser = UserInfo.Id;
+                expressclaimdetail.Lastuser = UserInfo.Id;
+                expressclaimdetail.Addtime = now;
+                expressclaimdetail.Lasttime = now;
+                await _expressclaimService.AddAsync(expressclaimdetail);
+            }
+            await _expressclaimService.CommitAsync();
+            return RickWebResult.Success(new object());
+        }
+
+        /// <summary>
+        /// 修改预报
+        /// </summary>
+        /// <param name="expressclaimPutRequest"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<RickWebResult<object>> Put([FromBody] ExpressclaimPutRequest expressclaimPutRequest)
+        {
+            await _expressclaimService.BeginTransactionAsync();
+
+            Expressclaim expressclaim = await _expressclaimService.FindAsync<Expressclaim>(expressclaimPutRequest.Id);
+            if (expressclaim.Status != (int)ExpressClaimStatus.预报 && expressclaim.Status != (int)ExpressClaimStatus.已入库 && expressclaim.Status != (int)ExpressClaimStatus.已揽收)
+            {
+                return RickWebResult.Error(new object(), 996, "单据状态不正确");
+
+            }
+            Expressinfo expressinfo = await _expressclaimService.FindAsync<Expressinfo>(expressclaim.Expressinfoid);
+            if (expressinfo.Expressnumber == expressclaimPutRequest.Expressnumber && expressinfo.Courierid == expressclaimPutRequest.Courierid)
+            {
+                return RickWebResult.Success(new object());
+            }
+
+            //原包裹
+            if (expressclaim.Packageid.HasValue && expressclaim.Packageid > 0)
+            {
+                return RickWebResult.Error(new object(), 996, "已有关联的包裹");
+            }
+            //新包裹
+            var packages = await _expressclaimService.QueryAsync<Package>(t => t.Expressnumber == expressclaimPutRequest.Expressnumber && t.Courierid == expressclaimPutRequest.Courierid && (t.Status == (int)PackageStatus.已入库 || t.Status == (int)PackageStatus.已入柜));
+            if (packages != null && packages.Count > 0)
+            {
+                expressclaim.Packageid = packages[0].Id;
+                if (packages[0].Status == (int)PackageStatus.已入库)
+                {
+                    expressclaim.Status = (int)ExpressClaimStatus.已入库;
+                }
+                else if (packages[0].Status == (int)PackageStatus.已入柜)
+                {
+                    expressclaim.Status = (int)ExpressClaimStatus.已揽收;
+                }
+            }
+            else
+            {
+                expressclaim.Status = (int)ExpressClaimStatus.预报;
+            }
+
+            expressinfo.Expressnumber = expressclaimPutRequest.Expressnumber;
+            expressinfo.Courierid = expressclaimPutRequest.Courierid;
+            expressinfo.Status = 1;
+            expressinfo.Lastuser = UserInfo.Id;
+            DateTime now = DateTime.Now;
+            expressinfo.Lasttime = now;
+            expressinfo.Source = 1;
+            await _expressclaimService.UpdateAsync(expressinfo);
+
+            expressclaim.Lastuser = UserInfo.Id;
+            expressclaim.Lasttime = now;
+            await _expressclaimService.UpdateAsync(expressclaim);
+
+            await _expressclaimService.CommitAsync();
+            return RickWebResult.Success(new object());
         }
 
         /// <summary>
@@ -297,6 +353,13 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public sbyte Cansendasap { get; set; }
             public List<ExpressclaimdetailRequest> details { get; set; }
         }
+        public class ExpressclaimPutRequest
+        {
+            public long Id { get; set; }
+            public long Courierid { get; set; }
+            public string Expressnumber { get; set; }
+        }
+
         public class ExpressclaimdetailRequest
         {
             public string Name { get; set; }

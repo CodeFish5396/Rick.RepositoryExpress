@@ -1168,6 +1168,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasMaxLength(500)
                     .HasColumnName("checkremark");
 
+                entity.Property(e => e.Claimtype)
+                    .HasColumnName("claimtype")
+                    .HasComment("0 未认领 1 先预报后入库 2 先入库后认领");
+
                 entity.Property(e => e.Code)
                     .HasMaxLength(45)
                     .HasColumnName("code");

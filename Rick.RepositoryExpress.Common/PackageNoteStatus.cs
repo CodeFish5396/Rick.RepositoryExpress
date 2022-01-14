@@ -7,8 +7,8 @@ namespace Rick.RepositoryExpress.Common
     public enum PackageNoteStatus
     {
         无效 = 0,
-        已入库 = 2,
-        已揽收 = 3,
+        已揽收 = 2,
+        已入库 = 3,
         待验货 = 4,
         待退货 = 5,
         待换货 = 6,
@@ -20,5 +20,6 @@ namespace Rick.RepositoryExpress.Common
         待发货 = 12,
         已发货 = 13,
         已签收 = 14,
+        认领 = 15
     }
 }

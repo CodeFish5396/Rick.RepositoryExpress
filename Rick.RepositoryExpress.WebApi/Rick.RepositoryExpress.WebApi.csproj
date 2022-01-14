@@ -5,8 +5,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>D:\RepositoryExpress\Rick.RepositoryExpress\Rick.RepositoryExpress.WebApi\SwaggerDemo.xml</DocumentationFile>
+    <DocumentationFile>D:\OtherProjects\BackEnd\Rick.RepositoryExpress\Rick.RepositoryExpress.WebApi\SwaggerDemo.xml</DocumentationFile>
     <NoWarn>1701;1702;1591</NoWarn>
+    <OutputPath></OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

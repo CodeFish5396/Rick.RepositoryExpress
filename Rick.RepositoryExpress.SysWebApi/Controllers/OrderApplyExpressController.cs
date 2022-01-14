@@ -134,19 +134,19 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         ).ToListAsync();
 
                 var packages = await (from package in _packageOrderApplyService.Query<Package>(t => packageIds.Contains(t.Id))
-                                      select new OrderApplyExpressResponseDetail()
-                                      {
-                                          PackageId = package.Id,
-                                          PackageCode = package.Code,
-                                          PackageName = package.Name,
-                                          Expressnumber = package.Expressnumber,
-                                          Location = package.Location,
-                                          Name = package.Name,
-                                          Count = package.Count,
-                                          Weight = package.Weight
-                                      }
+                                      select package 
                             ).ToListAsync();
-                item.Details = packages;
+                item.Details = packages.Select(package => new OrderApplyExpressResponseDetail()
+                {
+                    PackageId = package.Id,
+                    PackageCode = package.Code,
+                    PackageName = package.Name,
+                    Expressnumber = package.Expressnumber,
+                    Location = package.Location,
+                    Name = package.Name,
+                    Count = package.Count,
+                    Weight = package.Weight
+                }).ToList();
                 var imageInfos = await (from image in _packageOrderApplyService.Query<Packageimage>(t => packageIds.Contains(t.Packageid))
                                         select image
                             ).ToListAsync();
@@ -169,6 +169,53 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                                 AgentName = agent.Name
                                             }).ToListAsync();
                 item.Agents = channelDetails;
+
+                Packageorderapplyexpress packageorderapplyexpress = await _packageOrderApplyService.Query<Packageorderapplyexpress>(t => t.Packageorderapplyid == orderid && t.Status == 1).SingleOrDefaultAsync();
+                item.PostedDetails = new OrderApplyExpressPostResponse();
+                if (packageorderapplyexpress != null)
+                {
+                    item.PostedDetails.Remark = packageorderapplyexpress.Remark;
+                    item.PostedDetails.Price = packageorderapplyexpress.Price;
+                    item.PostedDetails.Mailcode = packageorderapplyexpress.Mailcode;
+                    var packageorderapplyexpressdetails = await _packageOrderApplyService.Query<Packageorderapplyexpressdetail>(t => t.Packageorderapplyexpressid == packageorderapplyexpress.Id).ToListAsync();
+                    item.PostedDetails.Details = packageorderapplyexpressdetails.Select(t => new OrderApplyExpressPostResponsedetail()
+                    {
+                        Id = t.Id,
+                        Count = t.Count,
+                        Weight = t.Weight,
+                        Customprice = t.Customprice,
+                        Sueprice = t.Sueprice,
+                        Overlengthprice = t.Overlengthprice,
+                        Overweightprice = t.Overweightprice,
+                        Oversizeprice = t.Oversizeprice,
+                        Paperprice = t.Paperprice,
+                        Boxprice = t.Boxprice,
+                        Bounceprice = t.Bounceprice,
+                        Vacuumprice = t.Vacuumprice,
+                        PackAddPrice = t.Packaddprice,
+                        HasPackAddPrice = t.Packaddprice.HasValue && t.Packaddprice != 0,
+                        RemotePrice = t.Remoteprice,
+                        HasRemote = t.Remoteprice.HasValue && t.Remoteprice != 0,
+                        HasElectrified = t.Haselectrified.HasValue && t.Haselectrified != 0,
+                        Price = t.Price,
+                        Length = t.Length,
+                        Width = t.Width,
+                        Height = t.Height,
+                        Volumeweight = t.Volumeweight
+                    }).ToList();
+                    foreach (var orderapplypostresponsedetail in item.PostedDetails.Details)
+                    {
+                        var packageexpress = await _packageOrderApplyService.Query<Packageorderapplyexpresspackage>(t => t.Packageorderapplyexpressdetailsid == orderapplypostresponsedetail.Id).ToListAsync();
+                        var packageids = packageexpress.Select(t => t.Packageid);
+                        orderapplypostresponsedetail.Packages = packages.Where(t => packageids.Contains(t.Id)).Select(package => new OrderApplyExpressPostResponseDetail()
+                        {
+                            PackageId = package.Id,
+                            PackageName = package.Name,
+                        }).ToList();
+                    }
+                    item.PostedDetails.Count = item.PostedDetails.Details.Count;
+                    item.PostedDetails.TotalWeight = item.PostedDetails.Details.Sum(t => t.Weight ?? 0);
+                }
             }
 
             return RickWebResult.Success(orderApplyExpressList);
@@ -383,7 +430,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             packageorderapply.Lasttime = DateTime.Now;
             packageorderapply.Lastuser = UserInfo.Id;
-            packageorderapply.Sendtime = packageorderapply.Lasttime;
+            packageorderapply.Sendtime = now;
             packageorderapply.Senduser = UserInfo.Id;
 
             await _packageOrderApplyService.UpdateAsync(packageorderapply);
@@ -525,6 +572,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Remark { get; set; }
             public string Mailcode { get; set; }
             public decimal? Price { get; set; }
+            public int Count { get; set; }
+            public decimal TotalWeight { get; set; }
+
+
             public IList<OrderApplyExpressPostResponsedetail> Details { get; set; }
         }
         public class OrderApplyExpressPostResponsedetail
@@ -538,6 +589,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public decimal? Overweightprice { get; set; }
             public decimal? Oversizeprice { get; set; }
             public decimal? Vacuumprice { get; set; }
+            public decimal? RemotePrice { get; set; }
+            public bool HasElectrified { get; set; }
+            public bool HasPackAddPrice { get; set; }
+            public bool HasRemote { get; set; }
+            public decimal? PackAddPrice { get; set; }
 
             public decimal? Paperprice { get; set; }
             public decimal? Boxprice { get; set; }

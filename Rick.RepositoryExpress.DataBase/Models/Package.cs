@@ -38,5 +38,6 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public long? Repositoryregionid { get; set; }
         public long? Repositoryshelfid { get; set; }
         public string Repositorynumber { get; set; }
+        public int Claimtype { get; set; }
     }
 }

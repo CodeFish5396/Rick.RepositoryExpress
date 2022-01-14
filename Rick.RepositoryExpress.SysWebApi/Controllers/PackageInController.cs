@@ -97,7 +97,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             package.Currencychangerateid = currentRate.Id;
             package.Currencychangerate = currentRate.Rate;
             package.Localfreightprice = packageInRequest.Localfreightprice;
-
+            if (expressclaims != null && expressclaims.Count > 0)
+            {
+                package.Claimtype = 1;
+            }
+            else
+            {
+                package.Claimtype = 0;
+            }
             await _packageService.AddAsync(package);
 
             foreach (var image in packageInRequest.Images)

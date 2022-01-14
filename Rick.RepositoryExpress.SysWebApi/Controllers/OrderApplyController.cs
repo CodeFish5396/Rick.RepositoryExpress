@@ -200,14 +200,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         {
                             PackageId = package.Id,
                             PackageName = package.Name,
-                            //Expressnumber = package.Expressnumber,
-                            //Location = package.Location,
                         }).ToList();
-                        //foreach (var orderapplypostresponsedetailPackages in orderapplypostresponsedetail.Packages)
-                        //{
-                        //    orderapplypostresponsedetailPackages.Images = imageInfos.Where(t => t.Packageid == orderapplypostresponsedetailPackages.PackageId).Select(t => t.Fileinfoid).ToList();
-                        //    orderapplypostresponsedetailPackages.Videos = vedioInfos.Where(t => t.Packageid == orderapplypostresponsedetailPackages.PackageId).Select(t => t.Fileinfoid).ToList();
-                        //}
                     }
                 }
             }

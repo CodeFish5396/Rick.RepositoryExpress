@@ -22,11 +22,16 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public decimal? Currencychangerate { get; set; }
         public decimal? Price { get; set; }
         public decimal? Targetprice { get; set; }
-        public decimal? Agentprice { get; set; }
         public long? Agentid { get; set; }
         public long? Courierid { get; set; }
         public string Couriercode { get; set; }
         public string Outnumber { get; set; }
         public decimal? Freightprice { get; set; }
+        public decimal? Agentprice { get; set; }
+        public decimal? Localagentprice { get; set; }
+        public long? Agentcurrencychangerateid { get; set; }
+        public decimal? Agentcurrencychangerate { get; set; }
+        public int? Totalcount { get; set; }
+        public decimal? Totalweight { get; set; }
     }
 }

@@ -22,6 +22,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Agent> Agents { get; set; }
         public virtual DbSet<Agentandcourier> Agentandcouriers { get; set; }
         public virtual DbSet<Agentfee> Agentfees { get; set; }
+        public virtual DbSet<Agentfeeaccount> Agentfeeaccounts { get; set; }
+        public virtual DbSet<Agentfeeconsume> Agentfeeconsumes { get; set; }
         public virtual DbSet<Appuser> Appusers { get; set; }
         public virtual DbSet<Appuseraccount> Appuseraccounts { get; set; }
         public virtual DbSet<Appuseraccountcharge> Appuseraccountcharges { get; set; }
@@ -258,6 +260,58 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasDefaultValueSql("'1'");
             });
 
+            modelBuilder.Entity<Agentfeeaccount>(entity =>
+            {
+                entity.ToTable("agentfeeaccount");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Agentid).HasColumnName("agentid");
+
+                entity.Property(e => e.Amount)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("amount");
+
+                entity.Property(e => e.Currencyid).HasColumnName("currencyid");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+            });
+
+            modelBuilder.Entity<Agentfeeconsume>(entity =>
+            {
+                entity.ToTable("agentfeeconsume");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Agentid).HasColumnName("agentid");
+
+                entity.Property(e => e.Amount)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("amount");
+
+                entity.Property(e => e.Currencyid).HasColumnName("currencyid");
+
+                entity.Property(e => e.Orderid).HasColumnName("orderid");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+            });
+
             modelBuilder.Entity<Appuser>(entity =>
             {
                 entity.ToTable("appuser");
@@ -459,6 +513,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasColumnName("amount");
 
                 entity.Property(e => e.Appuser).HasColumnName("appuser");
+
+                entity.Property(e => e.Curencyid).HasColumnName("curencyid");
+
+                entity.Property(e => e.Orderid).HasColumnName("orderid");
 
                 entity.Property(e => e.Remark)
                     .HasMaxLength(500)
@@ -1427,6 +1485,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
+                entity.Property(e => e.Agentpaytime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("agentpaytime");
+
                 entity.Property(e => e.Appuser).HasColumnName("appuser");
 
                 entity.Property(e => e.Channelid).HasColumnName("channelid");
@@ -1434,6 +1496,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Code)
                     .HasMaxLength(45)
                     .HasColumnName("code");
+
+                entity.Property(e => e.Isagentpayed).HasColumnName("isagentpayed");
 
                 entity.Property(e => e.Ispayed)
                     .HasColumnName("ispayed")
@@ -1527,6 +1591,12 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
+                entity.Property(e => e.Agentcurrencychangerate)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("agentcurrencychangerate");
+
+                entity.Property(e => e.Agentcurrencychangerateid).HasColumnName("agentcurrencychangerateid");
+
                 entity.Property(e => e.Agentid).HasColumnName("agentid");
 
                 entity.Property(e => e.Agentprice)
@@ -1564,6 +1634,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Lastuser).HasColumnName("lastuser");
 
+                entity.Property(e => e.Localagentprice)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("localagentprice");
+
                 entity.Property(e => e.Mailcode)
                     .HasMaxLength(45)
                     .HasColumnName("mailcode");
@@ -1589,6 +1663,12 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Targetprice)
                     .HasPrecision(10, 2)
                     .HasColumnName("targetprice");
+
+                entity.Property(e => e.Totalcount).HasColumnName("totalcount");
+
+                entity.Property(e => e.Totalweight)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("totalweight");
             });
 
             modelBuilder.Entity<Packageorderapplyexpressdetail>(entity =>

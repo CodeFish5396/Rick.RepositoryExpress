@@ -74,6 +74,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
 
             unclaimPackageResponseList.List = results;
             unclaimPackageResponseList.Count = count;
+
             return RickWebResult.Success(unclaimPackageResponseList);
         }
 
@@ -189,7 +190,6 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public int Count { get; set; }
 
         }
-
 
     }
 }

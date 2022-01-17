@@ -73,6 +73,25 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             agentfee.Paytype = agentFeeRequest.Paytype;
             await _agentFeeService.AddAsync(agentfee);
 
+            //账户充值
+            Agentfeeaccount agentfeeaccount = await _agentFeeService.FindAsync<Agentfeeaccount>(t => t.Currencyid == account.Currencyid && t.Agentid == agentfee.Agentid);
+            if (agentfeeaccount == null)
+            {
+                agentfeeaccount = new Agentfeeaccount();
+                agentfeeaccount.Id = _idGenerator.NextId();
+                agentfeeaccount.Currencyid = account.Currencyid;
+                agentfeeaccount.Agentid = agentfee.Agentid;
+                agentfeeaccount.Amount = account.Amount;
+                agentfeeaccount.Status = 1;
+                agentfeeaccount.Addtime = now;
+                agentfeeaccount.Adduser = UserInfo.Id;
+                await _agentFeeService.AddAsync(agentfeeaccount);
+            }
+            else
+            {
+                agentfeeaccount.Amount += account.Amount;
+                await _agentFeeService.UpdateAsync(agentfeeaccount);
+            }
             await _agentFeeService.CommitAsync();
             return RickWebResult.Success(new object());
         }

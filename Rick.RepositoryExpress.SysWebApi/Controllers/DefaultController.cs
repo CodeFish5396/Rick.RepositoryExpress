@@ -33,6 +33,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
         }
+
+        /// <summary>
+        /// 测试
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<RickWebResult<object>> Get()
+        {
+            return RickWebResult.Success<object>(1);
+            //_sysuserService.cre
+        }
         
     }
 }

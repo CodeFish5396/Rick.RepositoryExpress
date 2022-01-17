@@ -26,5 +26,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public DateTime? Packtime { get; set; }
         public long? Senduser { get; set; }
         public DateTime? Sendtime { get; set; }
+        public sbyte Isagentpayed { get; set; }
+        public DateTime? Agentpaytime { get; set; }
     }
 }

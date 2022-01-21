@@ -70,6 +70,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         on packageorderapplyexpress.Courierid equals courier.Id
                         join agent in _packageOrderApplyService.Query<Agent>(t => !agentid.HasValue || t.Id == agentid)
                         on packageorderapplyexpress.Agentid equals agent.Id
+                        join appuseraccountconsume in _packageOrderApplyService.Query<Appuseraccountconsume>(t => t.Status == 1)
+                        on order.Id equals appuseraccountconsume.Orderid
+                        join agentfeeconsume in _packageOrderApplyService.Query<Agentfeeconsume>(t => t.Status == 1)
+                        on order.Id equals agentfeeconsume.Orderid
                         select new OrderProfitResponse()
                         {
                             Id = order.Id,
@@ -96,21 +100,143 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Addtime = order.Addtime,
                             Senduser = sysUser.Id,
                             Sendusername = sysUser.Name,
-                            Sendtime = order.Sendtime
+                            Sendtime = order.Sendtime,
+                            Usercurrencyid = appuseraccountconsume.Curencyid ?? 0,
+                            Useramount = appuseraccountconsume.Amount,
+                            Agentcurrencyid = agentfeeconsume.Currencyid,
+                            Agentamount = agentfeeconsume.Amount
                         };
-            var sumIncome = await query.SumAsync(profit => profit.Price - profit.Freightprice);
-            var sumOutcome = await query.SumAsync(profit => profit.Agentprice);
+
+            var sumIncome = await (from q in query
+                                   select new
+                                   {
+                                       Currencyid = q.Usercurrencyid,
+                                       Amount = q.Useramount
+                                   }
+                            into qt
+                                   group qt.Amount by qt.Currencyid
+                            into qGT
+                                   select new OrderProfitDetail()
+                                   {
+                                       Currencyid = qGT.Key,
+                                       Amount = qGT.Sum()
+                                   }).ToListAsync();
+
+            var sumOutcome = await (from q in query
+                                    select new
+                                    {
+                                        Currencyid = q.Agentcurrencyid,
+                                        Amount = q.Agentamount
+                                    }
+                            into qt
+                                    group qt.Amount by qt.Currencyid
+                            into qGT
+                                    select new OrderProfitDetail()
+                                    {
+                                        Currencyid = qGT.Key,
+                                        Amount = qGT.Sum()
+                                    }).ToListAsync();
+
+            var SumProfit = (from pro in (from income in sumIncome
+                                          select new
+                                          {
+                                              Currencyid = income.Currencyid,
+                                              Amount = income.Amount,
+                                              Direction = 1
+                                          }
+                             ).Union(from income in sumOutcome
+                                     select new
+                                     {
+                                         Currencyid = income.Currencyid,
+                                         Amount = income.Amount,
+                                         Direction = -1
+                                     })
+                             group new { pro.Amount, pro.Direction } by pro.Currencyid
+                             into proGT
+                             select new OrderProfitDetail()
+                             {
+                                 Currencyid = proGT.Key,
+                                 Amount = proGT.Sum(t => t.Amount * t.Direction)
+                             }).ToList();
 
             profitResponseList.Count = await query.CountAsync();
             profitResponseList.List = await query.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            var syscurrencies = await _packageOrderApplyService.QueryAsync<Currency>(t => t.Status == 1 && (t.Isdefault == 1 || t.Islocal == 1));
+            var localCurrency = syscurrencies.Single(t => t.Islocal == 1);
+            var defaultCurrency = syscurrencies.Single(t => t.Isdefault == 1);
+
             foreach (var profit in profitResponseList.List)
             {
-                profit.Price = profit.Price - profit.Freightprice;
-                profit.Profit = profit.Price - profit.Agentprice - profit.Freightprice;
+                var pp = (Enumerable.Repeat(new
+                {
+                    Currencyid = profit.Agentcurrencyid,
+                    Amount = profit.Agentamount,
+                    Direction = -1
+                }, 1)).Union(Enumerable.Repeat(new
+                {
+                    Currencyid = profit.Usercurrencyid,
+                    Amount = profit.Useramount,
+                    Direction = 1
+                }, 1));
+
+                if (profit.Freightprice > 0)
+                {
+                    pp = pp.Union(Enumerable.Repeat(new
+                    {
+                        Currencyid = defaultCurrency.Id,
+                        Amount = profit.Freightprice,
+                        Direction = -1
+                    }, 1));
+                }
+                profit.Profit = (from p in pp
+                                 group new { p.Amount, p.Direction } by p.Currencyid
+                                 into proGT
+                                 select new OrderProfitDetail()
+                                 {
+                                     Currencyid = proGT.Key,
+                                     Amount = proGT.Sum(t => t.Amount * t.Direction)
+                                 }).ToList();
             }
+
             profitResponseList.SumIncome = sumIncome;
             profitResponseList.SumOutcome = sumOutcome;
-            profitResponseList.SumProfit = profitResponseList.SumIncome - profitResponseList.SumOutcome;
+            profitResponseList.SumProfit = SumProfit;
+
+            var currencyIds = profitResponseList.List.Select(t => t.Usercurrencyid).ToList();
+            currencyIds.AddRange(profitResponseList.List.Select(t => t.Agentcurrencyid));
+            currencyIds.AddRange(syscurrencies.Select(t => t.Id));
+            currencyIds.AddRange(sumIncome.Select(t => t.Currencyid));
+            currencyIds.AddRange(sumOutcome.Select(t => t.Currencyid));
+
+            var currencies = await _packageOrderApplyService.QueryAsync<Currency>(c => currencyIds.Contains(c.Id));
+
+            foreach (OrderProfitResponse appUserDataResponse in profitResponseList.List)
+            {
+                appUserDataResponse.Usercurrencyname = currencies.Single(t => t.Id == appUserDataResponse.Usercurrencyid).Name;
+                appUserDataResponse.Agentcurrencyname = currencies.Single(t => t.Id == appUserDataResponse.Agentcurrencyid).Name;
+
+                foreach (OrderProfitDetail orderProfitDetail in appUserDataResponse.Profit)
+                {
+                    orderProfitDetail.Currencyname = currencies.Single(t => t.Id == orderProfitDetail.Currencyid).Name;
+                }
+            }
+
+            foreach (OrderProfitDetail orderProfitDetail in profitResponseList.SumIncome)
+            {
+                orderProfitDetail.Currencyname = currencies.Single(t => t.Id == orderProfitDetail.Currencyid).Name;
+            }
+
+            foreach (OrderProfitDetail orderProfitDetail in profitResponseList.SumOutcome)
+            {
+                orderProfitDetail.Currencyname = currencies.Single(t => t.Id == orderProfitDetail.Currencyid).Name;
+            }
+
+            foreach (OrderProfitDetail orderProfitDetail in profitResponseList.SumProfit)
+            {
+                orderProfitDetail.Currencyname = currencies.Single(t => t.Id == orderProfitDetail.Currencyid).Name;
+            }
+
             return RickWebResult.Success(profitResponseList);
         }
 
@@ -129,7 +255,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public DateTime? Paytime { get; set; }
             public decimal Price { get; set; }
             public decimal Freightprice { get; set; }
-            public decimal Profit { get; set; }
 
             public string Outnumber { get; set; }
             public string Innernumber { get; set; }
@@ -144,15 +269,30 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Sendusername { get; set; }
             public DateTime? Sendtime { get; set; }
 
+            public long Usercurrencyid { get; set; }
+            public string Usercurrencyname { get; set; }
+            public decimal Useramount { get; set; }
+
+            public long Agentcurrencyid { get; set; }
+            public string Agentcurrencyname { get; set; }
+            public decimal Agentamount { get; set; }
+            public List<OrderProfitDetail> Profit { get; set; }
         }
 
         public class OrderProfitResponseList
         {
-            public decimal SumIncome { get; set; }
-            public decimal SumOutcome { get; set; }
-            public decimal SumProfit { get; set; }
+            public List<OrderProfitDetail> SumIncome { get; set; }
+            public List<OrderProfitDetail> SumOutcome { get; set; }
+            public List<OrderProfitDetail> SumProfit { get; set; }
             public int Count { get; set; }
             public List<OrderProfitResponse> List { get; set; }
+        }
+        public class OrderProfitDetail
+        {
+            public long Currencyid { get; set; }
+            public string Currencyname { get; set; }
+            public decimal Amount { get; set; }
+
         }
 
     }

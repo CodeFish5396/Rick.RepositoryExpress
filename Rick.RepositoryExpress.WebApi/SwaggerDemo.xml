@@ -114,6 +114,14 @@
             <param name="id"></param>
             <returns></returns>
         </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OrderErrorController.Get(System.Int32,System.Int32)">
+            <summary>
+            查询问题件
+            </summary>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OrderExpressController.Get(System.Int32,System.Int32)">
             <summary>
             获取订单列表

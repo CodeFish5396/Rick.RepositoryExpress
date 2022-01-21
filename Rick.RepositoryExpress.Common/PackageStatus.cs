@@ -15,6 +15,8 @@ namespace Rick.RepositoryExpress.Common
         已出库 = 6,
         已验货 = 7,
         已退货 = 8,
-        已换货 = 9
+        已换货 = 9,
+        问题件 = 10,
+
     }
 }

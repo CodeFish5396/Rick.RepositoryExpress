@@ -57,7 +57,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         && (!orderStatus.HasValue || t.Orderstatus == orderStatus)
                         && (!startTime.HasValue || t.Addtime >= startTime)
                         && (!endTime.HasValue || t.Addtime <= endTime)
-                        && (t.Orderstatus == (int)OrderApplyStatus.申请打包 || t.Orderstatus == (int)OrderApplyStatus.发货待确认)
+                        && (t.Orderstatus == (int)OrderApplyStatus.申请打包 || t.Orderstatus == (int)OrderApplyStatus.发货待确认 || t.Orderstatus == (int)OrderApplyStatus.问题件)
                         )
                         join channel in _packageOrderApplyService.Query<Channel>(t => true)
                         on order.Channelid equals channel.Id

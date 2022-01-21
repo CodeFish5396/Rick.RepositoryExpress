@@ -54,6 +54,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Packagenote> Packagenotes { get; set; }
         public virtual DbSet<Packageorderapply> Packageorderapplies { get; set; }
         public virtual DbSet<Packageorderapplydetail> Packageorderapplydetails { get; set; }
+        public virtual DbSet<Packageorderapplyerror> Packageorderapplyerrors { get; set; }
+        public virtual DbSet<Packageorderapplyerrorlog> Packageorderapplyerrorlogs { get; set; }
         public virtual DbSet<Packageorderapplyexpress> Packageorderapplyexpresses { get; set; }
         public virtual DbSet<Packageorderapplyexpressdetail> Packageorderapplyexpressdetails { get; set; }
         public virtual DbSet<Packageorderapplyexpresspackage> Packageorderapplyexpresspackages { get; set; }
@@ -78,6 +80,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Sysusercompany> Sysusercompanies { get; set; }
         public virtual DbSet<Sysuserdepartment> Sysuserdepartments { get; set; }
         public virtual DbSet<Sysuserrole> Sysuserroles { get; set; }
+        public virtual DbSet<Viewagentuserdatum> Viewagentuserdata { get; set; }
+        public virtual DbSet<Viewappuserdatum> Viewappuserdata { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -509,7 +513,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
                 entity.Property(e => e.Amount)
-                    .HasPrecision(10)
+                    .HasPrecision(10, 2)
                     .HasColumnName("amount");
 
                 entity.Property(e => e.Appuser).HasColumnName("appuser");
@@ -1576,6 +1580,74 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Status).HasColumnName("status");
             });
 
+            modelBuilder.Entity<Packageorderapplyerror>(entity =>
+            {
+                entity.ToTable("packageorderapplyerror");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Appuser).HasColumnName("appuser");
+
+                entity.Property(e => e.Lasttime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("lasttime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Lastuser).HasColumnName("lastuser");
+
+                entity.Property(e => e.Packageorderapplyid).HasColumnName("packageorderapplyid");
+
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+            });
+
+            modelBuilder.Entity<Packageorderapplyerrorlog>(entity =>
+            {
+                entity.ToTable("packageorderapplyerrorlog");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Appuser).HasColumnName("appuser");
+
+                entity.Property(e => e.Lasttime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("lasttime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Lastuser).HasColumnName("lastuser");
+
+                entity.Property(e => e.Packageorderapplyerrorid).HasColumnName("packageorderapplyerrorid");
+
+                entity.Property(e => e.Remark)
+                    .HasMaxLength(500)
+                    .HasColumnName("remark");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+
+                entity.Property(e => e.Type).HasColumnName("type");
+            });
+
             modelBuilder.Entity<Packageorderapplyexpress>(entity =>
             {
                 entity.ToTable("packageorderapplyexpress");
@@ -2548,6 +2620,64 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.Userid).HasColumnName("userid");
+            });
+
+            modelBuilder.Entity<Viewagentuserdatum>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToView("viewagentuserdata");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime")
+                    .HasDefaultValueSql("'0000-00-00 00:00:00'");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Agentid).HasColumnName("agentid");
+
+                entity.Property(e => e.Amount)
+                    .HasPrecision(12, 2)
+                    .HasColumnName("amount");
+
+                entity.Property(e => e.Currencyid).HasColumnName("currencyid");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Orderid).HasColumnName("orderid");
+
+                entity.Property(e => e.Paytype).HasColumnName("paytype");
+            });
+
+            modelBuilder.Entity<Viewappuserdatum>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToView("viewappuserdata");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime")
+                    .HasDefaultValueSql("'0000-00-00 00:00:00'");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Amount)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("amount");
+
+                entity.Property(e => e.Appuser).HasColumnName("appuser");
+
+                entity.Property(e => e.Currencyid).HasColumnName("currencyid");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Orderid).HasColumnName("orderid");
+
+                entity.Property(e => e.Paytype).HasColumnName("paytype");
+
+                entity.Property(e => e.Type).HasColumnName("type");
             });
 
             OnModelCreatingPartial(modelBuilder);

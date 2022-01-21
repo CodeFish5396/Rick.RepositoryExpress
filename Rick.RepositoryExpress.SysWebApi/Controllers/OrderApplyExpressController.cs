@@ -54,7 +54,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             var query = from order in _packageOrderApplyService.Query<Packageorderapply>(t => (!status.HasValue || t.Status == status)
                         && (!orderStatus.HasValue || t.Orderstatus == orderStatus)
-                        && (t.Orderstatus == (int)OrderApplyStatus.待发货 || t.Orderstatus == (int)OrderApplyStatus.已发货 || t.Orderstatus == (int)OrderApplyStatus.已签收)
+                        && (t.Orderstatus == (int)OrderApplyStatus.待发货 || t.Orderstatus == (int)OrderApplyStatus.已发货 || t.Orderstatus == (int)OrderApplyStatus.已签收 || t.Orderstatus == (int)OrderApplyStatus.问题件)
                         && (string.IsNullOrEmpty(code) || t.Code == code)
                         && (!startTime.HasValue || t.Sendtime >= startTime)
                         && (!endTime.HasValue || t.Sendtime <= endTime)

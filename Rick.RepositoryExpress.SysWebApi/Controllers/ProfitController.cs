@@ -74,6 +74,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                       Direction = sumItem.Key.Direction,
                                       TotalAmount = sumItem.Sum(t => t.Amount)
                                   }).ToListAsync();
+
             profitResponseList.SumList = sumQuery;
 
             List<long> sumcurrencyids = profitResponseList.SumList.Select(t => t.Currencyid).Distinct().ToList();
@@ -83,7 +84,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 var ccurrency = sumcurrencies.SingleOrDefault(t => t.Id == incomeResponse.Currencyid);
                 incomeResponse.Currencyname = ccurrency.Name;
             }
-
+            profitResponseList.InList = profitResponseList.SumList.Where(t => t.Direction == 1).ToList();
+            profitResponseList.OutList = profitResponseList.SumList.Where(t => t.Direction == -1).ToList();
+            profitResponseList.ProfitList = (from profit in profitResponseList.SumList
+                                             group new { profit.TotalAmount, profit.Direction } by new { profit.Currencyid, profit.Currencyname }
+                                            into profitGT
+                                             select new ProfitResponseSum()
+                                             {
+                                                 Currencyid = profitGT.Key.Currencyid,
+                                                 Currencyname = profitGT.Key.Currencyname,
+                                                 Direction = 0,
+                                                 TotalAmount = profitGT.Sum(t=>t.TotalAmount * t.Direction)
+                                             }).ToList();
             //收入
             var incomeAccountIds = profitResponseList.List.Where(t => t.SubjectCode == "100").Select(t => t.Id).ToList();
             var appusers = await (from charge in _accountsubjectService.Query<Appuseraccountcharge>(t => incomeAccountIds.Contains(t.Accountid))
@@ -160,6 +172,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public int Count { get; set; }
             public List<ProfitResponse> List { get; set; }
             public List<ProfitResponseSum> SumList { get; set; }
+            public List<ProfitResponseSum> InList { get; set; }
+            public List<ProfitResponseSum> OutList { get; set; }
+            public List<ProfitResponseSum> ProfitList { get; set; }
         }
         public class ProfitResponseSum
         {

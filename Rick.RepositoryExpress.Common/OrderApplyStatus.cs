@@ -11,6 +11,7 @@ namespace Rick.RepositoryExpress.Common
         发货待确认 = 2,
         待发货 = 3,
         已发货 = 4,
-        已签收 = 5
+        已签收 = 5,
+        问题件 = 6,
     }
 }

@@ -52,9 +52,13 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
 
             homePageResponse.UnrecievedCount = await queryUnrecievedCount.CountAsync();
 
-            var queryOrderCount = from packageorderapply in _sysuserService.Query<Packageorderapply>(t => t.Status == 1 && t.Appuser == UserInfo.Id)
-                        select packageorderapply.Id;
-            homePageResponse.OrderCount = await queryOrderCount.CountAsync();
+            //var queryOrderCount = from packageorderapply in _sysuserService.Query<Packageorderapply>(t => t.Status == 1 && t.Appuser == UserInfo.Id)
+            //            select packageorderapply.Id;
+            //homePageResponse.OrderCount = await queryOrderCount.CountAsync();
+
+            var queryErrorCount = from Packageorderapplyerror in _sysuserService.Query<Packageorderapplyerror>(t => t.Appuser == UserInfo.Id)
+                                  select Packageorderapplyerror.Id;
+            homePageResponse.ErrorCount = await queryErrorCount.CountAsync();
 
             return RickWebResult.Success(homePageResponse);
         }
@@ -63,6 +67,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public int RecievedCount { get; set; }
             public int UnrecievedCount { get; set; }
             public int OrderCount { get; set; }
+            public int ErrorCount { get; set; }
 
         }
     }

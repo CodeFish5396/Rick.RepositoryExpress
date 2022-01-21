@@ -20,6 +20,6 @@ namespace Rick.RepositoryExpress.Common
         发货待确认 = 11,
         待发货 = 12,
         已发货 = 13,
-        已签收 = 14,
+        已签收 = 14
     }
 }

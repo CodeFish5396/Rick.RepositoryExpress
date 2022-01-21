@@ -20,6 +20,7 @@ namespace Rick.RepositoryExpress.Common
         待发货 = 12,
         已发货 = 13,
         已签收 = 14,
-        认领 = 15
+        认领 = 15,
+        问题件 = 16,
     }
 }

@@ -333,6 +333,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Imageid).HasColumnName("imageid");
 
+                entity.Property(e => e.Isshow).HasColumnName("isshow");
+
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
                     .HasColumnName("lasttime");

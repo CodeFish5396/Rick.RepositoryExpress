@@ -52,9 +52,23 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             }
             using (var fileStream = new FileStream(filePath + fileinfo.Filename + fileinfo.Ext, FileMode.Open))
             {
+                List<byte> results = new List<byte>();
+
+                string htmlBegin = "<!doctype html><html lang=\"zh\"><head><meta charSet=\"utf-8\"/><title data-react-helmet=\"true\">达人集运 - 新闻</title></head><body>";
+                byte[] begin = System.Text.Encoding.UTF8.GetBytes(htmlBegin);
+                results.AddRange(begin);
+
                 byte[] buffer = new byte[fi.Length];
                 await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));
-                FileContentResult fileContentResult = new FileContentResult(buffer, fileinfo.Mime);
+                results.AddRange(buffer);
+
+
+                string htmlEnd = "</body></html>";
+                byte[] end = System.Text.Encoding.UTF8.GetBytes(htmlEnd);
+                results.AddRange(end);
+
+                FileContentResult fileContentResult = new FileContentResult(results.ToArray(), fileinfo.Mime);
+                
                 return fileContentResult;
             }
         }

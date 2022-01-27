@@ -36,7 +36,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         [HttpGet]
         public async Task<RickWebResult<AppnewGetResponseList>> Get([FromQuery] int? type, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from appnew in _appnewService.Query<Appnew>(t => t.Status == 1 && (!type.HasValue || type == 0 || t.Type == type ))
+            var query = from appnew in _appnewService.Query<Appnew>(t => t.Status == 1 && (!type.HasValue || type == 0 || t.Isshow == 1 ))
                         select new AppnewGetResponse()
                         {
                             Id = appnew.Id,

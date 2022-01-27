@@ -52,7 +52,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             appnewGetResponse.Imageid = appnew.Imageid;
             appnewGetResponse.Content = string.Empty;
             Fileinfo fileinfo = await _appnewService.FindAsync<Fileinfo>(appnew.Urlid);
-            FileInfo fileInfo = new FileInfo(filePath + fileinfo.Name + fileinfo.Ext);
+            FileInfo fileInfo = new FileInfo(filePath + fileinfo.Filename + fileinfo.Ext);
 
             byte[] fileByte = new byte[fileInfo.Length];
             using (FileStream fs = fileInfo.OpenRead())
@@ -60,6 +60,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 await fs.ReadAsync(fileByte, 0, fileByte.Length);
             }
             appnewGetResponse.Content = Convert.ToBase64String(fileByte);
+            appnewGetResponse.Isshow = appnew.Isshow == 1;
             return RickWebResult.Success(appnewGetResponse);
         }
 
@@ -71,6 +72,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Vicetitle { get; set; }
             public long Imageid { get; set; }
             public string Content { get; set; }
+            public bool Isshow { get; set; }
         }
     }
 }

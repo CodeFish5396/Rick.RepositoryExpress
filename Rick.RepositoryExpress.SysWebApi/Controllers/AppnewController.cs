@@ -51,6 +51,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Vicetitle = appnew.Vicetitle,
                             Imageid = appnew.Imageid,
                             Urlid = appnew.Urlid,
+                            Isshow = appnew.Isshow == 1,
                             Status = appnew.Status,
                             Addtime = appnew.Addtime
                         };
@@ -102,7 +103,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             appnew.Adduser = UserInfo.Id;
             appnew.Lasttime = now;
             appnew.Lastuser = UserInfo.Id;
-
+            appnew.Isshow = appnewPostRequest.Isshow ? 1 : 0;
             await _appnewService.AddAsync(htmlfileinfo);
             await _appnewService.AddAsync(appnew);
             await _appnewService.CommitAsync();
@@ -149,7 +150,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             appnew.Status = 1;
             appnew.Lasttime = now;
             appnew.Lastuser = UserInfo.Id;
-
+            appnew.Isshow = appnewPutRequest.Isshow ? 1 : 0;
             await _appnewService.AddAsync(htmlfileinfo);
             await _appnewService.UpdateAsync(appnew);
             await _appnewService.CommitAsync();
@@ -182,6 +183,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Vicetitle { get; set; }
             public long Imageid { get; set; }
             public string Content { get; set; }
+            public bool Isshow { get; set; }
         }
 
         public class AppnewPutRequest
@@ -192,6 +194,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Vicetitle { get; set; }
             public long Imageid { get; set; }
             public string Content { get; set; }
+            public bool Isshow { get; set; }
+
         }
 
         public class AppnewGetResponseList
@@ -205,12 +209,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public class AppnewGetResponse
         {
             public long Id { get; set; }
-
             public string Title { get; set; }
             public int Type { get; set; }
             public string Vicetitle { get; set; }
             public long Imageid { get; set; }
             public long Urlid { get; set; }
+            public bool Isshow { get; set; }
+
             public int Status { get; set; }
             public DateTime Addtime { get; set; }
         }

@@ -24,6 +24,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Agentfee> Agentfees { get; set; }
         public virtual DbSet<Agentfeeaccount> Agentfeeaccounts { get; set; }
         public virtual DbSet<Agentfeeconsume> Agentfeeconsumes { get; set; }
+        public virtual DbSet<Appnew> Appnews { get; set; }
         public virtual DbSet<Appuser> Appusers { get; set; }
         public virtual DbSet<Appuseraccount> Appuseraccounts { get; set; }
         public virtual DbSet<Appuseraccountcharge> Appuseraccountcharges { get; set; }
@@ -314,6 +315,45 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Orderid).HasColumnName("orderid");
 
                 entity.Property(e => e.Status).HasColumnName("status");
+            });
+
+            modelBuilder.Entity<Appnew>(entity =>
+            {
+                entity.ToTable("appnew");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Imageid).HasColumnName("imageid");
+
+                entity.Property(e => e.Lasttime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("lasttime");
+
+                entity.Property(e => e.Lastuser).HasColumnName("lastuser");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+
+                entity.Property(e => e.Title)
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnName("title");
+
+                entity.Property(e => e.Type).HasColumnName("type");
+
+                entity.Property(e => e.Urlid).HasColumnName("urlid");
+
+                entity.Property(e => e.Vicetitle)
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnName("vicetitle");
             });
 
             modelBuilder.Entity<Appuser>(entity =>
@@ -1597,6 +1637,12 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Appuser).HasColumnName("appuser");
 
+                entity.Property(e => e.Endremark)
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnName("endremark")
+                    .HasDefaultValueSql("''");
+
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
                     .HasColumnName("lasttime")
@@ -1604,11 +1650,21 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Lastuser).HasColumnName("lastuser");
 
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnName("name")
+                    .HasDefaultValueSql("''");
+
                 entity.Property(e => e.Packageorderapplyid).HasColumnName("packageorderapplyid");
 
+                entity.Property(e => e.Prestatus).HasColumnName("prestatus");
+
                 entity.Property(e => e.Remark)
+                    .IsRequired()
                     .HasMaxLength(500)
-                    .HasColumnName("remark");
+                    .HasColumnName("remark")
+                    .HasDefaultValueSql("''");
 
                 entity.Property(e => e.Status).HasColumnName("status");
             });
@@ -1645,7 +1701,9 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Status).HasColumnName("status");
 
-                entity.Property(e => e.Type).HasColumnName("type");
+                entity.Property(e => e.Type)
+                    .HasColumnName("type")
+                    .HasComment("1-管理平台 2-APP用户");
             });
 
             modelBuilder.Entity<Packageorderapplyexpress>(entity =>

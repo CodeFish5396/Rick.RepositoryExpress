@@ -68,8 +68,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 Packageorderapplyerrorlog packageorderapplyerrorlog = new Packageorderapplyerrorlog();
                 var packageorderapplyerrorlogs = await _packageOrderApplyService.Query<Packageorderapplyerrorlog>(log => log.Status == 1 && log.Packageorderapplyerrorid == packageorderapplyerror.Id).OrderByDescending(t => t.Id).ToListAsync();
                 orderErrorResponseList.Remark = packageorderapplyerror.Remark;
+                orderErrorResponseList.Endremark = packageorderapplyerror.Endremark;
                 orderErrorResponseList.Name = packageorderapplyerror.Name;
-                orderErrorResponseList.Addtime = packageorderapplyerror.Addtime;
+                orderErrorResponseList.Lasttime = packageorderapplyerror.Lasttime;
                 orderErrorResponseList.Status = packageorderapplyerror.Status;
                 orderErrorResponseList.List = packageorderapplyerrorlogs.Select(log => new OrderErrorResponse()
                 {
@@ -77,10 +78,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     Type = log.Type,
                     Remark = log.Remark,
                     Addtime = log.Addtime
-                }).ToList();
+                }).OrderByDescending(T=>T.Id).ToList();
                 orderErrorResponseList.Count = orderErrorResponseList.List.Count;
 
             }
+
             return RickWebResult.Success(orderErrorResponseList);
         }
 
@@ -100,22 +102,21 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             bool isAppend = packageorderapplyerror != null;
 
-            packageorderapply.Orderstatus = (int)OrderApplyStatus.问题件;
             packageorderapply.Lasttime = now;
             packageorderapply.Lastuser = UserInfo.Id;
-            await _packageOrderApplyService.UpdateAsync(packageorderapply);
 
             if (isAppend)
             {
                 if (orderApplyRequest.Isclosed)
                 {
                     packageorderapplyerror.Status = 0;
+                    packageorderapplyerror.Endremark = orderApplyRequest.Remark;
+                    packageorderapply.Orderstatus = packageorderapplyerror.Prestatus;
                 }
-                packageorderapplyerror.Remark = orderApplyRequest.Remark;
+
                 packageorderapplyerror.Lasttime = now;
                 packageorderapplyerror.Lastuser = UserInfo.Id;
 
-                await _packageOrderApplyService.UpdateAsync(packageorderapplyerror);
 
                 Packageorderapplyerrorlog packageorderapplyerrorlog = new Packageorderapplyerrorlog();
                 packageorderapplyerrorlog.Id = _idGenerator.NextId();
@@ -128,7 +129,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 packageorderapplyerrorlog.Lastuser = UserInfo.Id;
                 packageorderapplyerrorlog.Lasttime = now;
                 packageorderapplyerrorlog.Remark = orderApplyRequest.Remark;
+
                 await _packageOrderApplyService.AddAsync(packageorderapplyerrorlog);
+                await _packageOrderApplyService.UpdateAsync(packageorderapplyerror);
+                await _packageOrderApplyService.UpdateAsync(packageorderapply);
             }
             else
             {
@@ -143,6 +147,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 packageorderapplyerror.Lasttime = now;
                 packageorderapplyerror.Remark = orderApplyRequest.Remark;
                 packageorderapplyerror.Name = String.Empty;
+                packageorderapplyerror.Prestatus = packageorderapply.Orderstatus;
 
                 Packageorderapplyerrorlog packageorderapplyerrorlog = new Packageorderapplyerrorlog();
                 packageorderapplyerrorlog.Id = _idGenerator.NextId();
@@ -192,6 +197,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
                 await _packageOrderApplyService.AddAsync(packageorderapplyerror);
 
+                packageorderapply.Orderstatus = (int)OrderApplyStatus.问题件;
+
+                await _packageOrderApplyService.UpdateAsync(packageorderapply);
+
             }
 
             await _packageOrderApplyService.CommitAsync();
@@ -220,9 +229,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Name { get; set; }
             public string Outnumber { get; set; }
             public string Address { get; set; }
-            public DateTime Addtime { get; set; }
+            public DateTime Lasttime { get; set; }
             public int Status { get; set; }
             public string Remark { get; set; }
+            public string Endremark { get; set; }
+
             public decimal Price { get; set; }
             public int Count { get; set; }
             public List<OrderErrorResponse> List { get; set; }

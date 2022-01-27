@@ -60,6 +60,13 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.HtmlController.Get(System.Int64)">
+            <summary>
+            文件Url
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.NationController.Get">
             <summary>
             查询所有国家

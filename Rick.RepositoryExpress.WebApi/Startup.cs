@@ -71,7 +71,7 @@ namespace Rick.RepositoryExpress.WebApi
             services.AddScoped<IRunFeeService, RunFeeService>();
             services.AddScoped<ISyssettingService, SyssettingService>();
             services.AddScoped<IMessageService, MessageService>();
-
+            services.AddScoped<IAppnewService, AppnewService>();
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));
             services.AddSingleton(new RedisClientService(redisConnectionString, redisDbNum));

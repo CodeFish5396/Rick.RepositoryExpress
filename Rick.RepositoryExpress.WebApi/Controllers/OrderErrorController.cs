@@ -66,8 +66,9 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     var packageorderapplyerrorlogs = await _packageOrderApplyService.Query<Packageorderapplyerrorlog>(log => log.Status == 1 && log.Packageorderapplyerrorid == packageorderapplyerror.Id).OrderByDescending(t => t.Id).ToListAsync();
                     orderErrorResponse.Name = packageorderapplyerror.Name;
                     orderErrorResponse.Remark = packageorderapplyerror.Remark;
+                    orderErrorResponse.Endremark = packageorderapplyerror.Endremark;
                     orderErrorResponse.Status = packageorderapplyerror.Status;
-                    orderErrorResponse.Addtime = packageorderapplyerror.Addtime;
+                    orderErrorResponse.Lasttime = packageorderapplyerror.Lasttime;
 
                     orderErrorResponse.List = packageorderapplyerrorlogs.Select(log => new OrderErrorResponseLog()
                     {
@@ -95,6 +96,111 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             return RickWebResult.Success(orderErrorResponseList);
         }
 
+        [HttpPost]
+        public async Task<RickWebResult<object>> Post([FromBody] OrderErrorRequest orderApplyRequest)
+        {
+            await _packageOrderApplyService.BeginTransactionAsync();
+            DateTime now = DateTime.Now;
+
+            Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(orderApplyRequest.Id);
+            Packageorderapplyerror packageorderapplyerror = await _packageOrderApplyService.Query<Packageorderapplyerror>(error => error.Status == 1 && error.Packageorderapplyid == packageorderapply.Id).OrderByDescending(t => t.Id).FirstOrDefaultAsync();
+
+            bool isAppend = packageorderapplyerror != null;
+
+            packageorderapply.Orderstatus = (int)OrderApplyStatus.问题件;
+            packageorderapply.Lasttime = now;
+            packageorderapply.Lastuser = UserInfo.Id;
+            await _packageOrderApplyService.UpdateAsync(packageorderapply);
+
+            if (isAppend)
+            {
+                packageorderapplyerror.Lasttime = now;
+                packageorderapplyerror.Lastuser = UserInfo.Id;
+
+                await _packageOrderApplyService.UpdateAsync(packageorderapplyerror);
+
+                Packageorderapplyerrorlog packageorderapplyerrorlog = new Packageorderapplyerrorlog();
+                packageorderapplyerrorlog.Id = _idGenerator.NextId();
+                packageorderapplyerrorlog.Packageorderapplyerrorid = packageorderapplyerror.Id;
+                packageorderapplyerrorlog.Appuser = packageorderapply.Appuser;
+                packageorderapplyerrorlog.Type = 2;
+                packageorderapplyerrorlog.Status = 1;
+                packageorderapplyerrorlog.Adduser = UserInfo.Id;
+                packageorderapplyerrorlog.Addtime = now;
+                packageorderapplyerrorlog.Lastuser = UserInfo.Id;
+                packageorderapplyerrorlog.Lasttime = now;
+                packageorderapplyerrorlog.Remark = orderApplyRequest.Remark;
+                await _packageOrderApplyService.AddAsync(packageorderapplyerrorlog);
+            }
+            else
+            {
+                packageorderapplyerror = new Packageorderapplyerror();
+                packageorderapplyerror.Id = _idGenerator.NextId();
+                packageorderapplyerror.Packageorderapplyid = packageorderapply.Id;
+                packageorderapplyerror.Appuser = packageorderapply.Appuser;
+                packageorderapplyerror.Status = 1;
+                packageorderapplyerror.Adduser = UserInfo.Id;
+                packageorderapplyerror.Addtime = now;
+                packageorderapplyerror.Lastuser = UserInfo.Id;
+                packageorderapplyerror.Lasttime = now;
+                packageorderapplyerror.Remark = orderApplyRequest.Remark;
+                packageorderapplyerror.Name = String.Empty;
+
+                Packageorderapplyerrorlog packageorderapplyerrorlog = new Packageorderapplyerrorlog();
+                packageorderapplyerrorlog.Id = _idGenerator.NextId();
+                packageorderapplyerrorlog.Packageorderapplyerrorid = packageorderapplyerror.Id;
+                packageorderapplyerrorlog.Appuser = packageorderapply.Appuser;
+                packageorderapplyerrorlog.Type = 2;
+                packageorderapplyerrorlog.Status = 1;
+                packageorderapplyerrorlog.Adduser = UserInfo.Id;
+                packageorderapplyerrorlog.Addtime = now;
+                packageorderapplyerrorlog.Lastuser = UserInfo.Id;
+                packageorderapplyerrorlog.Lasttime = now;
+                packageorderapplyerrorlog.Remark = orderApplyRequest.Remark;
+                await _packageOrderApplyService.AddAsync(packageorderapplyerrorlog);
+
+                var packageorderapplydetailes = await _packageOrderApplyService.QueryAsync<Packageorderapplydetail>(t => t.Packageorderapplyid == packageorderapply.Id);
+                foreach (var packageorderapplydetaile in packageorderapplydetailes)
+                {
+                    var package = await _packageOrderApplyService.FindAsync<Package>(packageorderapplydetaile.Packageid);
+                    package.Status = (int)PackageStatus.问题件;
+                    package.Lastuser = UserInfo.Id;
+                    package.Lasttime = now;
+                    await _packageOrderApplyService.UpdateAsync(package);
+                    packageorderapplyerror.Name += package.Name;
+
+                    Packagenote packagenote = new Packagenote();
+                    packagenote.Id = _idGenerator.NextId();
+                    packagenote.Packageid = package.Id;
+                    packagenote.Status = 1;
+                    packagenote.Adduser = UserInfo.Id;
+                    packagenote.Addtime = now;
+                    packagenote.Isclosed = 0;
+                    packagenote.Operator = (int)PackageNoteStatus.问题件;
+                    packagenote.Operatoruser = UserInfo.Id;
+                    await _packageOrderApplyService.AddAsync(packagenote);
+                }
+
+                Packageorderapplynote packageorderapplynote = new Packageorderapplynote();
+                packageorderapplynote.Id = _idGenerator.NextId();
+                packageorderapplynote.Packageorderapplyid = packageorderapply.Id;
+                packageorderapplynote.Status = 1;
+                packageorderapplynote.Adduser = UserInfo.Id;
+                packageorderapplynote.Addtime = now;
+                packageorderapplynote.Isclosed = 0;
+                packageorderapplynote.Operator = (int)OrderApplyStatus.问题件;
+                packageorderapplynote.Operatoruser = UserInfo.Id;
+                await _packageOrderApplyService.AddAsync(packageorderapplynote);
+
+                await _packageOrderApplyService.AddAsync(packageorderapplyerror);
+
+            }
+
+            await _packageOrderApplyService.CommitAsync();
+            return RickWebResult.Success(new object());
+        }
+
+
         public class OrderErrorResponseList
         {
             public int Count { get; set; }
@@ -116,7 +222,9 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public string Name { get; set; }
             public string Address { get; set; }
             public string Remark { get; set; }
-            public DateTime Addtime { get; set; }
+            public string Endremark { get; set; }
+
+            public DateTime Lasttime { get; set; }
 
             public int Status { get; set; }
             public decimal Price { get; set; }
@@ -125,6 +233,12 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
 
         }
 
+        public class OrderErrorRequest
+        {
+            public long Id { get; set; }
+            public string Remark { get; set; }
+
+        }
 
     }
 }

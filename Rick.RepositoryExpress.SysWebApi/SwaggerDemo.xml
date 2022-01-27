@@ -109,6 +109,38 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppnewcontentController.Get(System.Int64)">
+            <summary>
+            获取新闻列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.Get(System.Int32,System.Int32)">
+            <summary>
+            获取新闻列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.AppnewPostRequest)">
+            <summary>
+            提交新闻
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.Put(Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.AppnewPutRequest)">
+            <summary>
+            修改新闻
+            </summary>
+            <param name="appnewPutRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.Delete(System.Int64)">
+            <summary>
+            删除
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.AppUserController">
             <summary>
             APP用户管理

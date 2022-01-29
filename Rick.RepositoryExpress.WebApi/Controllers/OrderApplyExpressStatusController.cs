@@ -50,7 +50,13 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             var packageorderapplyexpressstatuses = (await _packageOrderApplyService.QueryAsync<Packageorderapplyexpressstatus>(t => t.Packageorderapplyexpressid == packageorderapplyexpress.Id)).OrderByDescending(t=>t.Addtime).ToList();
             if (packageorderapplyexpressstatuses == null || packageorderapplyexpressstatuses.Count == 0 || packageorderapplyexpressstatuses[0].Searchtime <= DateTime.Now.AddHours(-6))
             {
-                string expressStatus = await ExpressApiHelper.Get(packageorderapplyexpress.Outnumber);
+                string outNumber = packageorderapplyexpress.Outnumber;
+                if (outNumber.StartsWith("sf") || outNumber.StartsWith("SF"))
+                {
+                    outNumber += ":5128";
+                }
+
+                string expressStatus = await ExpressApiHelper.Get(outNumber, packageorderapplyexpress.Couriercode);
 
                 ApiExpressStatus apiExpressStatus = Newtonsoft.Json.JsonConvert.DeserializeObject<ApiExpressStatus>(expressStatus);
 

@@ -17,6 +17,7 @@ using Rick.RepositoryExpress.Utils;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace WebSocketsTutorial.Controllers
 {
@@ -71,7 +72,7 @@ namespace WebSocketsTutorial.Controllers
                         using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                         ConnetedWebsockets.TryAdd(userInfo.Id, webSocket);
                         _logger.Log(LogLevel.Information, "WebSocket connection established");
-                        await Echo(webSocket, userInfo.Id);
+                        await Echo(webSocket, userInfo.Id, userInfo);
                     }
                 }
             }
@@ -81,19 +82,22 @@ namespace WebSocketsTutorial.Controllers
             }
         }
 
-        private async Task Echo(WebSocket webSocket, long userId)
+        private async Task Echo(WebSocket webSocket, long userId, UserInfo userInfo)
         {
-
+            string RoleMenuFunctionInfosCache = _redisClientService.HashGet(ConstString.RickRoleMenuFunctionInfosKey, userInfo.Id.ToString());
+            List<RoleMenuFunctionInfo> roleMenuFunctionInfos = JsonConvert.DeserializeObject<List<RoleMenuFunctionInfo>>(RoleMenuFunctionInfosCache);
+            List<string> menus = (from menu in roleMenuFunctionInfos
+                                  select menu.Menuindex).Distinct().ToList();
             while (!webSocket.CloseStatus.HasValue)
             {
                 var messageconsumes = from messageconsume in _messageService.Query<Messageconsume>(t => t.Sysuser == userId)
-                                      select messageconsume.Messageid
-                                      ;
+                                      select messageconsume.Messageid;
+
                 var messages = await (from message in _messageService.Query<Message>(t => true)
-                                      
                                       where !messageconsumes.Contains(message.Id)
+                                      && menus.Contains(message.Index)
                                       select message).ToListAsync();
-                               ;
+
                 foreach (var message in messages)
                 {
                     var serverMsg = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(message));

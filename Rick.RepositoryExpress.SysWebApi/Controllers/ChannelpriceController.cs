@@ -28,7 +28,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         private readonly ILogger<ChannelpriceController> _logger;
         private readonly IIdGeneratorService _idGenerator;
         private readonly IChannelService _channelService;
-        private readonly string filePath = "F:\\Uploads\\ChannelPrice\\";
+        private readonly string filePath = "../Uploads/ChannelPrice/";
         private readonly RedisClientService _redisClientService;
 
         public ChannelpriceController(ILogger<ChannelpriceController> logger, IChannelService channelService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
@@ -37,6 +37,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             _channelService = channelService;
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
+            var env = Environment.GetEnvironmentVariables();
+            var os = Convert.ToString(env["OS"]);
+            var dr = Convert.ToString(env["SystemDrive"]);
+            if (os.Contains("Windows"))
+            {
+                filePath = dr + "\\Uploads\\ChannelPrice\\";
+            }
+            else
+            {
+                filePath = dr + "/Uploads/ChannelPrice/";
+            }
+
         }
 
         /// <summary>

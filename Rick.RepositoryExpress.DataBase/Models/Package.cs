@@ -37,6 +37,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public string Changeremark { get; set; }
         public long? Repositoryregionid { get; set; }
         public long? Repositoryshelfid { get; set; }
+        public long? Repositorylayerid { get; set; }
         public string Repositorynumber { get; set; }
         public int Claimtype { get; set; }
     }

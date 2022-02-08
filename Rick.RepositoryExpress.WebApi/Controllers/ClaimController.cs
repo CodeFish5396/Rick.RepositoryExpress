@@ -33,6 +33,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
         }
+        
 
         /// <summary>
         /// 包裹预报

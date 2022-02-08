@@ -25,13 +25,25 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         private readonly ILogger<HtmlController> _logger;
         private readonly IIdGeneratorService _idGenerator;
         private readonly IFileService _fileService;
-        private readonly string filePath = "F:\\Uploads\\";
+        private readonly string filePath = "../Uploads/";
 
         public HtmlController(ILogger<HtmlController> logger, IFileService fileService, IIdGeneratorService idGenerator)
         {
             _logger = logger;
             _fileService = fileService;
             _idGenerator = idGenerator;
+            var env = Environment.GetEnvironmentVariables();
+            var os = Convert.ToString(env["OS"]);
+            var dr = Convert.ToString(env["SystemDrive"]);
+            if (os.Contains("Windows"))
+            {
+                filePath = dr + "\\Uploads\\";
+            }
+            else
+            {
+                filePath = dr + "/Uploads/";
+            }
+
         }
 
         /// <summary>

@@ -14,6 +14,7 @@ using Rick.RepositoryExpress.Utils.Wechat;
 using Rick.RepositoryExpress.RedisService;
 using Rick.RepositoryExpress.Utils;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
@@ -39,9 +40,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<RickWebResult<object>> Get()
         {
-            return RickWebResult.Success<object>(1);
+            var env = Environment.GetEnvironmentVariables();
+            var os = Convert.ToString(env["OS"]);
+            var dr = Convert.ToString(env["SystemDrive"]);
+            return RickWebResult.Success<object>(string.Format("{0}-{1}-{2}", os, dr, dr + "\\Uploads\\Channelpricedemo\\")) ;
             //_sysuserService.cre
         }
         

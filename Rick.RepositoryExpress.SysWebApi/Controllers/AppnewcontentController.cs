@@ -26,7 +26,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         private readonly IIdGeneratorService _idGenerator;
         private readonly IAppnewService _appnewService;
         private readonly RedisClientService _redisClientService;
-        private readonly string filePath = "F:\\Uploads\\";
+        private readonly string filePath = "../Uploads/";
 
         public AppnewcontentController(ILogger<AppnewcontentController> logger, IAppnewService appnewService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
@@ -34,6 +34,17 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             _appnewService = appnewService;
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
+            var env = Environment.GetEnvironmentVariables();
+            var os = Convert.ToString(env["OS"]);
+            var dr = Convert.ToString(env["SystemDrive"]);
+            if (os.Contains("Windows"))
+            {
+                filePath = dr + "\\Uploads\\";
+            }
+            else
+            {
+                filePath = dr + "/Uploads/";
+            }
         }
 
         /// <summary>

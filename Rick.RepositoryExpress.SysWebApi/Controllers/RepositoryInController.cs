@@ -101,6 +101,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Changeremark = package.Changeremark,
                             Repositoryregionid = package.Repositoryregionid,
                             Repositoryshelfid = package.Repositoryshelfid,
+                            Repositorylayerid = package.Repositorylayerid,
                             Repositorynumber = package.Repositorynumber
                         };
 
@@ -156,12 +157,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             //            ).ToListAsync();
 
             var relatedPackages = await (from claim in _packageService.Query<Expressclaim>(t => relatedUserIds.Contains(t.Appuser))
-                                         join package in _packageService.Query<Package>(t => t.Status == 2)
+                                         join package in _packageService.Query<Package>(t => t.Status == (int)PackageStatus.已入柜)
                                          on claim.Packageid equals package.Id
-                                         join region in _packageService.Query<Repositoryregion>(t => t.Status == 2)
+                                         join region in _packageService.Query<Repositoryregion>(t => t.Status == 1)
                                          on package.Repositoryregionid equals region.Id
-                                         join shelf in _packageService.Query<Repositoryshelf>(t => t.Status == 2)
+                                         join shelf in _packageService.Query<Repositoryshelf>(t => t.Status == 1)
                                          on package.Repositoryshelfid equals shelf.Id
+                                         join layer in _packageService.Query<Repositorylayer>(t => t.Status == 1)
+                                         on package.Repositorylayerid equals layer.Id
                                          select new
                                          {
                                              package.Id,
@@ -169,6 +172,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                              package.Location,
                                              Region = region,
                                              Shelf = shelf,
+                                             Layer = layer,
                                              Package = package
                                          }
                         ).ToListAsync();
@@ -193,6 +197,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         Repositoryregionname = t.Region.Name,
                         Repositoryshelfid = t.Shelf.Id,
                         Repositoryshelfname = t.Shelf.Name,
+                        Repositorylayerid = t.Layer.Id,
+                        Repositorylayername = t.Layer.Name,
                         Repositorynumber = t.Package.Repositorynumber
                     }).ToList();
                 }
@@ -217,10 +223,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             }
             Repositoryregion region = (await _packageService.QueryAsync<Repositoryregion>(t => t.Repositoryid == package.Repositoryid && t.Id == repositoryInRequest.Repositoryregionid)).FirstOrDefault();
             Repositoryshelf shelf = (await _packageService.QueryAsync<Repositoryshelf>(t => t.Repositoryid == package.Repositoryid && t.Id == repositoryInRequest.Repositoryshelfid)).FirstOrDefault();
+            Repositorylayer layer = (await _packageService.QueryAsync<Repositorylayer>(t => t.Repositoryid == package.Repositoryid && t.Id == repositoryInRequest.Repositorylayerid)).FirstOrDefault();
             package.Repositoryregionid = region.Id;
             package.Repositoryshelfid = shelf.Id;
+            package.Repositorylayerid = layer.Id;
             package.Repositorynumber = repositoryInRequest.Repositorynumber;
-            string location = string.Format("{0}{1}{2}", region.Name, shelf.Name, repositoryInRequest.Repositorynumber);
+            string location = string.Format("{0}{1}{2}{3}", region.Name, shelf.Name, layer.Name, repositoryInRequest.Repositorynumber);
             package.Location = location;
             DateTime now = DateTime.Now;
             package.Lasttime = now;
@@ -274,6 +282,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Id { get; set; }
             public long Repositoryregionid { get; set; }
             public long Repositoryshelfid { get; set; }
+            public long Repositorylayerid { get; set; }
             public string Repositorynumber { get; set; }
         }
 
@@ -303,6 +312,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Changeremark { get; set; }
             public long? Repositoryregionid { get; set; }
             public long? Repositoryshelfid { get; set; }
+            public long? Repositorylayerid { get; set; }
+
             public string Repositorynumber { get; set; }
 
             public IList<long> Images { get; set; }
@@ -326,6 +337,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Repositoryregionname { get; set; }
             public long Repositoryshelfid { get; set; }
             public string Repositoryshelfname { get; set; }
+            public long Repositorylayerid { get; set; }
+            public string Repositorylayername { get; set; }
+
             public string Repositorynumber { get; set; }
 
         }

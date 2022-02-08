@@ -7,6 +7,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>D:\RepositoryExpress\BackEnd\Rick.RepositoryExpress\Rick.RepositoryExpress.SysWebApi\SwaggerDemo.xml</DocumentationFile>
     <NoWarn>1701;1702;1591</NoWarn>
+    <WarningLevel>5</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>

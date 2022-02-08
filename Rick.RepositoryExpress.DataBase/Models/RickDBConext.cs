@@ -1343,6 +1343,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Repositoryinuser).HasColumnName("repositoryinuser");
 
+                entity.Property(e => e.Repositorylayerid).HasColumnName("repositorylayerid");
+
                 entity.Property(e => e.Repositorynumber)
                     .HasMaxLength(45)
                     .HasColumnName("repositorynumber");

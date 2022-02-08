@@ -25,7 +25,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         private readonly ILogger<ChannelpricefileController> _logger;
         private readonly IIdGeneratorService _idGenerator;
         private readonly IFileService _fileService;
-        private readonly string filePath = "F:\\Uploads\\Channelpricedemo\\";
+        private readonly string filePath = "../Uploads/Channelpricedemo/";
         private readonly string fileName = "Channelprice.xlsx";
 
         public ChannelpricefileController(ILogger<ChannelpricefileController> logger, IFileService fileService, IIdGeneratorService idGenerator)
@@ -33,6 +33,19 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             _logger = logger;
             _fileService = fileService;
             _idGenerator = idGenerator;
+            var env = Environment.GetEnvironmentVariables();
+            var os = Convert.ToString(env["OS"]);
+            var dr = Convert.ToString(env["SystemDrive"]);
+            if (os.Contains("Windows"))
+            {
+                //D:\RepositoryExpress\BackEnd\Rick.RepositoryExpress\Rick.RepositoryExpress.CefMockBrowser
+                filePath = dr + "\\Uploads\\Channelpricedemo\\";
+            }
+            else
+            {
+                filePath = dr + "/Uploads/Channelpricedemo/";
+            }
+
         }
 
         /// <summary>

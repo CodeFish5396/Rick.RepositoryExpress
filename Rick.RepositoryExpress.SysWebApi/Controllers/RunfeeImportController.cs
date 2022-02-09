@@ -21,20 +21,24 @@ using Newtonsoft.Json;
 
 namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
+    /// <summary>
+    /// 运营费用导入
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class RunfeeImportController : RickControllerBase
     {
         private readonly ILogger<RunfeeImportController> _logger;
         private readonly IIdGeneratorService _idGenerator;
-        private readonly IChannelService _channelService;
-        private readonly string filePath = "../Uploads/ChannelPrice/";
+        private readonly IRunFeeService _runFeeService;
+        private readonly string filePath = "../Uploads/Runfee/";
         private readonly RedisClientService _redisClientService;
+        private string accountSubjectCode = "300";
 
-        public RunfeeImportController(ILogger<RunfeeImportController> logger, IChannelService channelService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
+        public RunfeeImportController(ILogger<RunfeeImportController> logger, IRunFeeService runFeeService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
             _logger = logger;
-            _channelService = channelService;
+            _runFeeService = runFeeService;
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
             var env = Environment.GetEnvironmentVariables();
@@ -45,23 +49,23 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 string currentDirectory = Directory.GetCurrentDirectory();
                 DirectoryInfo directory = new DirectoryInfo(currentDirectory);
                 directory = directory.Parent;
-                filePath = directory.GetDirectories().Where(t => t.Name.Contains("Uploads")).First().FullName + "\\ChannelPrice\\";
+                filePath = directory.GetDirectories().Where(t => t.Name.Contains("Uploads")).First().FullName + "\\Runfee\\";
             }
             else
             {
-                filePath = dr + "/Uploads/ChannelPrice/";
+                filePath = dr + "/Uploads/Runfee/";
             }
 
         }
 
         /// <summary>
-        /// 阶梯价格文件上传
+        /// 运营费用导入
         /// </summary>
         /// <param name="fileUploadRequest"></param>
         /// <returns></returns>
         [HttpPost]
         [DisableRequestSizeLimit]
-        public async Task<RickWebResult<List<List<string>>>> Post([FromForm] ChannelpriceUploadRequest fileUploadRequest)
+        public async Task<RickWebResult<List<List<string>>>> Post([FromForm] RunfeeImportUploadRequest fileUploadRequest)
         {
             List<List<string>> tableDatas = new List<List<string>>();
 
@@ -75,7 +79,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             }
             IFormFile file = fileUploadRequest.Files[0];
             string fileName = Guid.NewGuid().ToString("N");
-            string ext = fileUploadRequest.Name.Substring(fileUploadRequest.Name.LastIndexOf("."));
+            string ext = ".xlsx";
             string tempFileFullPath = filePath + fileName + ext;
             using (var fileStream = new FileStream(tempFileFullPath, FileMode.Create))
             {
@@ -83,50 +87,27 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             }
             using (FileStream exlfileStream = new FileStream(tempFileFullPath, FileMode.Open))
             {
-
                 XSSFWorkbook book = new XSSFWorkbook(exlfileStream);
                 ISheet sheet = book.GetSheetAt(0);
                 if (sheet.LastRowNum == 0 || sheet.LastRowNum == 1)
                 {
                     return RickWebResult.Error(tableDatas, 996, "Excel列表数据项为空!");
                 }
-                await _channelService.BeginTransactionAsync();
                 DateTime now = DateTime.Now;
-                Channel channel = await _channelService.FindAsync<Channel>(fileUploadRequest.Id);
-
-                var oldChannelPrices = await _channelService.QueryAsync<Channelprice>(t => t.Channelid == channel.Id);
-                foreach (Channelprice cp in oldChannelPrices)
-                {
-                    await _channelService.DeleteAsync<Channelprice>(cp.Id);
-                }
-
-                //1，查找第一行，找出全部国家
+                //1，查找第一行，检查表头是否正确
                 var headRow = sheet.GetRow(0);
-                List<string> nationNames = new List<string>();
-                int lastColumn = headRow.LastCellNum - 1;
+                tableDatas.Add(new List<string>());
+                for (int i = 0; i <= 4; i++)
+                {
+                    tableDatas[0].Add(headRow.GetCell(i).ToString());
+                }
+                List<string> currencyNames = new List<string>();
                 int lastRow = sheet.LastRowNum;
                 
-                for (int j = 2; j < headRow.LastCellNum; j++)
-                {
-                    var cell = headRow.GetCell(j);
-                    if (cell != null)
-                    {
-                        string cellValue = cell.ToString().Trim();
-                        if (!string.IsNullOrEmpty(cellValue))
-                        {
-                            nationNames.AddRange(cellValue.Split("，"));
-                        }
-                        else
-                        {
-                            lastColumn = j - 1;
-                        }
-                    }
-                }
-                for (int i = 0; i <= lastRow; i++)
+                for (int i = 1; i <= lastRow; i++)
                 {
                     List<string> rowList = new List<string>();
-
-                    for (int j = 0; j <= lastColumn; j++)
+                    for (int j = 0; j <= 4; j++)
                     {
                         string ijValue = string.Empty;
                         var row = sheet.GetRow(i);
@@ -139,6 +120,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                 if (!string.IsNullOrEmpty(cellValue))
                                 {
                                     ijValue = cellValue;
+                                    if (j == 1)
+                                    {
+                                        currencyNames.Add(ijValue);
+                                    }
                                 }
                             }
                             rowList.Add(ijValue);
@@ -148,85 +133,135 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     tableDatas.Add(rowList);
                 }
 
-                var nations = await _channelService.QueryAsync<Nation>(t => t.Status == 1 && nationNames.Contains(t.Name));
+                bool hasError = false;
 
-                //2、遍历每一行，构建Channelprice
-                for (int i = 1; i <= sheet.LastRowNum; i++)
+                //2、检查第一行
                 {
-                    var row = sheet.GetRow(i);
-                    var cellWeight = row.GetCell(1);
-                    if (cellWeight == null)
+                    if (tableDatas[0][0] != "费用项目")
                     {
-                        break;
+                        hasError = true;
+                        tableDatas[0][0] += "!! 费用项目";
+                    }
+                    if (tableDatas[0][1] != "货币名称")
+                    {
+                        hasError = true;
+                        tableDatas[0][1] += "!! 货币名称";
+                    }
+                    if (tableDatas[0][2] != "金额")
+                    {
+                        hasError = true;
+                        tableDatas[0][2] += "!! 金额";
+                    }
+                    if (tableDatas[0][3] != "经手人")
+                    {
+                        hasError = true;
+                        tableDatas[0][3] += "!! 经手人";
+                    }
+                    if (tableDatas[0][4] != "发生时间")
+                    {
+                        hasError = true;
+                        tableDatas[0][4] += "!! 发生时间";
                     }
 
-                    string priceLimitDescription = cellWeight.ToString().Trim();
-                    if (string.IsNullOrEmpty(priceLimitDescription))
+                }
+
+                //3、检查每一行数据
+                //系统中的货币
+                var currencies = await _runFeeService.QueryAsync<Currency>(t => t.Status == 1 && currencyNames.Contains(t.Name));
+                decimal checkD = 0;
+                DateTime checkDate = DateTime.Now;
+                for (int i = 1; i < tableDatas.Count; i++)
+                {
+                    if (string.IsNullOrEmpty(tableDatas[i][0]))
                     {
-                        break;
+                        hasError = true;
+                        tableDatas[i][0] += "!! 不能为空";
                     }
-                    string[] weights = priceLimitDescription.Split("-");
-                    decimal minWeight = Convert.ToDecimal(weights[0]);
-                    decimal maxWeight = Convert.ToDecimal(weights[1]);
-                    for (int j = 2; j <= lastColumn; j++)
+
+                    if (string.IsNullOrEmpty(tableDatas[i][1]))
                     {
-                        var currentNationNames = headRow.GetCell(j).ToString().Trim();
-                        string[] nationNameArray = currentNationNames.Split("，");
-                        var currentNations = nations.Where(t => nationNameArray.Contains(t.Name)).ToList();
-                        decimal price = Convert.ToDecimal(row.GetCell(j).ToString().Trim());
-                        foreach (var nation in currentNations)
+                        hasError = true;
+                        tableDatas[i][1] += "!! 不能为空";
+                    }
+                    else if (!currencies.Any(t=>t.Name == tableDatas[i][1]))
+                    {
+                        hasError = true;
+                        tableDatas[i][1] += "!! 货币名称错误";
+                    }
+
+                    if (string.IsNullOrEmpty(tableDatas[i][2]))
+                    {
+                        hasError = true;
+                        tableDatas[i][2] += "!! 不能为空";
+                    }
+                    else
+                    {
+                        if (!decimal.TryParse(tableDatas[i][2], out checkD))
                         {
-                            Channelprice channelprice = new Channelprice();
-                            channelprice.Id = _idGenerator.NextId();
-                            channelprice.Channelid = channel.Id;
-                            channelprice.Minweight = minWeight;
-                            channelprice.Maxweight = maxWeight;
-                            channelprice.Nationid = nation.Id;
-                            channelprice.Price = price;
-                            channelprice.Status = 1;
-                            channelprice.Addtime = now;
-                            channelprice.Lasttime = now;
-                            channelprice.Adduser = UserInfo.Id;
-                            channelprice.Lastuser = UserInfo.Id;
-                            await _channelService.AddAsync(channelprice);
+                            hasError = true;
+                            tableDatas[i][2] += "!! 数据格式不正确";
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(tableDatas[i][3]))
+                    {
+                        hasError = true;
+                        tableDatas[i][3] += "!! 不能为空";
+                    }
+
+                    if (string.IsNullOrEmpty(tableDatas[i][4]))
+                    {
+                        hasError = true;
+                        tableDatas[i][4] += "!! 不能为空";
+                    }
+                    else
+                    {
+                        if (!DateTime.TryParse(tableDatas[i][4], out checkDate))
+                        {
+                            hasError = true;
+                            tableDatas[i][4] += "!! 数据格式不正确";
                         }
                     }
                 }
-                await _channelService.CommitAsync();
-                _redisClientService.HashSet("ChannelPriceData", channel.Id.ToString(), JsonConvert.SerializeObject(tableDatas));
 
+                if (!hasError)
+                {
+                    //记录到数据库
+                    await _runFeeService.BeginTransactionAsync();
+
+                    //2、遍历每一行，构建Channelprice
+                    for (int i = 1; i <= tableDatas.Count; i++)
+                    {
+                        Account account = new Account();
+                        account.Id = _idGenerator.NextId();
+                        account.Currencyid = currencies.Single(t=>t.Name == tableDatas[i][1]).Id;
+                        account.Amount = Convert.ToDecimal(tableDatas[i][2]);
+                        account.Status = 1;
+                        account.Addtime = now;
+                        account.Adduser = UserInfo.Id;
+                        account.Subjectcode = accountSubjectCode;
+                        account.Direction = -1;
+                        await _runFeeService.AddAsync(account);
+
+                        Runfee runfee = new Runfee();
+                        runfee.Id = _idGenerator.NextId();
+                        runfee.Name = tableDatas[i][0];
+                        runfee.Paytime = Convert.ToDateTime(tableDatas[i][4]);
+                        runfee.Operator = tableDatas[i][3];
+                        runfee.Accountid = account.Id;
+                        runfee.Status = 1;
+                        runfee.Addtime = now;
+                        runfee.Adduser = UserInfo.Id;
+                        await _runFeeService.AddAsync(runfee);
+                    }
+                    await _runFeeService.CommitAsync();
+                }
             }
             return RickWebResult.Success(tableDatas);
         }
-
-        /// <summary>
-        /// 查询渠道价格
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpGet]
-        public async Task<RickWebResult<List<List<string>>>> Get([FromQuery]long id)
+        
+        public class RunfeeImportUploadRequest
         {
-            Channel channel = await _channelService.FindAsync<Channel>(id);
-            var channelPrices = await _channelService.QueryAsync<Channelprice>(t => t.Channelid == channel.Id);
-            string ChannelPriceData = _redisClientService.HashGet("ChannelPriceData", channel.Id.ToString());
-            List<List<string>> result = new List<List<string>>();
-            if (!string.IsNullOrEmpty(ChannelPriceData))
-            {
-                result = JsonConvert.DeserializeObject<List<List<string>>>(ChannelPriceData);
-
-            }
-            return RickWebResult.Success(result);
-
-        }
-        public class ChannelpriceUploadResult
-        {
-            public long Id { get; set; }
-        }
-        public class ChannelpriceUploadRequest
-        {
-            public long Id { get; set; }
-            public string Name { get; set; }
             public List<IFormFile> Files { get; set; }
         }
 

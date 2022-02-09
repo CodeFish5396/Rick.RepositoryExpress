@@ -15,5 +15,6 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public DateTime Addtime { get; set; }
         public int Paytype { get; set; }
         public DateTime Paytime { get; set; }
+        public string Operator { get; set; }
     }
 }

@@ -71,6 +71,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             runfee.Status = 1;
             runfee.Addtime = now;
             runfee.Adduser = UserInfo.Id;
+            runfee.Operator = agentFeeRequest.Operator;
             await _runFeeService.AddAsync(runfee);
 
             await _runFeeService.CommitAsync();
@@ -109,7 +110,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Adduser = account.Adduser,
                             Addusername = user.Name,
                             Addtime = account.Addtime,
-                            Paytime = runfee.Paytime
+                            Paytime = runfee.Paytime,
+                            Operator = runfee.Operator
                         };
 
             var sumQuery = await (from agentfeeresponse in query
@@ -136,6 +138,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Currencyid { get; set; }
             public string Currencyname { get; set; }
             public decimal Amount { get; set; }
+            public string Operator { get; set; }
+
             public long Adduser { get; set; }
             public string Addusername { get; set; }
             public DateTime Addtime { get; set; }
@@ -161,6 +165,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Currencyid { get; set; }
             public decimal Amount { get; set; }
             public DateTime Paytime { get; set; }
+            public string Operator { get; set; }
+
 
         }
 

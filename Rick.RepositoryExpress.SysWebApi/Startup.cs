@@ -44,7 +44,7 @@ namespace Rick.RepositoryExpress.SysWebApi
                                   builder =>
                                   {
                                       builder.WithOrigins("http://localhost:8080",
-                                                          "http://c5h7f6lzou.cdhttp.cn")
+                                                          "http://119.39.226.175:20157/")
                                       .AllowAnyHeader()
                                       .AllowAnyMethod();
                                   });

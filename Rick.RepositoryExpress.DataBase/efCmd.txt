@@ -1,1 +1,1 @@
-Scaffold-DbContext "server=192.168.15.42;port=3306;user=root;password=Sunwin@2021;database=repositoryexpress" -Provider "Pomelo.EntityFrameworkCore.MySql" -o Models -Context RickDBConext -force
+Scaffold-DbContext "server=dm4a1.51tcp.vip;port=56404;user=root;password=y4yh_69T;database=repositoryexpress" -Provider "Pomelo.EntityFrameworkCore.MySql" -o Models -Context RickDBConext -force

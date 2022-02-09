@@ -20,15 +20,15 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ChannelpricefileController : RickControllerBase
+    public class RunfeefileController : RickControllerBase
     {
-        private readonly ILogger<ChannelpricefileController> _logger;
+        private readonly ILogger<RunfeefileController> _logger;
         private readonly IIdGeneratorService _idGenerator;
         private readonly IFileService _fileService;
-        private readonly string filePath = "../Uploads/Channelpricedemo/";
-        private readonly string fileName = "Channelprice.xlsx";
+        private readonly string filePath = "../Uploads/Rufeedemo/";
+        private readonly string fileName = "RunFee.xlsx";
 
-        public ChannelpricefileController(ILogger<ChannelpricefileController> logger, IFileService fileService, IIdGeneratorService idGenerator)
+        public RunfeefileController(ILogger<RunfeefileController> logger, IFileService fileService, IIdGeneratorService idGenerator)
         {
             _logger = logger;
             _fileService = fileService;
@@ -41,11 +41,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 string currentDirectory = Directory.GetCurrentDirectory();
                 DirectoryInfo directory = new DirectoryInfo(currentDirectory);
                 directory = directory.Parent;
-                filePath = directory.GetDirectories().Where(t => t.Name.Contains("Uploads")).First().FullName + "\\Channelpricedemo\\";
+                filePath = directory.GetDirectories().Where(t => t.Name.Contains("Uploads")).First().FullName + "\\Rufeedemo\\";
             }
             else
             {
-                filePath = dr + "/Uploads/Channelpricedemo/";
+                filePath = dr + "/Uploads/Rufeedemo/";
             }
 
         }

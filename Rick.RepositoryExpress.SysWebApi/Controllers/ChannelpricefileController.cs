@@ -38,8 +38,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             var dr = Convert.ToString(env["SystemDrive"]);
             if (os.Contains("Windows"))
             {
-                //D:\RepositoryExpress\BackEnd\Rick.RepositoryExpress\Rick.RepositoryExpress.CefMockBrowser
-                filePath = dr + "\\Uploads\\Channelpricedemo\\";
+                string currentDirectory = Directory.GetCurrentDirectory();
+                DirectoryInfo directory = new DirectoryInfo(currentDirectory);
+                directory = directory.Parent;
+                filePath = directory.GetDirectories().Where(t => t.Name.Contains("Uploads")).First().FullName + "\\Channelpricedemo\\";
             }
             else
             {

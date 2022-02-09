@@ -37,7 +37,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             var dr = Convert.ToString(env["SystemDrive"]);
             if (os.Contains("Windows"))
             {
-                filePath = dr + "\\Uploads\\";
+                string currentDirectory = Directory.GetCurrentDirectory();
+                DirectoryInfo directory = new DirectoryInfo(currentDirectory);
+                directory = directory.Parent;
+                filePath = directory.GetDirectories().Where(t => t.Name.Contains("Uploads")).First().FullName + "\\";
             }
             else
             {

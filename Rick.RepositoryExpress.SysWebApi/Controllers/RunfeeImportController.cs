@@ -23,15 +23,15 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ChannelpriceController : RickControllerBase
+    public class RunfeeImportController : RickControllerBase
     {
-        private readonly ILogger<ChannelpriceController> _logger;
+        private readonly ILogger<RunfeeImportController> _logger;
         private readonly IIdGeneratorService _idGenerator;
         private readonly IChannelService _channelService;
         private readonly string filePath = "../Uploads/ChannelPrice/";
         private readonly RedisClientService _redisClientService;
 
-        public ChannelpriceController(ILogger<ChannelpriceController> logger, IChannelService channelService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
+        public RunfeeImportController(ILogger<RunfeeImportController> logger, IChannelService channelService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
             _logger = logger;
             _channelService = channelService;

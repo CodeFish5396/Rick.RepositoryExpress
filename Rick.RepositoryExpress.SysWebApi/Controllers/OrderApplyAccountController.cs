@@ -221,189 +221,191 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             var currencies = await _packageOrderApplyService.QueryAsync<Currency>(t => t.Status == 1 && (t.Isdefault == 1 || t.Islocal == 1));
             var localCurrency = currencies.Single(t => t.Islocal == 1);//人民币
             var defaultCurrency = currencies.Single(t => t.Isdefault == 1);//美元
-            Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(orderApplyExpressPutResquest.Id);
-            if (packageorderapply.Status != (int)OrderApplyStatus.待发货 || packageorderapply.Ispayed == 1)
-            {
-                RickWebResult.Error<object>(null, 996, "包裹状态不正确");
-            }
-            Appuser appuser = await _packageOrderApplyService.FindAsync<Appuser>(packageorderapply.Appuser);
 
-            //RMB 账户
-            Appuseraccount appuserlocalaccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == packageorderapply.Appuser && t.Currencyid == localCurrency.Id && t.Status == 1)).FirstOrDefault();
-            //美元 账户
-            Appuseraccount appuserdefaultaccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == packageorderapply.Appuser && t.Currencyid == defaultCurrency.Id && t.Status == 1)).FirstOrDefault();
-            if (appuserlocalaccount == null || appuserdefaultaccount == null)
+            //Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(orderApplyExpressPutResquest.Id);
+
+            var packageorderapplyes = await _packageOrderApplyService.QueryAsync<Packageorderapply>(t=> orderApplyExpressPutResquest.Ids.Contains(t.Id));
+            int index = 0;
+            foreach (Packageorderapply packageorderapply in packageorderapplyes)
             {
-                if (appuserlocalaccount == null)
+                if (packageorderapply.Status != (int)OrderApplyStatus.待发货 || packageorderapply.Ispayed == 1)
                 {
-                    appuserlocalaccount = new Appuseraccount();
-                    appuserlocalaccount.Id = _idGenerator.NextId();
-                    appuserlocalaccount.Status = 1;
-                    appuserlocalaccount.Adduser = UserInfo.Id;
-                    appuserlocalaccount.Lastuser = UserInfo.Id;
-                    appuserlocalaccount.Addtime = now;
-                    appuserlocalaccount.Lasttime = now;
-                    appuserlocalaccount.Appuser = packageorderapply.Appuser;
-                    appuserlocalaccount.Amount = 0;
-                    appuserlocalaccount.Currencyid = localCurrency.Id;
-
-                    await _packageOrderApplyService.AddAsync(appuserlocalaccount);
+                    RickWebResult.Error<object>(null, 996, "包裹状态不正确");
                 }
+                Appuser appuser = await _packageOrderApplyService.FindAsync<Appuser>(packageorderapply.Appuser);
 
-                if (appuserdefaultaccount == null)
+                //RMB 账户
+                Appuseraccount appuserlocalaccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == packageorderapply.Appuser && t.Currencyid == localCurrency.Id && t.Status == 1)).FirstOrDefault();
+                //美元 账户
+                Appuseraccount appuserdefaultaccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == packageorderapply.Appuser && t.Currencyid == defaultCurrency.Id && t.Status == 1)).FirstOrDefault();
+                if (appuserlocalaccount == null || appuserdefaultaccount == null)
                 {
-                    appuserdefaultaccount = new Appuseraccount();
-                    appuserdefaultaccount.Id = _idGenerator.NextId();
-                    appuserdefaultaccount.Status = 1;
-                    appuserdefaultaccount.Adduser = UserInfo.Id;
-                    appuserdefaultaccount.Lastuser = UserInfo.Id;
-                    appuserdefaultaccount.Addtime = now;
-                    appuserdefaultaccount.Lasttime = now;
-                    appuserdefaultaccount.Appuser = packageorderapply.Appuser;
-                    appuserdefaultaccount.Amount = 0;
-                    appuserdefaultaccount.Currencyid = defaultCurrency.Id;
-
-                    await _packageOrderApplyService.AddAsync(appuserdefaultaccount);
-                }
-                //await _packageOrderApplyService.CommitAsync();
-            }
-
-            decimal consumeAwardMoney = 0;
-            if (appuser.Shareuser.HasValue && appuser.Shareuser != 0)
-            {
-                var OldpackageorderapplyCount = await _packageOrderApplyService.CountAsync<Packageorderapply>(t => t.Appuser == appuser.Id && t.Ispayed == 1);
-                if (OldpackageorderapplyCount == 0)//首次消费
-                {
-                    Syssetting shareAward = (await _packageOrderApplyService.QueryAsync<Syssetting>(t => t.Code == "001")).FirstOrDefault();
-                    Syssetting consumeAward = (await _packageOrderApplyService.QueryAsync<Syssetting>(t => t.Code == "002")).FirstOrDefault();
-                    consumeAwardMoney = Convert.ToDecimal(consumeAward.Value);
-                    Appuser shareUppuser = await _packageOrderApplyService.FindAsync<Appuser>((long)appuser.Shareuser);
-
-                    //RMB 账户
-                    Appuseraccount shareappuserlocalaccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == shareUppuser.Id && t.Currencyid == localCurrency.Id && t.Status == 1)).FirstOrDefault();
-                    //美元 账户
-                    Appuseraccount shareappuserdefaultaccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == shareUppuser.Id && t.Currencyid == defaultCurrency.Id && t.Status == 1)).FirstOrDefault();
-                    if (shareappuserlocalaccount == null || shareappuserdefaultaccount == null)
+                    if (appuserlocalaccount == null)
                     {
-                        if (shareappuserlocalaccount == null)
-                        {
-                            shareappuserlocalaccount = new Appuseraccount();
-                            shareappuserlocalaccount.Id = _idGenerator.NextId();
-                            shareappuserlocalaccount.Status = 1;
-                            shareappuserlocalaccount.Adduser = UserInfo.Id;
-                            shareappuserlocalaccount.Lastuser = UserInfo.Id;
-                            shareappuserlocalaccount.Addtime = now;
-                            shareappuserlocalaccount.Lasttime = now;
-                            shareappuserlocalaccount.Appuser = shareUppuser.Id;
-                            shareappuserlocalaccount.Amount = 0;
-                            shareappuserlocalaccount.Currencyid = localCurrency.Id;
+                        appuserlocalaccount = new Appuseraccount();
+                        appuserlocalaccount.Id = _idGenerator.NextId();
+                        appuserlocalaccount.Status = 1;
+                        appuserlocalaccount.Adduser = UserInfo.Id;
+                        appuserlocalaccount.Lastuser = UserInfo.Id;
+                        appuserlocalaccount.Addtime = now;
+                        appuserlocalaccount.Lasttime = now;
+                        appuserlocalaccount.Appuser = packageorderapply.Appuser;
+                        appuserlocalaccount.Amount = 0;
+                        appuserlocalaccount.Currencyid = localCurrency.Id;
 
-                            await _packageOrderApplyService.AddAsync(shareappuserlocalaccount);
-                        }
-
-                        if (shareappuserdefaultaccount == null)
-                        {
-                            shareappuserdefaultaccount = new Appuseraccount();
-                            shareappuserdefaultaccount.Id = _idGenerator.NextId();
-                            shareappuserdefaultaccount.Status = 1;
-                            shareappuserdefaultaccount.Adduser = UserInfo.Id;
-                            shareappuserdefaultaccount.Lastuser = UserInfo.Id;
-                            shareappuserdefaultaccount.Addtime = now;
-                            shareappuserdefaultaccount.Lasttime = now;
-                            shareappuserdefaultaccount.Appuser = shareUppuser.Id;
-                            shareappuserdefaultaccount.Amount = 0;
-                            shareappuserdefaultaccount.Currencyid = defaultCurrency.Id;
-
-                            await _packageOrderApplyService.AddAsync(shareappuserdefaultaccount);
-                        }
-                        //await _packageOrderApplyService.CommitAsync();
+                        await _packageOrderApplyService.AddAsync(appuserlocalaccount);
                     }
-                    decimal shareAwardMoney = Convert.ToDecimal(shareAward.Value);
-                    shareappuserdefaultaccount.Amount += shareAwardMoney;
-                    await _packageOrderApplyService.UpdateAsync(shareappuserdefaultaccount);
+
+                    if (appuserdefaultaccount == null)
+                    {
+                        appuserdefaultaccount = new Appuseraccount();
+                        appuserdefaultaccount.Id = _idGenerator.NextId();
+                        appuserdefaultaccount.Status = 1;
+                        appuserdefaultaccount.Adduser = UserInfo.Id;
+                        appuserdefaultaccount.Lastuser = UserInfo.Id;
+                        appuserdefaultaccount.Addtime = now;
+                        appuserdefaultaccount.Lasttime = now;
+                        appuserdefaultaccount.Appuser = packageorderapply.Appuser;
+                        appuserdefaultaccount.Amount = 0;
+                        appuserdefaultaccount.Currencyid = defaultCurrency.Id;
+
+                        await _packageOrderApplyService.AddAsync(appuserdefaultaccount);
+                    }
+                    //await _packageOrderApplyService.CommitAsync();
+                }
+
+                decimal consumeAwardMoney = 0;
+                if (index == 0 && appuser.Shareuser.HasValue && appuser.Shareuser != 0)
+                {
+                    var OldpackageorderapplyCount = await _packageOrderApplyService.CountAsync<Packageorderapply>(t => t.Appuser == appuser.Id && t.Ispayed == 1);
+                    if (OldpackageorderapplyCount == 0)//首次消费
+                    {
+                        Syssetting shareAward = (await _packageOrderApplyService.QueryAsync<Syssetting>(t => t.Code == "001")).FirstOrDefault();
+                        Syssetting consumeAward = (await _packageOrderApplyService.QueryAsync<Syssetting>(t => t.Code == "002")).FirstOrDefault();
+                        consumeAwardMoney = Convert.ToDecimal(consumeAward.Value);
+                        Appuser shareUppuser = await _packageOrderApplyService.FindAsync<Appuser>((long)appuser.Shareuser);
+
+                        //RMB 账户
+                        Appuseraccount shareappuserlocalaccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == shareUppuser.Id && t.Currencyid == localCurrency.Id && t.Status == 1)).FirstOrDefault();
+                        //美元 账户
+                        Appuseraccount shareappuserdefaultaccount = (await _packageOrderApplyService.QueryAsync<Appuseraccount>(t => t.Appuser == shareUppuser.Id && t.Currencyid == defaultCurrency.Id && t.Status == 1)).FirstOrDefault();
+                        if (shareappuserlocalaccount == null || shareappuserdefaultaccount == null)
+                        {
+                            if (shareappuserlocalaccount == null)
+                            {
+                                shareappuserlocalaccount = new Appuseraccount();
+                                shareappuserlocalaccount.Id = _idGenerator.NextId();
+                                shareappuserlocalaccount.Status = 1;
+                                shareappuserlocalaccount.Adduser = UserInfo.Id;
+                                shareappuserlocalaccount.Lastuser = UserInfo.Id;
+                                shareappuserlocalaccount.Addtime = now;
+                                shareappuserlocalaccount.Lasttime = now;
+                                shareappuserlocalaccount.Appuser = shareUppuser.Id;
+                                shareappuserlocalaccount.Amount = 0;
+                                shareappuserlocalaccount.Currencyid = localCurrency.Id;
+
+                                await _packageOrderApplyService.AddAsync(shareappuserlocalaccount);
+                            }
+
+                            if (shareappuserdefaultaccount == null)
+                            {
+                                shareappuserdefaultaccount = new Appuseraccount();
+                                shareappuserdefaultaccount.Id = _idGenerator.NextId();
+                                shareappuserdefaultaccount.Status = 1;
+                                shareappuserdefaultaccount.Adduser = UserInfo.Id;
+                                shareappuserdefaultaccount.Lastuser = UserInfo.Id;
+                                shareappuserdefaultaccount.Addtime = now;
+                                shareappuserdefaultaccount.Lasttime = now;
+                                shareappuserdefaultaccount.Appuser = shareUppuser.Id;
+                                shareappuserdefaultaccount.Amount = 0;
+                                shareappuserdefaultaccount.Currencyid = defaultCurrency.Id;
+
+                                await _packageOrderApplyService.AddAsync(shareappuserdefaultaccount);
+                            }
+                            //await _packageOrderApplyService.CommitAsync();
+                        }
+                        decimal shareAwardMoney = Convert.ToDecimal(shareAward.Value);
+                        shareappuserdefaultaccount.Amount += shareAwardMoney;
+                        await _packageOrderApplyService.UpdateAsync(shareappuserdefaultaccount);
+
+                        Appuseraccountcharge appuseraccountcharge = new Appuseraccountcharge();
+                        appuseraccountcharge.Id = _idGenerator.NextId();
+                        appuseraccountcharge.Status = 1;
+                        appuseraccountcharge.Adduser = UserInfo.Id;
+                        appuseraccountcharge.Appuser = shareappuserdefaultaccount.Appuser;
+                        appuseraccountcharge.Currencyid = shareappuserdefaultaccount.Currencyid;
+                        appuseraccountcharge.Amount = shareAwardMoney;
+                        appuseraccountcharge.Paytype = (int)PayType.活动赠送;
+                        appuseraccountcharge.Addtime = now;
+                        await _packageOrderApplyService.AddAsync(appuseraccountcharge);
+                    }
+                }
+
+                Packageorderapplyexpress packageorderapplyexpress = (await _packageOrderApplyService.QueryAsync<Packageorderapplyexpress>(t => t.Packageorderapplyid == packageorderapply.Id && t.Status == 1)).Single();
+                packageorderapply.Paytime = now;
+                packageorderapply.Ispayed = 1;
+                await _packageOrderApplyService.UpdateAsync(packageorderapply);
+
+                if (appuserdefaultaccount.Amount >= (decimal)packageorderapplyexpress.Price || appuserlocalaccount.Amount >= (decimal)packageorderapplyexpress.Targetprice)
+                {
+                    //美元账户充足
+                    if (appuserdefaultaccount.Amount >= (decimal)packageorderapplyexpress.Price)
+                    {
+                        appuserdefaultaccount.Amount -= (decimal)packageorderapplyexpress.Price;
+
+                        Appuseraccountconsume appuseraccountconsume = new Appuseraccountconsume();
+
+                        appuseraccountconsume.Id = _idGenerator.NextId();
+                        appuseraccountconsume.Status = 1;
+                        appuseraccountconsume.Adduser = UserInfo.Id;
+                        appuseraccountconsume.Addtime = now;
+                        appuseraccountconsume.Appuser = packageorderapply.Appuser;
+                        appuseraccountconsume.Amount = (decimal)packageorderapplyexpress.Price;
+                        appuseraccountconsume.Curencyid = appuserdefaultaccount.Currencyid;
+                        appuseraccountconsume.Orderid = packageorderapply.Id;
+                        await _packageOrderApplyService.UpdateAsync(appuserdefaultaccount);
+                        await _packageOrderApplyService.AddAsync(appuseraccountconsume);
+                    }
+                    else if (appuserlocalaccount.Amount >= (decimal)packageorderapplyexpress.Targetprice)
+                    {
+                        appuserlocalaccount.Amount -= (decimal)packageorderapplyexpress.Targetprice;
+                        await _packageOrderApplyService.UpdateAsync(appuserlocalaccount);
+                        Appuseraccountconsume appuseraccountconsume = new Appuseraccountconsume();
+                        appuseraccountconsume.Id = _idGenerator.NextId();
+                        appuseraccountconsume.Status = 1;
+                        appuseraccountconsume.Adduser = UserInfo.Id;
+                        appuseraccountconsume.Addtime = now;
+                        appuseraccountconsume.Appuser = packageorderapply.Appuser;
+                        appuseraccountconsume.Amount = (decimal)packageorderapplyexpress.Targetprice;
+                        appuseraccountconsume.Curencyid = appuserlocalaccount.Currencyid;
+                        appuseraccountconsume.Orderid = packageorderapply.Id;
+                        await _packageOrderApplyService.AddAsync(appuseraccountconsume);
+                    }
+                }
+                else
+                {
+                    await _packageOrderApplyService.RollBackAsync();
+                    return RickWebResult.Error(new object(), 996, "用户余额不足");
+                }
+                
+                if (index == 0 && consumeAwardMoney > 0)
+                {
+                    appuserdefaultaccount.Amount += consumeAwardMoney;
 
                     Appuseraccountcharge appuseraccountcharge = new Appuseraccountcharge();
                     appuseraccountcharge.Id = _idGenerator.NextId();
                     appuseraccountcharge.Status = 1;
                     appuseraccountcharge.Adduser = UserInfo.Id;
-                    appuseraccountcharge.Appuser = shareappuserdefaultaccount.Appuser;
-                    appuseraccountcharge.Currencyid = shareappuserdefaultaccount.Currencyid;
-                    appuseraccountcharge.Amount = shareAwardMoney;
-                    appuseraccountcharge.Paytype = (int)PayType.活动赠送;
+                    appuseraccountcharge.Appuser = appuserdefaultaccount.Appuser;
+                    appuseraccountcharge.Currencyid = appuserdefaultaccount.Currencyid;
+                    appuseraccountcharge.Amount = consumeAwardMoney;
                     appuseraccountcharge.Addtime = now;
+                    appuseraccountcharge.Paytype = (int)PayType.活动赠送;
+
                     await _packageOrderApplyService.AddAsync(appuseraccountcharge);
                 }
+                index++;
             }
-
-            Packageorderapplyexpress packageorderapplyexpress = (await _packageOrderApplyService.QueryAsync<Packageorderapplyexpress>(t => t.Packageorderapplyid == packageorderapply.Id && t.Status == 1)).Single();
-            packageorderapply.Paytime = now;
-            packageorderapply.Ispayed = 1;
-            await _packageOrderApplyService.UpdateAsync(packageorderapply);
-
-            if (appuserdefaultaccount.Amount >= (decimal)packageorderapplyexpress.Price || appuserlocalaccount.Amount >= (decimal)packageorderapplyexpress.Targetprice)
-            {
-                //美元账户充足
-                if (appuserdefaultaccount.Amount >= (decimal)packageorderapplyexpress.Price)
-                {
-                    appuserdefaultaccount.Amount -= (decimal)packageorderapplyexpress.Price;
-
-                    Appuseraccountconsume appuseraccountconsume = new Appuseraccountconsume();
-
-                    appuseraccountconsume.Id = _idGenerator.NextId();
-                    appuseraccountconsume.Status = 1;
-                    appuseraccountconsume.Adduser = UserInfo.Id;
-                    appuseraccountconsume.Addtime = now;
-                    appuseraccountconsume.Appuser = packageorderapply.Appuser;
-                    appuseraccountconsume.Amount = (decimal)packageorderapplyexpress.Price;
-                    appuseraccountconsume.Curencyid = appuserdefaultaccount.Currencyid;
-                    appuseraccountconsume.Orderid = packageorderapply.Id;
-                    await _packageOrderApplyService.UpdateAsync(appuserdefaultaccount);
-
-                    await _packageOrderApplyService.AddAsync(appuseraccountconsume);
-
-                }
-                else if (appuserlocalaccount.Amount >= (decimal)packageorderapplyexpress.Targetprice)
-                {
-                    appuserlocalaccount.Amount -= (decimal)packageorderapplyexpress.Targetprice;
-                    await _packageOrderApplyService.UpdateAsync(appuserlocalaccount);
-
-                    Appuseraccountconsume appuseraccountconsume = new Appuseraccountconsume();
-
-                    appuseraccountconsume.Id = _idGenerator.NextId();
-                    appuseraccountconsume.Status = 1;
-                    appuseraccountconsume.Adduser = UserInfo.Id;
-                    appuseraccountconsume.Addtime = now;
-                    appuseraccountconsume.Appuser = packageorderapply.Appuser;
-                    appuseraccountconsume.Amount = (decimal)packageorderapplyexpress.Targetprice;
-                    appuseraccountconsume.Curencyid = appuserlocalaccount.Currencyid;
-                    appuseraccountconsume.Orderid = packageorderapply.Id;
-                    await _packageOrderApplyService.AddAsync(appuseraccountconsume);
-
-                }
-            }
-            else
-            {
-                await _packageOrderApplyService.RollBackAsync();
-                return RickWebResult.Error(new object(), 996, "用户余额不足");
-            }
-
-            if (consumeAwardMoney > 0)
-            {
-                appuserdefaultaccount.Amount += consumeAwardMoney;
-
-                Appuseraccountcharge appuseraccountcharge = new Appuseraccountcharge();
-                appuseraccountcharge.Id = _idGenerator.NextId();
-                appuseraccountcharge.Status = 1;
-                appuseraccountcharge.Adduser = UserInfo.Id;
-                appuseraccountcharge.Appuser = appuserdefaultaccount.Appuser;
-                appuseraccountcharge.Currencyid = appuserdefaultaccount.Currencyid;
-                appuseraccountcharge.Amount = consumeAwardMoney;
-                appuseraccountcharge.Addtime = now;
-                appuseraccountcharge.Paytype = (int)PayType.活动赠送;
-
-                await _packageOrderApplyService.AddAsync(appuseraccountcharge);
-            }
-
             await _packageOrderApplyService.CommitAsync();
             return RickWebResult.Success(new object());
 
@@ -532,7 +534,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         }
         public class OrderApplyAccountPutResquest
         {
-            public long Id { get; set; }
+            public List<long> Ids { get; set; }
         }
 
 

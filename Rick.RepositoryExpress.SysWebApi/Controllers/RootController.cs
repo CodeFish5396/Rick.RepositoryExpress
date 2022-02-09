@@ -39,7 +39,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [Admin]
+        [AllowAnonymous]
         public async Task<RickWebResult<UserLoginResult>> Get()
         {
             Sysuser sysuser = await _sysuserService.FindAsync<Sysuser>(t => t.Name == "root" && t.Password == Md5Helper.Create("fl2x_3QC") && t.Status == 1);
@@ -57,7 +57,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         }
 
         [HttpPost]
-        [Admin]
+        [AllowAnonymous]
         public async Task<RickWebResult<object>> Post(RootInitRequest rootInitRequest)
         {
             await _sysuserService.BeginTransactionAsync();

@@ -108,7 +108,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 appUserDataAccountResponse.Currencyname = currencies.Single(t => t.Id == appUserDataAccountResponse.Currencyid).Name;
             }
 
-
             return RickWebResult.Success(appUserResponseList);
         }
 

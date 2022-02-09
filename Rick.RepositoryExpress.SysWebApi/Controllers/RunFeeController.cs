@@ -94,11 +94,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             RunFeeResponseList agentFeeResponseList = new RunFeeResponseList();
 
             var query = from account in _runFeeService.Query<Account>(t => t.Subjectcode == accountSubjectCode && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
-                        join runfee in _runFeeService.Query<Runfee>()
+                        join runfee in _runFeeService.Query<Runfee>(t => (string.IsNullOrEmpty(name) || t.Operator == name))
                         on account.Id equals runfee.Accountid
-                        join currency in _runFeeService.Query<Currency>(t=> !currencyid.HasValue || t.Id == currencyid)
+                        join currency in _runFeeService.Query<Currency>(t => !currencyid.HasValue || t.Id == currencyid)
                         on account.Currencyid equals currency.Id
-                        join user in _runFeeService.Query<Sysuser>(t=>string.IsNullOrEmpty(name) || t.Name == name)
+                        join user in _runFeeService.Query<Sysuser>()
                         on account.Adduser equals user.Id
                         select new RunFeeResponse()
                         {

@@ -104,7 +104,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 List<string> currencyNames = new List<string>();
                 int lastRow = sheet.LastRowNum;
                 
-                for (int i = 1; i <= lastRow; i++)
+                for (int i = 1; i < lastRow; i++)
                 {
                     List<string> rowList = new List<string>();
                     for (int j = 0; j <= 4; j++)
@@ -230,7 +230,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     await _runFeeService.BeginTransactionAsync();
 
                     //2、遍历每一行，构建Channelprice
-                    for (int i = 1; i <= tableDatas.Count; i++)
+                    for (int i = 1; i < tableDatas.Count; i++)
                     {
                         Account account = new Account();
                         account.Id = _idGenerator.NextId();

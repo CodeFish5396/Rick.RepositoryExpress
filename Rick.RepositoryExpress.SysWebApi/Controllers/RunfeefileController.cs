@@ -47,7 +47,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             {
                 filePath = dr + "/Uploads/Rufeedemo/";
             }
-
         }
 
         /// <summary>
@@ -73,5 +72,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 return fileContentResult;
             }
         }
+    
     }
 }

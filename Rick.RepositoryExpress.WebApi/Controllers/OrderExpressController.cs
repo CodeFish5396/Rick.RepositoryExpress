@@ -43,7 +43,9 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         [HttpGet]
         public async Task<RickWebResult<OrderExpressResponseList>> Get([FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from packageorderapply in _packageorderapplyexpressService.Query<Packageorderapply>(t => t.Status == 1 && t.Orderstatus >= (int)OrderApplyStatus.申请打包 && t.Orderstatus != (int)OrderApplyStatus.问题件 && t.Appuser == UserInfo.Id)
+            var query = from packageorderapply in _packageorderapplyexpressService.Query<Packageorderapply>(t => t.Status == 1 && t.Orderstatus >= (int)OrderApplyStatus.申请打包 && t.Orderstatus != (int)OrderApplyStatus.问题件 
+                        && t.Appuser == UserInfo.Id
+                        )
                         join address in _packageorderapplyexpressService.Query<Appuseraddress>(t => 1 == 1)
                         on packageorderapply.Addressid equals address.Id
                         join nation in _packageorderapplyexpressService.Query<Nation>(t => 1 == 1)

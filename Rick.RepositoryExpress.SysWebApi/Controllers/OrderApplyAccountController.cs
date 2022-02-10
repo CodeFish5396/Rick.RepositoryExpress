@@ -228,7 +228,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             int index = 0;
             foreach (Packageorderapply packageorderapply in packageorderapplyes)
             {
-                if (packageorderapply.Status != (int)OrderApplyStatus.待发货 || packageorderapply.Ispayed == 1)
+                if (packageorderapply.Orderstatus != (int)OrderApplyStatus.待发货 || packageorderapply.Ispayed == 1)
                 {
                     RickWebResult.Error<object>(null, 996, "包裹状态不正确");
                 }

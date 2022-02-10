@@ -8,8 +8,8 @@ namespace Rick.RepositoryExpress.Common
     {
         无效 = 0,
         预报 = 1,
-        已入库 = 2,
-        已揽收 = 3,
+        已揽收 = 2,
+        已入库 = 3,
         待验货 = 4,
         待退货 = 5,
         待换货 = 6,

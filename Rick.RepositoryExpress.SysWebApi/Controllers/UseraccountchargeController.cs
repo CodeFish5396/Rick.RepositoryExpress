@@ -234,6 +234,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 appuseraccount.Status = 1;
                 appuseraccount.Adduser = UserInfo.Id;
                 appuseraccount.Lastuser = UserInfo.Id;
+                appuseraccount.Currencyid = userAccountPatchRequest.Currencyid;
                 appuseraccount.Addtime = now;
                 appuseraccount.Lasttime = now;
                 appuseraccount.Appuser = appuseraccountcharge.Appuser;

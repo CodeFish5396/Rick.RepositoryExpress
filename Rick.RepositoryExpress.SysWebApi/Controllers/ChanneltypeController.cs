@@ -35,7 +35,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             _redisClientService = redisClientService;
         }
 
-        [Admin]
+        [AllowAnonymous]
         [HttpGet]
         public async Task<RickWebResult<object>> Get()
         {

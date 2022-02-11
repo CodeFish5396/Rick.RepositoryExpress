@@ -109,6 +109,18 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.AgentUserDataExportController">
+            <summary>
+            代理商交易查询
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AgentUserDataExportController.Get(System.Int64)">
+            <summary>
+            代理商交易导出报表
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppnewcontentController.Get(System.Int64)">
             <summary>
             获取新闻列表
@@ -240,7 +252,6 @@
             <summary>
             文件Url
             </summary>
-            <param name="id"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.ClaimController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32},System.String,System.String,System.Int32,System.Int32)">
@@ -382,6 +393,12 @@
             提交Function
             </summary>
             <param name="functionPostRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.HomePageController.Get">
+            <summary>
+            获取首页概览统计
+            </summary>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.IncomeController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int64},System.Int32,System.Int32)">
@@ -873,6 +890,24 @@
             <param name="endTime"></param>
             <param name="index"></param>
             <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RunfeefileController.Get">
+            <summary>
+            文件Url
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.RunfeeImportController">
+            <summary>
+            运营费用导入
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RunfeeImportController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.RunfeeImportController.RunfeeImportUploadRequest)">
+            <summary>
+            运营费用导入
+            </summary>
+            <param name="fileUploadRequest"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.SysmenuController.Get">

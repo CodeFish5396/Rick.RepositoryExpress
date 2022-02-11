@@ -115,11 +115,11 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             expressclaim.Cansendasap = 0;
             if (package.Status == (int)PackageStatus.已入库)
             {
-                expressclaim.Status = (int)ExpressClaimStatus.已入库;
+                expressclaim.Status = (int)ExpressClaimStatus.已揽收;
             }
             else if (package.Status == (int)PackageStatus.已入柜)
             {
-                expressclaim.Status = (int)ExpressClaimStatus.已揽收;
+                expressclaim.Status = (int)ExpressClaimStatus.已入库;
             }
             expressclaim.Adduser = UserInfo.Id;
             expressclaim.Lastuser = UserInfo.Id;

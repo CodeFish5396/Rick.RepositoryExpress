@@ -107,7 +107,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             await _expressclaimService.BeginTransactionAsync();
 
             Expressclaim expressclaim = await _expressclaimService.FindAsync<Expressclaim>(expressclaimPutRequest.Id);
-            if (expressclaim.Status != (int)ExpressClaimStatus.预报 && expressclaim.Status != (int)ExpressClaimStatus.已入库 && expressclaim.Status != (int)ExpressClaimStatus.已揽收)
+            if (expressclaim.Status != (int)ExpressClaimStatus.预报 && expressclaim.Status != (int)ExpressClaimStatus.已揽收 && expressclaim.Status != (int)ExpressClaimStatus.已入库)
             {
                 return RickWebResult.Error(new object(), 996, "单据状态不正确");
 
@@ -130,11 +130,11 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                 expressclaim.Packageid = packages[0].Id;
                 if (packages[0].Status == (int)PackageStatus.已入库)
                 {
-                    expressclaim.Status = (int)ExpressClaimStatus.已入库;
+                    expressclaim.Status = (int)ExpressClaimStatus.已揽收;
                 }
                 else if (packages[0].Status == (int)PackageStatus.已入柜)
                 {
-                    expressclaim.Status = (int)ExpressClaimStatus.已揽收;
+                    expressclaim.Status = (int)ExpressClaimStatus.已入库;
                 }
             }
             else

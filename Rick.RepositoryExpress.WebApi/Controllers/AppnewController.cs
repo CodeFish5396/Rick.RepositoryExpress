@@ -33,6 +33,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
         }
+
         [HttpGet]
         public async Task<RickWebResult<AppnewGetResponseList>> Get([FromQuery] int? type, [FromQuery] int? isshow, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {

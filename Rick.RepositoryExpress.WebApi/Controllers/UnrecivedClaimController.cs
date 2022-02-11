@@ -44,7 +44,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         [HttpGet]
         public async Task<RickWebResult<UnrecivedClaimResponseList>> Get([FromQuery] string expressnumber, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from expressclaim in _expressclaimService.Query<Expressclaim>(t => (t.Status == (int)ExpressClaimStatus.预报 || t.Status == (int)ExpressClaimStatus.已入库) && t.Appuser == UserInfo.Id)
+            var query = from expressclaim in _expressclaimService.Query<Expressclaim>(t => (t.Status == (int)ExpressClaimStatus.预报 || t.Status == (int)ExpressClaimStatus.已揽收) && t.Appuser == UserInfo.Id)
                         join expressinfo in _expressclaimService.Query<Expressinfo>(t => string.IsNullOrEmpty(expressnumber) || t.Expressnumber.Contains(expressnumber))
                         on expressclaim.Expressinfoid equals expressinfo.Id
                         join courier in _expressclaimService.Query<Courier>(t => 1 == 1)

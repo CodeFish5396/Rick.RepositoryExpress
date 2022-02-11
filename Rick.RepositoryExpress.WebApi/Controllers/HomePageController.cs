@@ -42,12 +42,12 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         public async Task<RickWebResult<HomePageResponse>> Get()
         {
             HomePageResponse homePageResponse = new HomePageResponse();
-            var queryRecievedCount = from expressclaim in _sysuserService.Query<Expressclaim>(t => t.Status == (int)ExpressClaimStatus.已揽收 && t.Appuser == UserInfo.Id)
+            var queryRecievedCount = from expressclaim in _sysuserService.Query<Expressclaim>(t => t.Status == (int)ExpressClaimStatus.已入库 && t.Appuser == UserInfo.Id)
                         select expressclaim.Id;
 
             homePageResponse.RecievedCount = await queryRecievedCount.CountAsync();
 
-            var queryUnrecievedCount = from expressclaim in _sysuserService.Query<Expressclaim>(t => (t.Status == (int)ExpressClaimStatus.预报 || t.Status == (int)ExpressClaimStatus.已入库) && t.Appuser == UserInfo.Id)
+            var queryUnrecievedCount = from expressclaim in _sysuserService.Query<Expressclaim>(t => (t.Status == (int)ExpressClaimStatus.预报 || t.Status == (int)ExpressClaimStatus.已揽收) && t.Appuser == UserInfo.Id)
                         select expressclaim.Id;
 
             homePageResponse.UnrecievedCount = await queryUnrecievedCount.CountAsync();

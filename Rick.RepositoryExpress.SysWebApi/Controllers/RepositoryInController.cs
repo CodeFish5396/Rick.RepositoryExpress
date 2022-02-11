@@ -245,7 +245,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             packagenote.Adduser = UserInfo.Id;
             packagenote.Addtime = now;
             packagenote.Isclosed = 0;
-            packagenote.Operator = (int)PackageNoteStatus.已揽收;
+            packagenote.Operator = (int)PackageNoteStatus.已入库;
             packagenote.Operatoruser = UserInfo.Id;
             await _packageService.AddAsync(packagenote);
 
@@ -253,7 +253,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                        select ec).ToListAsync();
             foreach (var expressclaim in expressclaims)
             {
-                expressclaim.Status = (int)ExpressClaimStatus.已揽收;
+                expressclaim.Status = (int)ExpressClaimStatus.已入库;
                 await _packageService.UpdateAsync(expressclaim);
             }
 

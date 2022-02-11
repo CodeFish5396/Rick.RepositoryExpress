@@ -47,7 +47,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             DateTime now = DateTime.Now;
 
             Expressclaim expressclaim = await _expressclaimService.FindAsync<Expressclaim>(id);
-            if (expressclaim.Status != (int)ExpressClaimStatus.已揽收 && expressclaim.Status != (int)ExpressClaimStatus.已验货)
+            if (expressclaim.Status != (int)ExpressClaimStatus.已入库 && expressclaim.Status != (int)ExpressClaimStatus.已验货)
             {
                 RickWebResult.Error(new object(), 996, "单据状态错误");
             }

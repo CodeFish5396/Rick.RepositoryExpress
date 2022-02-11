@@ -85,7 +85,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             foreach (var expressclaim in expressclaims)
             {
                 expressclaim.Packageid = package.Id;
-                expressclaim.Status = (int)ExpressClaimStatus.已入库;
+                expressclaim.Status = (int)ExpressClaimStatus.已揽收;
                 await _packageService.UpdateAsync(expressclaim);
             }
 
@@ -138,7 +138,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             packagenote.Adduser = UserInfo.Id;
             packagenote.Addtime = now;
             packagenote.Isclosed = 0;
-            packagenote.Operator = (int)PackageNoteStatus.已入库;
+            packagenote.Operator = (int)PackageNoteStatus.已揽收;
             packagenote.Operatoruser = UserInfo.Id;
             await _packageService.AddAsync(packagenote);
 

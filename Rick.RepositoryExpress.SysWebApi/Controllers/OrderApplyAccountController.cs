@@ -422,62 +422,81 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             await _packageOrderApplyService.BeginTransactionAsync();
             DateTime now = DateTime.Now;
-            Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(orderApplyExpressResquest.Id);
-            if (!((packageorderapply.Status == (int)OrderApplyStatus.已发货 || packageorderapply.Status == (int)OrderApplyStatus.已签收) && packageorderapply.Isagentpayed == 0))
+            var packageorderapplies = await _packageOrderApplyService.QueryAsync<Packageorderapply>(t => orderApplyExpressResquest.Ids.Contains(t.Id));
+            foreach (Packageorderapply packageorderapply in packageorderapplies)
             {
-                RickWebResult.Error<object>(null, 996, "包裹状态不正确");
+                if (!((packageorderapply.Orderstatus == (int)OrderApplyStatus.已发货 || packageorderapply.Status == (int)OrderApplyStatus.已签收) && packageorderapply.Isagentpayed == 0))
+                {
+                    return RickWebResult.Error<object>(null, 996, "包裹状态不正确");
+                }
+            }
+            var currencies = await _packageOrderApplyService.QueryAsync<Currency>(t => t.Status == 1 && (t.Isdefault == 1 || t.Islocal == 1));
+            var localCurrency = currencies.Single(t => t.Islocal == 1);
+            var defaultCurrency = currencies.Single(t => t.Isdefault == 1);
+
+            var currency = await _packageOrderApplyService.FindAsync<Currency>(orderApplyExpressResquest.Currencyid);
+            if(currency.Id != localCurrency.Id && currency.Id != defaultCurrency.Id)
+            {
+                return RickWebResult.Error<object>(null, 996, "支付货币不支持");
             }
 
-            packageorderapply.Isagentpayed = 1;
-            packageorderapply.Agentpaytime = now;
-            packageorderapply.Lasttime = now;
-            packageorderapply.Lastuser = UserInfo.Id;
-
-            await _packageOrderApplyService.UpdateAsync(packageorderapply);
-            Packageorderapplyexpress packageorderapplyexpress = await _packageOrderApplyService.FindAsync<Packageorderapplyexpress>(t => t.Packageorderapplyid == packageorderapply.Id && t.Status == 1);
-
-            Agentfeeconsume agentfeeconsume = new Agentfeeconsume();
-
-            agentfeeconsume.Id = _idGenerator.NextId();
-            agentfeeconsume.Currencyid = orderApplyExpressResquest.Currencyid;
-            agentfeeconsume.Agentid = (long)packageorderapplyexpress.Agentid;
-            agentfeeconsume.Amount = orderApplyExpressResquest.Amount;
-            agentfeeconsume.Orderid = packageorderapply.Id;
-            agentfeeconsume.Status = 1;
-            agentfeeconsume.Addtime = now;
-            agentfeeconsume.Adduser = UserInfo.Id;
-
-            await _packageOrderApplyService.AddAsync(agentfeeconsume);
-
-            Agentfeeaccount agentfeeaccount = await _packageOrderApplyService.FindAsync<Agentfeeaccount>(t => t.Currencyid == agentfeeconsume.Currencyid && t.Agentid == agentfeeconsume.Agentid);
-            if (agentfeeaccount == null)
+            foreach (Packageorderapply packageorderapply in packageorderapplies)
             {
-                agentfeeaccount = new Agentfeeaccount();
-                agentfeeaccount.Id = _idGenerator.NextId();
-                agentfeeaccount.Currencyid = agentfeeconsume.Currencyid;
-                agentfeeaccount.Agentid = agentfeeconsume.Agentid;
-                agentfeeaccount.Amount = -agentfeeconsume.Amount;
-                agentfeeaccount.Status = 1;
-                agentfeeaccount.Addtime = now;
-                agentfeeaccount.Adduser = UserInfo.Id;
-                await _packageOrderApplyService.AddAsync(agentfeeaccount);
-            }
-            else
-            {
-                agentfeeaccount.Amount -= agentfeeconsume.Amount;
-                await _packageOrderApplyService.UpdateAsync(agentfeeaccount);
-            }
+                packageorderapply.Isagentpayed = 1;
+                packageorderapply.Agentpaytime = now;
+                packageorderapply.Lasttime = now;
+                packageorderapply.Lastuser = UserInfo.Id;
 
+                await _packageOrderApplyService.UpdateAsync(packageorderapply);
+                Packageorderapplyexpress packageorderapplyexpress = await _packageOrderApplyService.FindAsync<Packageorderapplyexpress>(t => t.Packageorderapplyid == packageorderapply.Id && t.Status == 1);
+
+                Agentfeeconsume agentfeeconsume = new Agentfeeconsume();
+
+                agentfeeconsume.Id = _idGenerator.NextId();
+                agentfeeconsume.Currencyid = orderApplyExpressResquest.Currencyid;
+                agentfeeconsume.Agentid = (long)packageorderapplyexpress.Agentid;
+                if (agentfeeconsume.Currencyid == localCurrency.Id)
+                {
+                    agentfeeconsume.Amount = (decimal)packageorderapplyexpress.Localagentprice;
+                }
+                if (agentfeeconsume.Currencyid == defaultCurrency.Id)
+                {
+                    agentfeeconsume.Amount = (decimal)packageorderapplyexpress.Agentprice;
+                }
+                agentfeeconsume.Orderid = packageorderapply.Id;
+                agentfeeconsume.Status = 1;
+                agentfeeconsume.Addtime = now;
+                agentfeeconsume.Adduser = UserInfo.Id;
+
+                await _packageOrderApplyService.AddAsync(agentfeeconsume);
+
+                Agentfeeaccount agentfeeaccount = await _packageOrderApplyService.FindAsync<Agentfeeaccount>(t => t.Currencyid == agentfeeconsume.Currencyid && t.Agentid == agentfeeconsume.Agentid);
+                if (agentfeeaccount == null)
+                {
+                    agentfeeaccount = new Agentfeeaccount();
+                    agentfeeaccount.Id = _idGenerator.NextId();
+                    agentfeeaccount.Currencyid = agentfeeconsume.Currencyid;
+                    agentfeeaccount.Agentid = agentfeeconsume.Agentid;
+                    agentfeeaccount.Amount = -agentfeeconsume.Amount;
+                    agentfeeaccount.Status = 1;
+                    agentfeeaccount.Addtime = now;
+                    agentfeeaccount.Adduser = UserInfo.Id;
+                    await _packageOrderApplyService.AddAsync(agentfeeaccount);
+                }
+                else
+                {
+                    agentfeeaccount.Amount -= agentfeeconsume.Amount;
+                    await _packageOrderApplyService.UpdateAsync(agentfeeaccount);
+                }
+            }
             await _packageOrderApplyService.CommitAsync();
             return RickWebResult.Success(new object());
-
         }
 
         public class OrderApplyAccountResquest
         {
-            public long Id { get; set; }
+            public List<long> Ids { get; set; }
             public long Currencyid { get; set; }
-            public decimal Amount { get; set; }
         }
         public class OrderApplyAccountResponse
         {

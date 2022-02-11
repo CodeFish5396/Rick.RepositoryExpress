@@ -71,6 +71,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             runfee.Status = 1;
             runfee.Addtime = now;
             runfee.Adduser = UserInfo.Id;
+            runfee.Operator = agentFeeRequest.Operator;
             await _runFeeService.AddAsync(runfee);
 
             await _runFeeService.CommitAsync();
@@ -93,11 +94,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             RunFeeResponseList agentFeeResponseList = new RunFeeResponseList();
 
             var query = from account in _runFeeService.Query<Account>(t => t.Subjectcode == accountSubjectCode && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
-                        join runfee in _runFeeService.Query<Runfee>()
+                        join runfee in _runFeeService.Query<Runfee>(t => (string.IsNullOrEmpty(name) || t.Operator == name))
                         on account.Id equals runfee.Accountid
-                        join currency in _runFeeService.Query<Currency>(t=> !currencyid.HasValue || t.Id == currencyid)
+                        join currency in _runFeeService.Query<Currency>(t => !currencyid.HasValue || t.Id == currencyid)
                         on account.Currencyid equals currency.Id
-                        join user in _runFeeService.Query<Sysuser>(t=>string.IsNullOrEmpty(name) || t.Name == name)
+                        join user in _runFeeService.Query<Sysuser>()
                         on account.Adduser equals user.Id
                         select new RunFeeResponse()
                         {
@@ -109,7 +110,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Adduser = account.Adduser,
                             Addusername = user.Name,
                             Addtime = account.Addtime,
-                            Paytime = runfee.Paytime
+                            Paytime = runfee.Paytime,
+                            Operator = runfee.Operator
                         };
 
             var sumQuery = await (from agentfeeresponse in query
@@ -136,6 +138,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Currencyid { get; set; }
             public string Currencyname { get; set; }
             public decimal Amount { get; set; }
+            public string Operator { get; set; }
+
             public long Adduser { get; set; }
             public string Addusername { get; set; }
             public DateTime Addtime { get; set; }
@@ -161,6 +165,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Currencyid { get; set; }
             public decimal Amount { get; set; }
             public DateTime Paytime { get; set; }
+            public string Operator { get; set; }
+
 
         }
 

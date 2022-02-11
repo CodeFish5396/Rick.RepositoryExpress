@@ -89,7 +89,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseMySql("server=192.168.15.42;port=3306;user=root;password=Sunwin@2021;database=repositoryexpress", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.21-mysql"));
+                optionsBuilder.UseMySql("server=dm4a1.51tcp.vip;port=56404;user=root;password=y4yh_69T;database=repositoryexpress", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.21-mysql"));
             }
         }
 
@@ -2260,6 +2260,12 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .IsRequired()
                     .HasMaxLength(45)
                     .HasColumnName("name");
+
+                entity.Property(e => e.Operator)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("operator")
+                    .HasDefaultValueSql("''");
 
                 entity.Property(e => e.Paytime)
                     .HasColumnType("datetime")

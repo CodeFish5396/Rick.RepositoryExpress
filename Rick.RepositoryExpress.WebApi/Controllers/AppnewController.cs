@@ -34,9 +34,9 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             _redisClientService = redisClientService;
         }
         [HttpGet]
-        public async Task<RickWebResult<AppnewGetResponseList>> Get([FromQuery] int? type, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<AppnewGetResponseList>> Get([FromQuery] int? type, [FromQuery] int? isshow, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
-            var query = from appnew in _appnewService.Query<Appnew>(t => t.Status == 1 && (!type.HasValue || type == 0 || t.Isshow == 1 ))
+            var query = from appnew in _appnewService.Query<Appnew>(t => t.Status == 1 && (!type.HasValue || t.Type == type) && (!isshow.HasValue || t.Isshow == isshow))
                         select new AppnewGetResponse()
                         {
                             Id = appnew.Id,

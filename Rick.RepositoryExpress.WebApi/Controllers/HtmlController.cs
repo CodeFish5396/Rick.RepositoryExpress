@@ -68,7 +68,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             {
                 List<byte> results = new List<byte>();
 
-                string htmlBegin = "<!doctype html><html lang=\"zh\"><head><meta charSet=\"utf-8\"/><title data-react-helmet=\"true\">达人集运 - 新闻</title></head><body>";
+                string htmlBegin = "<!doctype html ><html lang=\"zh\"><head><meta charSet=\"utf-8\"/><title data-react-helmet=\"true\">达人集运 - 新闻</title><meta name='viewport' content='width=device-width,target-densitydpi=high-dpi,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no'/></head><body>";
                 byte[] begin = System.Text.Encoding.UTF8.GetBytes(htmlBegin);
                 results.AddRange(begin);
 

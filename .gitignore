@@ -348,5 +348,4 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-Uploads/Temp/bcedaed50458423db8399076d256b976.xlsx
-*.xlsx
+Uploads/Temp/*

@@ -95,6 +95,27 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.AgentFeeExportController">
+            <summary>
+            代理商成本
+            </summary>
+        </member>
+        <member name="F:Rick.RepositoryExpress.SysWebApi.Controllers.AgentFeeExportController.accountSubjectId">
+            <summary>
+            代理商成本会计科目
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AgentFeeExportController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int64})">
+            <summary>
+            导出代理商成本
+            </summary>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="currencyId"></param>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.AgentUserDataController">
             <summary>
             代理商交易查询
@@ -139,13 +160,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.Put(Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.AppnewPutRequest)">
-            <summary>
-            修改新闻
-            </summary>
-            <param name="appnewPutRequest"></param>
-            <returns></returns>
-        </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppnewController.Delete(System.Int64)">
             <summary>
             删除
@@ -184,6 +198,23 @@
             <param name="id"></param>
             <param name="index"></param>
             <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.AppUserExportController">
+            <summary>
+            APP用户管理
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AppUserExportController.Get(System.String,System.String,System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32})">
+            <summary>
+            导出APP用户查询xlsx
+            </summary>
+            <param name="userCode"></param>
+            <param name="userName"></param>
+            <param name="countryName"></param>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="status"></param>
             <returns></returns>
         </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.ChannelController">
@@ -412,6 +443,17 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.IncomeExportController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int64})">
+            <summary>
+            导出用户充值xlsx
+            </summary>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="currencyId"></param>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.NationController">
             <summary>
             国家
@@ -478,6 +520,26 @@
             代理商清账
             </summary>
             <param name="orderApplyExpressResquest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.OrderApplyAccountExportController">
+            <summary>
+            订单财务清账
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.OrderApplyAccountExportController.Get(System.String,System.String,System.Nullable{System.Int64},System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32},System.Nullable{System.Int32},System.String)">
+            <summary>
+            导出用户确认发货
+            </summary>
+            <param name="code"></param>
+            <param name="userCode"></param>
+            <param name="agentId"></param>
+            <param name="userMobile"></param>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="status"></param>
+            <param name="orderStatus"></param>
+            <param name="sendUserName"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.OrderApplyController.Get(System.String,System.String,System.String,System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32},System.Nullable{System.Int32},System.String,System.Int32,System.Int32)">
@@ -598,6 +660,21 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.OrderProfitExportController">
+            <summary>
+            订单核算
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.OrderProfitExportController.Get(System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            导出订单核算
+            </summary>
+            <param name="agentid"></param>
+            <param name="nationid"></param>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.PackagechangeController.Put(Rick.RepositoryExpress.SysWebApi.Controllers.PackagechangeController.PackagechangePutRequest)">
             <summary>
             包裹换货
@@ -615,6 +692,20 @@
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.PackageController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32},System.String,System.String,System.String,System.Int32,System.Int32)">
             <summary>
             库存查询
+            </summary>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="status"></param>
+            <param name="expressNumber"></param>
+            <param name="addUser"></param>
+            <param name="location"></param>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.PackageExportController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32},System.String,System.String,System.String)">
+            <summary>
+            导出库存查询xlsx
             </summary>
             <param name="startTime"></param>
             <param name="endTime"></param>
@@ -685,6 +776,19 @@
             <param name="endTime"></param>
             <param name="index"></param>
             <param name="pageSize"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.ProfitExportController">
+            <summary>
+            收支核算
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.ProfitExportController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            导出收支核算
+            </summary>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RepositoryController.Get(System.Nullable{System.Int64},System.String,System.Nullable{System.Int32},System.Int32,System.Int32)">
@@ -938,6 +1042,28 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.RunFeeExportController">
+            <summary>
+            代理商成本
+            </summary>
+        </member>
+        <member name="F:Rick.RepositoryExpress.SysWebApi.Controllers.RunFeeExportController.accountSubjectId">
+            <summary>
+            运营成本成本
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RunFeeExportController.Get(System.Nullable{System.Int64},System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            导出代理商成本xlsx
+            </summary>
+            <param name="currencyid"></param>
+            <param name="name"></param>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="index"></param>
+            <param name="pageSize"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.RunfeefileController.Get">
             <summary>
             文件Url
@@ -1066,6 +1192,25 @@
             用户充值审核
             </summary>
             <param name="userAccountPatchRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.UseraccountchargeExportController">
+            <summary>
+            用户充值
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UseraccountchargeExportController.Get(System.String,System.String,System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32},System.Nullable{System.Int64},System.Nullable{System.Int64})">
+            <summary>
+            导出用户充值
+            </summary>
+            <param name="userCode"></param>
+            <param name="userName"></param>
+            <param name="userMobile"></param>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="status"></param>
+            <param name="currencyid"></param>
+            <param name="userid"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserAccountController.Get(System.Nullable{System.Int32},System.Nullable{System.Int64},System.Nullable{System.Int64},System.Int32,System.Int32)">

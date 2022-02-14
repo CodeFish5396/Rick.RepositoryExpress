@@ -165,53 +165,85 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             return RickWebResult.Success<object>(new object());
         }
-        
-        /// <summary>
-        /// 修改新闻
-        /// </summary>
-        /// <param name="appnewPutRequest"></param>
-        /// <returns></returns>
+
         [HttpPut]
-        public async Task<RickWebResult<object>> Put([FromBody] AppnewPutRequest  appnewPutRequest)
+        public async Task<RickWebResult<object>> Put([FromBody] AppnewPutRequest appnewPutRequest)
         {
             await _appnewService.BeginTransactionAsync();
-
+            DateTime now = DateTime.Now;
             Appnew appnew = await _appnewService.FindAsync<Appnew>(appnewPutRequest.Id);
 
-            //将Base64转Byte[]。然后保存
-            byte[] content = Convert.FromBase64String(appnewPutRequest.Content);
-
-            DateTime now = DateTime.Now;
-            Fileinfo htmlfileinfo = new Fileinfo();
-            htmlfileinfo.Id = _idGenerator.NextId();
-            htmlfileinfo.Ext = ".html";
-            htmlfileinfo.Mime = "text/html";
-            htmlfileinfo.Status = 1;
-            htmlfileinfo.Addtime = now;
-            htmlfileinfo.Adduser = UserInfo.Id;
-            htmlfileinfo.Filename = Guid.NewGuid().ToString("N");
-            htmlfileinfo.Name = htmlfileinfo.Filename + htmlfileinfo.Ext;
-
-            using (var fileStream = new FileStream(filePath + htmlfileinfo.Filename + htmlfileinfo.Ext, FileMode.Create))
+            if (appnewPutRequest.Source == 0 || appnewPutRequest.Source == 1)
             {
-                await fileStream.WriteAsync(content);
-            }
+                //将Base64转Byte[]。然后保存
+                byte[] content = Convert.FromBase64String(appnewPutRequest.Content);
 
-            appnew.Type = appnewPutRequest.Type;
-            appnew.Title = appnewPutRequest.Title;
-            appnew.Vicetitle = appnewPutRequest.Vicetitle;
-            appnew.Urlid = htmlfileinfo.Id;
-            appnew.Imageid = appnewPutRequest.Imageid;
-            appnew.Status = 1;
-            appnew.Lasttime = now;
-            appnew.Lastuser = UserInfo.Id;
-            appnew.Isshow = appnewPutRequest.Isshow ? 1 : 0;
-            await _appnewService.AddAsync(htmlfileinfo);
-            await _appnewService.UpdateAsync(appnew);
-            await _appnewService.CommitAsync();
+                Fileinfo htmlfileinfo = new Fileinfo();
+                htmlfileinfo.Id = _idGenerator.NextId();
+                htmlfileinfo.Ext = ".html";
+                htmlfileinfo.Mime = "text/html";
+                htmlfileinfo.Status = 1;
+                htmlfileinfo.Addtime = now;
+                htmlfileinfo.Adduser = UserInfo.Id;
+                htmlfileinfo.Filename = Guid.NewGuid().ToString("N");
+                htmlfileinfo.Name = htmlfileinfo.Filename + htmlfileinfo.Ext;
+
+                List<byte> htmlContent = new List<byte>();
+                if (appnewPutRequest.Source == 0)//来自图形编辑器
+                {
+                    htmlContent.AddRange(content);
+                }
+                else if (appnewPutRequest.Source == 1)//来自于链接
+                {
+                    string htmlBegin = "<script>window.location='";
+                    byte[] begin = System.Text.Encoding.UTF8.GetBytes(htmlBegin);
+                    htmlContent.AddRange(begin);
+
+                    htmlContent.AddRange(content);
+
+                    string htmlEnd = "';</script>";
+                    byte[] end = System.Text.Encoding.UTF8.GetBytes(htmlEnd);
+                    htmlContent.AddRange(end);
+                }
+
+                using (var fileStream = new FileStream(filePath + htmlfileinfo.Filename + htmlfileinfo.Ext, FileMode.Create))
+                {
+                    await fileStream.WriteAsync(htmlContent.ToArray());
+                }
+                appnew.Type = appnewPutRequest.Type;
+                appnew.Source = appnewPutRequest.Source;
+                appnew.Title = appnewPutRequest.Title;
+                appnew.Vicetitle = appnewPutRequest.Vicetitle;
+                appnew.Urlid = htmlfileinfo.Id;
+                appnew.Imageid = appnewPutRequest.Imageid;
+                appnew.Status = 1;
+                appnew.Lasttime = now;
+                appnew.Lastuser = UserInfo.Id;
+                appnew.Isshow = appnewPutRequest.Isshow ? 1 : 0;
+                await _appnewService.AddAsync(htmlfileinfo);
+                await _appnewService.UpdateAsync(appnew);
+                await _appnewService.CommitAsync();
+
+            }
+            else if (appnewPutRequest.Source == 2)//上传视频
+            {
+                appnew.Type = appnewPutRequest.Type;
+                appnew.Source = appnewPutRequest.Source;
+                appnew.Title = appnewPutRequest.Title;
+                appnew.Vicetitle = appnewPutRequest.Vicetitle;
+                appnew.Urlid = appnewPutRequest.Contentimageid;
+                appnew.Imageid = appnewPutRequest.Imageid;
+                appnew.Status = 1;
+                appnew.Lasttime = now;
+                appnew.Lastuser = UserInfo.Id;
+                appnew.Isshow = appnewPutRequest.Isshow ? 1 : 0;
+                await _appnewService.UpdateAsync(appnew);
+                await _appnewService.CommitAsync();
+            }
 
             return RickWebResult.Success<object>(new object());
         }
+
 
         /// <summary>
         /// 删除
@@ -248,8 +280,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Id { get; set; }
             public string Title { get; set; }
             public int Type { get; set; }
+            public int Source { get; set; }
             public string Vicetitle { get; set; }
             public long Imageid { get; set; }
+            public long Contentimageid { get; set; }
             public string Content { get; set; }
             public bool Isshow { get; set; }
 

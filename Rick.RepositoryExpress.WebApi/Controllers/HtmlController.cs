@@ -67,19 +67,27 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             using (var fileStream = new FileStream(filePath + fileinfo.Filename + fileinfo.Ext, FileMode.Open))
             {
                 List<byte> results = new List<byte>();
+                if (fileinfo.Ext == ".html")
+                {
+                    string htmlBegin = "<!doctype html ><html lang=\"zh\"><head><meta charSet=\"utf-8\"/><title data-react-helmet=\"true\">达人集运 - 新闻</title><meta name='viewport' content='width=device-width,target-densitydpi=high-dpi,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no'/></head><body>";
+                    byte[] begin = System.Text.Encoding.UTF8.GetBytes(htmlBegin);
+                    results.AddRange(begin);
 
-                string htmlBegin = "<!doctype html ><html lang=\"zh\"><head><meta charSet=\"utf-8\"/><title data-react-helmet=\"true\">达人集运 - 新闻</title><meta name='viewport' content='width=device-width,target-densitydpi=high-dpi,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no'/></head><body>";
-                byte[] begin = System.Text.Encoding.UTF8.GetBytes(htmlBegin);
-                results.AddRange(begin);
-
-                byte[] buffer = new byte[fi.Length];
-                await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));
-                results.AddRange(buffer);
+                    byte[] buffer = new byte[fi.Length];
+                    await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));
+                    results.AddRange(buffer);
 
 
-                string htmlEnd = "</body></html>";
-                byte[] end = System.Text.Encoding.UTF8.GetBytes(htmlEnd);
-                results.AddRange(end);
+                    string htmlEnd = "</body></html>";
+                    byte[] end = System.Text.Encoding.UTF8.GetBytes(htmlEnd);
+                    results.AddRange(end);
+                }
+                else
+                {
+                    byte[] buffer = new byte[fi.Length];
+                    await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));
+                    results.AddRange(buffer);
+                }
 
                 FileContentResult fileContentResult = new FileContentResult(results.ToArray(), fileinfo.Mime);
                 

@@ -65,15 +65,21 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             appnewGetResponse.Vicetitle = appnew.Vicetitle;
             appnewGetResponse.Imageid = appnew.Imageid;
             appnewGetResponse.Content = string.Empty;
-            Fileinfo fileinfo = await _appnewService.FindAsync<Fileinfo>(appnew.Urlid);
-            FileInfo fileInfo = new FileInfo(filePath + fileinfo.Filename + fileinfo.Ext);
-
-            byte[] fileByte = new byte[fileInfo.Length];
-            using (FileStream fs = fileInfo.OpenRead())
+            appnewGetResponse.Source = appnew.Source;
+            appnewGetResponse.Urlid = appnew.Urlid;
+            if (appnewGetResponse.Source == 0 || appnewGetResponse.Source == 1)
             {
-                await fs.ReadAsync(fileByte, 0, fileByte.Length);
+                Fileinfo fileinfo = await _appnewService.FindAsync<Fileinfo>(appnew.Urlid);
+                FileInfo fileInfo = new FileInfo(filePath + fileinfo.Filename + fileinfo.Ext);
+
+                byte[] fileByte = new byte[fileInfo.Length];
+                using (FileStream fs = fileInfo.OpenRead())
+                {
+                    await fs.ReadAsync(fileByte, 0, fileByte.Length);
+                }
+                appnewGetResponse.Content = Convert.ToBase64String(fileByte);
+
             }
-            appnewGetResponse.Content = Convert.ToBase64String(fileByte);
             appnewGetResponse.Isshow = appnew.Isshow == 1;
             return RickWebResult.Success(appnewGetResponse);
         }
@@ -83,6 +89,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Id { get; set; }
             public string Title { get; set; }
             public int Type { get; set; }
+            public int Source { get; set; }
+            public long Urlid { get; set; }
             public string Vicetitle { get; set; }
             public long Imageid { get; set; }
             public string Content { get; set; }

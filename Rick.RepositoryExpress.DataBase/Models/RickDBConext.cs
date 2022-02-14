@@ -341,6 +341,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Lastuser).HasColumnName("lastuser");
 
+                entity.Property(e => e.Source)
+                    .HasColumnName("source")
+                    .HasComment("0-文本编辑器\n1-链接\n2-视频");
+
                 entity.Property(e => e.Status).HasColumnName("status");
 
                 entity.Property(e => e.Title)

@@ -266,8 +266,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             head.CreateCell(4).SetCellValue("价格");
             head.CreateCell(5).SetCellValue("到付价格(美元)");
             head.CreateCell(6).SetCellValue("代理商价格");
-            head.CreateCell(7).SetCellValue("利润");
-            head.CreateCell(8).SetCellValue("发货时间");
+            head.CreateCell(7).SetCellValue("发货时间");
+            head.CreateCell(8).SetCellValue("利润");
             
             currentRow++;
 
@@ -285,16 +285,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 row.CreateCell(5).SetCellValue(item.Freightprice.ToString());
                 row.CreateCell(6).SetCellValue(String.Format("{0}({1})", item.Agentamount, item.Agentcurrencyname));
                 
-                row.CreateCell(8).SetCellValue(item.Sendtime.ToString());
+                row.CreateCell(7).SetCellValue(item.Sendtime.ToString());
 
 
-                List<string> profitInfo = new List<string>();
-                for (int i = 0; i < item.Profit.Count; i++)
-                {
-                    profitInfo.Add(item.Profit[i].Currencyname + ":" + item.Profit[i].Amount);
-                    
-                }
-                row.CreateCell(7).SetCellValue(String.Join('/', profitInfo));
+                row.CreateCell(8).SetCellValue(String.Join('/', item.Profit.Select(t=>t.Currencyname+":"+t.Amount)));
                 //sheet.AddMergedRegion(new NPOI.SS.Util.CellRangeAddress(baseRowIndex, baseRowIndex + item.Profit.Count - 1, 6, 7));
 
             }

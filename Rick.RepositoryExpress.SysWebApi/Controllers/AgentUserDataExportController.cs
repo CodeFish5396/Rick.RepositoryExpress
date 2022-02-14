@@ -62,7 +62,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
-        [AllowAnonymous]
         public async Task<FileContentResult> Get([FromQuery] long id)
         {
             //查询用户余额、充值、交易情况

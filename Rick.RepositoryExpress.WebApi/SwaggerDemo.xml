@@ -4,6 +4,17 @@
         <name>Rick.RepositoryExpress.WebApi</name>
     </assembly>
     <members>
+        <member name="T:Rick.RepositoryExpress.WebApi.Controllers.AgreementController">
+            <summary>
+            发货协议
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.AgreementController.Get">
+            <summary>
+            发货协议
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.ChannelController.Get(System.Nullable{System.Int64})">
             <summary>
             获取发货渠道

@@ -39,17 +39,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 查询收支核算
         /// </summary>
+        /// <param name="subjectcode"></param>
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="index"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<ProfitResponseList>> Get([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<ProfitResponseList>> Get([FromQuery] string subjectcode, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             ProfitResponseList profitResponseList = new ProfitResponseList();
 
-            var query = from account in _accountsubjectService.Query<Account>(t => (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
+            var query = from account in _accountsubjectService.Query<Account>(t => (string.IsNullOrEmpty(subjectcode) || t.Subjectcode == subjectcode) && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
                         select new ProfitResponse()
                         {
                             Id = account.Id,
@@ -59,7 +60,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Addtime = account.Addtime,
                             SubjectCode = account.Subjectcode,
                             Direction = account.Direction
-
                         };
             profitResponseList.Count = await query.CountAsync();
             profitResponseList.List = await query.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -94,32 +94,34 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                                  Currencyid = profitGT.Key.Currencyid,
                                                  Currencyname = profitGT.Key.Currencyname,
                                                  Direction = 0,
-                                                 TotalAmount = profitGT.Sum(t=>t.TotalAmount * t.Direction)
+                                                 TotalAmount = profitGT.Sum(t => t.TotalAmount * t.Direction)
                                              }).ToList();
             //收入
             var incomeAccountIds = profitResponseList.List.Where(t => t.SubjectCode == "100").Select(t => t.Id).ToList();
             var appusers = await (from charge in _accountsubjectService.Query<Appuseraccountcharge>(t => incomeAccountIds.Contains(t.Accountid))
-                           join appuser in _accountsubjectService.Query<Appuser>()
-                           on charge.Appuser equals appuser.Id
-                           select new {
-                               Chargeid = charge.Id,
-                               Accountid = charge.Accountid,
-                               Appuserid = appuser.Id,
-                               Appusername = appuser.Truename,
-                               Appusercode = appuser.Usercode
-                           }).ToListAsync();
+                                  join appuser in _accountsubjectService.Query<Appuser>()
+                                  on charge.Appuser equals appuser.Id
+                                  select new
+                                  {
+                                      Chargeid = charge.Id,
+                                      Accountid = charge.Accountid,
+                                      Appuserid = appuser.Id,
+                                      Appusername = appuser.Truename,
+                                      Appusercode = appuser.Usercode
+                                  }).ToListAsync();
 
             //代理商成本
             var agentFeeAccountIds = profitResponseList.List.Where(t => t.SubjectCode == "200").Select(t => t.Id).ToList();
             var agents = await (from agentfee in _accountsubjectService.Query<Agentfee>(t => agentFeeAccountIds.Contains(t.Accountid))
-                         join agent in _accountsubjectService.Query<Agent>()
-                         on agentfee.Agentid equals agent.Id
-                         select new {
-                             Agentfeeid = agentfee.Id,
-                             Accountid = agentfee.Accountid,
-                             Agentid = agent.Id,
-                             Agentname = agent.Name
-                         }).ToListAsync();
+                                join agent in _accountsubjectService.Query<Agent>()
+                                on agentfee.Agentid equals agent.Id
+                                select new
+                                {
+                                    Agentfeeid = agentfee.Id,
+                                    Accountid = agentfee.Accountid,
+                                    Agentid = agent.Id,
+                                    Agentname = agent.Name
+                                }).ToListAsync();
 
             //运营成本
             var runFeeAccountIds = profitResponseList.List.Where(t => t.SubjectCode == "300").Select(t => t.Id).ToList();
@@ -148,7 +150,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         break;
                 }
             }
-            
+
             return RickWebResult.Success(profitResponseList);
         }
 
@@ -181,7 +183,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Currencyid { get; set; }
             public string Currencyname { get; set; }
             public int Direction { get; set; }
-
             public decimal TotalAmount { get; set; }
         }
 

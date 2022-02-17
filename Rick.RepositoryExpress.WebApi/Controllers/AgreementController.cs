@@ -22,7 +22,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
     /// <summary>
     /// 发货协议
     /// </summary>
-    [Route("api/[controller]/{id?}")]
+    [Route("api/[controller]")]
     [ApiController]
     public class AgreementController : RickControllerBase
     {
@@ -58,12 +58,12 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<FileContentResult> Get()
+        public async Task<RickWebResult<string>> Get()
         {
             Appnew appnew = await _fileService.Query<Appnew>(t => t.Type == 6).FirstOrDefaultAsync();
             if (appnew == null)
             {
-                return null;
+                return RickWebResult.Error<string>(string.Empty,996,"未找到发货协议");
             }
             else
             {
@@ -72,29 +72,13 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                 FileInfo fi = new FileInfo(path);
                 if (!fi.Exists)
                 {
-                    return null;
+                    return RickWebResult.Error<string>(string.Empty, 996, "未找到发货协议");
                 }
                 using (var fileStream = new FileStream(filePath + fileinfo.Filename + fileinfo.Ext, FileMode.Open))
                 {
-                    List<byte> results = new List<byte>();
-                    if (fileinfo.Ext == ".html")
-                    {
-
-                        byte[] buffer = new byte[fi.Length];
-                        await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));
-                        results.AddRange(buffer);
-
-                    }
-                    else
-                    {
-                        byte[] buffer = new byte[fi.Length];
-                        await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));
-                        results.AddRange(buffer);
-                    }
-
-                    FileContentResult fileContentResult = new FileContentResult(results.ToArray(), fileinfo.Mime);
-
-                    return fileContentResult;
+                    byte[] buffer = new byte[fi.Length];
+                    await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));
+                    return RickWebResult.Success(System.Text.Encoding.UTF8.GetString(buffer));
                 }
             }
         }

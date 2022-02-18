@@ -298,6 +298,17 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.ClaimExportController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int32},System.String,System.String)">
+            <summary>
+            导出查询用户包裹预报
+            </summary>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <param name="status"></param>
+            <param name="expressNumber"></param>
+            <param name="userCode"></param>
+            <returns></returns>
+        </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.Courier2AgentController">
             <summary>
             快递公司
@@ -744,6 +755,24 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInExportController">
+            <summary>
+            入库录单，录入货物信息
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInExportController.Get(System.String,System.String,System.String,System.String,System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            导出查询列表
+            </summary>
+            <param name="code"></param>
+            <param name="userCode"></param>
+            <param name="userName"></param>
+            <param name="userMobile"></param>
+            <param name="expressNumber"></param>
+            <param name="startTime"></param>
+            <param name="endTime"></param>
+            <returns></returns>
+        </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.PackageInPreController">
             <summary>
             快递扫描
@@ -768,10 +797,11 @@
             收支核算
             </summary>
         </member>
-        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.ProfitController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Int32,System.Int32)">
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.ProfitController.Get(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Int32,System.Int32)">
             <summary>
             查询收支核算
             </summary>
+            <param name="subjectcode"></param>
             <param name="startTime"></param>
             <param name="endTime"></param>
             <param name="index"></param>

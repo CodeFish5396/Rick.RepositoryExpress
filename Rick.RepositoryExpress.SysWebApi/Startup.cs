@@ -44,7 +44,7 @@ namespace Rick.RepositoryExpress.SysWebApi
                                   builder =>
                                   {
                                       builder.WithOrigins("http://localhost:8080",
-                                                          "http://119.39.226.175:20157/")
+                                                          "https://www.darenexpress.com")
                                       .AllowAnyHeader()
                                       .AllowAnyMethod();
                                   });

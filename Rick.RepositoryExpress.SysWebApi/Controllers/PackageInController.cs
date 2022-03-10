@@ -66,6 +66,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             package.Code = _redisClientService.PackageCodeGet();
 
+            package.Goodtypel1id = packageInRequest.Goodtypel1id;
+            package.Goodtypel2id = packageInRequest.Goodtypel2id;
+
             Expressinfo expressinfo = new Expressinfo();
 
             expressinfo.Id = _idGenerator.NextId();
@@ -252,6 +255,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         //public IList<PackageDetailInRequest> Details { get; set; }
         public long Currencychangerateid { get; set; }
         public decimal? Localfreightprice { get; set; }
+        public long Goodtypel1id { get; set; }
+        public long Goodtypel2id { get; set; }
 
     }
 

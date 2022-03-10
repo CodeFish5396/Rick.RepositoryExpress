@@ -45,6 +45,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Expressinfo> Expressinfos { get; set; }
         public virtual DbSet<Expressinfostatus> Expressinfostatuses { get; set; }
         public virtual DbSet<Fileinfo> Fileinfos { get; set; }
+        public virtual DbSet<Goodtypel1> Goodtypel1s { get; set; }
+        public virtual DbSet<Goodtypel2> Goodtypel2s { get; set; }
         public virtual DbSet<Message> Messages { get; set; }
         public virtual DbSet<Messageconsume> Messageconsumes { get; set; }
         public virtual DbSet<Nation> Nations { get; set; }
@@ -1147,6 +1149,68 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasDefaultValueSql("'1'");
             });
 
+            modelBuilder.Entity<Goodtypel1>(entity =>
+            {
+                entity.ToTable("goodtypel1");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Lasttime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("lasttime");
+
+                entity.Property(e => e.Lastuser).HasColumnName("lastuser");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("name");
+
+                entity.Property(e => e.Order).HasColumnName("order");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+            });
+
+            modelBuilder.Entity<Goodtypel2>(entity =>
+            {
+                entity.ToTable("goodtypel2");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Lasttime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("lasttime");
+
+                entity.Property(e => e.Lastuser).HasColumnName("lastuser");
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("name");
+
+                entity.Property(e => e.Order).HasColumnName("order");
+
+                entity.Property(e => e.Parentid).HasColumnName("parentid");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+            });
+
             modelBuilder.Entity<Message>(entity =>
             {
                 entity.ToTable("message");
@@ -1306,6 +1370,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Freightprice)
                     .HasPrecision(10, 2)
                     .HasColumnName("freightprice");
+
+                entity.Property(e => e.Goodtypel1id).HasColumnName("goodtypel1id");
+
+                entity.Property(e => e.Goodtypel2id).HasColumnName("goodtypel2id");
 
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")

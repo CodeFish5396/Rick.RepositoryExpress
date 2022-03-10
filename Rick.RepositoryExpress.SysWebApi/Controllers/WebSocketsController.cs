@@ -84,10 +84,14 @@ namespace WebSocketsTutorial.Controllers
 
         private async Task Echo(WebSocket webSocket, long userId, UserInfo userInfo)
         {
-            string RoleMenuFunctionInfosCache = _redisClientService.HashGet(ConstString.RickRoleMenuFunctionInfosKey, userInfo.Id.ToString());
-            List<RoleMenuFunctionInfo> roleMenuFunctionInfos = JsonConvert.DeserializeObject<List<RoleMenuFunctionInfo>>(RoleMenuFunctionInfosCache);
-            List<string> menus = (from menu in roleMenuFunctionInfos
-                                  select menu.Menuindex).Distinct().ToList();
+            List<string> menus = new List<string>();
+            if (!userInfo.IsDefaultRole)
+            {
+                string RoleMenuFunctionInfosCache = _redisClientService.HashGet(ConstString.RickRoleMenuFunctionInfosKey, userInfo.Id.ToString());
+                List<RoleMenuFunctionInfo> roleMenuFunctionInfos = JsonConvert.DeserializeObject<List<RoleMenuFunctionInfo>>(RoleMenuFunctionInfosCache);
+                menus = (from menu in roleMenuFunctionInfos
+                         select menu.Menuindex).Distinct().ToList();
+            }
             while (!webSocket.CloseStatus.HasValue)
             {
                 var messageconsumes = from messageconsume in _messageService.Query<Messageconsume>(t => t.Sysuser == userId)
@@ -95,7 +99,7 @@ namespace WebSocketsTutorial.Controllers
 
                 var messages = await (from message in _messageService.Query<Message>(t => true)
                                       where !messageconsumes.Contains(message.Id)
-                                      && menus.Contains(message.Index)
+                                      && (userInfo.IsDefaultRole || menus.Contains(message.Index))
                                       select message).ToListAsync();
 
                 foreach (var message in messages)
@@ -110,6 +114,8 @@ namespace WebSocketsTutorial.Controllers
                     messageconsume.Adduser = userId;
                     messageconsume.Messageid = message.Id;
                     await _messageService.AddAsync(messageconsume);
+                    _logger.Log(LogLevel.Information, "WebSocket Send Message");
+
                     await Task.Delay(1000 * 10);
                 }
                 await Task.Delay(1000 * 10);

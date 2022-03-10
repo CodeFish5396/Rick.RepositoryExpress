@@ -102,6 +102,8 @@ namespace Rick.RepositoryExpress.WebApi
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+            app.UseStaticFiles();
+
 
             app.Use(async (context, next) =>
             {
@@ -118,7 +120,6 @@ namespace Rick.RepositoryExpress.WebApi
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Demo v1");
             });
-            app.UseStaticFiles();
 
             app.UseRouting();
 

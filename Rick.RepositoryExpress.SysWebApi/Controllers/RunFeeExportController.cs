@@ -145,6 +145,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             {
                 book.Write(fileStream);
             }
+            book.Close();
+
             #endregion
             using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {

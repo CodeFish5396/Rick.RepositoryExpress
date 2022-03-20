@@ -16,5 +16,6 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public DateTime Lasttime { get; set; }
         public long Adduser { get; set; }
         public long Lastuser { get; set; }
+        public string Code { get; set; }
     }
 }

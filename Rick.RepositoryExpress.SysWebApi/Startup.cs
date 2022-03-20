@@ -153,7 +153,7 @@ namespace Rick.RepositoryExpress.SysWebApi
             app.UseStaticFiles();
             var webSocketOptions = new WebSocketOptions()
             {
-                KeepAliveInterval = TimeSpan.FromSeconds(60),
+                KeepAliveInterval = TimeSpan.FromSeconds(3600),
             };
 
             app.UseWebSockets(webSocketOptions);

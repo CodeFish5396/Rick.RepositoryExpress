@@ -72,6 +72,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Currencyid = accountcharge.Currencyid,
                             CurrencyName = tc == null ? string.Empty : tc.Name,
                             Amount = accountcharge.Amount,
+                            RemainAmount = accountcharge.Remainamount,
                             Status = accountcharge.Status,
                             Addtime = accountcharge.Addtime,
                             Paytype = accountcharge.Paytype
@@ -96,12 +97,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                  Amount = q.Amount,
                                  Status = q.Status,
                                  Addtime = q.Addtime,
-
+                                 RemainAmount = q.RemainAmount,
                                  FileId = image == null ? 0 : image.Fileinfoid
                              };
 
             var queryR = from r in (await queryGroup.ToListAsync())
-                         group r by new { r.Id, r.Userid, r.Username,r.Usercode,r.Usermobile ,r.Currencyid, r.CurrencyName, r.Amount, r.Status,r.Addtime,r.Paytype };
+                         group r by new { r.Id, r.Userid, r.Username,r.Usercode,r.Usermobile ,r.Currencyid, r.CurrencyName, r.Amount, r.RemainAmount, r.Status,r.Addtime,r.Paytype };
 
             UserAccountChargeResponseList userAccountResponseList = new UserAccountChargeResponseList();
             userAccountResponseList.List = new List<UserAccountChargeResponse>();
@@ -118,6 +119,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 userAccountChargeResponse.Currencyid = r.Key.Currencyid;
                 userAccountChargeResponse.CurrencyName = r.Key.CurrencyName;
                 userAccountChargeResponse.Amount = r.Key.Amount;
+                userAccountChargeResponse.RemainAmount = r.Key.RemainAmount;
                 userAccountChargeResponse.Addtime = r.Key.Addtime;
                 userAccountChargeResponse.Status = r.Key.Status;
                 userAccountChargeResponse.Paytype = r.Key.Paytype;
@@ -164,6 +166,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             appuseraccountcharge.Appuser = userAccountChargeRequest.Userid;
             appuseraccountcharge.Currencyid = userAccountChargeRequest.Currencyid;
             appuseraccountcharge.Amount = userAccountChargeRequest.Amount;
+            appuseraccountcharge.Remainamount = userAccountChargeRequest.Amount;
             appuseraccountcharge.Addtime = now;
             appuseraccountcharge.Paytype = userAccountChargeRequest.PayType;
             await _appuseraccountService.AddAsync(appuseraccountcharge);
@@ -221,6 +224,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             Appuseraccountcharge appuseraccountcharge = await _appuseraccountService.FindAsync<Appuseraccountcharge>(userAccountPatchRequest.Id); ;
             appuseraccountcharge.Status = 1;
             appuseraccountcharge.Amount = userAccountPatchRequest.Amount;
+            appuseraccountcharge.Remainamount = userAccountPatchRequest.Amount;
             appuseraccountcharge.Currencyid = userAccountPatchRequest.Currencyid;
             appuseraccountcharge.Accountid = account.Id;
             appuseraccountcharge.Paytype = userAccountPatchRequest.PayType;
@@ -267,6 +271,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Currencyid { get; set; }
             public string CurrencyName { get; set; }
             public decimal Amount { get; set; }
+            public decimal RemainAmount { get; set; }
             public int Paytype { get; set; }
 
             public DateTime Addtime { get; set; }

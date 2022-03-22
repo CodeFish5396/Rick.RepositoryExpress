@@ -16,5 +16,6 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public string Remark { get; set; }
         public long? Curencyid { get; set; }
         public long? Orderid { get; set; }
+        public long? Chargeid { get; set; }
     }
 }

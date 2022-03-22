@@ -48,15 +48,19 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="endTime"></param>
         /// <param name="status"></param>
         /// <param name="orderStatus"></param>
+        /// <param name="ispayed"></param>
+        /// <param name="isagentpayed"></param>
         /// <param name="sendUserName"></param>
         /// <param name="index"></param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<OrderApplyAccountResponseList>> Get([FromQuery] string code, [FromQuery] string userCode, [FromQuery] long? agentId, [FromQuery] string userMobile, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int? status, [FromQuery] int? orderStatus, [FromQuery] string sendUserName, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<OrderApplyAccountResponseList>> Get([FromQuery] string code, [FromQuery] string userCode, [FromQuery] long? agentId, [FromQuery] string userMobile, [FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] int? status, [FromQuery] int? orderStatus, [FromQuery] int? ispayed, [FromQuery] int? isagentpayed, [FromQuery] string sendUserName, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             var query = from order in _packageOrderApplyService.Query<Packageorderapply>(t => (!status.HasValue || t.Status == status)
                         && (!orderStatus.HasValue || t.Orderstatus == orderStatus)
+                        && (!ispayed.HasValue || t.Ispayed == ispayed)
+                        && (!isagentpayed.HasValue || t.Isagentpayed == isagentpayed)
                         && (t.Orderstatus == (int)OrderApplyStatus.待发货 || t.Orderstatus == (int)OrderApplyStatus.已发货 || t.Orderstatus == (int)OrderApplyStatus.已签收)
                         && (string.IsNullOrEmpty(code) || t.Code == code)
                         && (!startTime.HasValue || t.Sendtime >= startTime)
@@ -230,7 +234,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             {
                 if (packageorderapply.Orderstatus != (int)OrderApplyStatus.待发货 || packageorderapply.Ispayed == 1)
                 {
-                    RickWebResult.Error<object>(null, 996, "包裹状态不正确");
+                    return RickWebResult.Error<object>(null, 996, "包裹状态不正确");
                 }
                 Appuser appuser = await _packageOrderApplyService.FindAsync<Appuser>(packageorderapply.Appuser);
 

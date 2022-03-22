@@ -514,6 +514,10 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasColumnName("paytype")
                     .HasDefaultValueSql("'1'");
 
+                entity.Property(e => e.Remainamount)
+                    .HasPrecision(10, 2)
+                    .HasColumnName("remainamount");
+
                 entity.Property(e => e.Remark)
                     .HasMaxLength(500)
                     .HasColumnName("remark");
@@ -565,6 +569,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasColumnName("amount");
 
                 entity.Property(e => e.Appuser).HasColumnName("appuser");
+
+                entity.Property(e => e.Chargeid).HasColumnName("chargeid");
 
                 entity.Property(e => e.Curencyid).HasColumnName("curencyid");
 

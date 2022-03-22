@@ -35,8 +35,6 @@ namespace WebSocketsTutorial.Controllers
 
         public WebSocketsController(ILogger<WebSocketsController> logger, IMessageService messageService, IIdGeneratorService idGenerator, RedisClientService redisClientService)
         {
-            Console.WriteLine("WebSocketsController actived");
-
             _logger = logger;
             _messageService = messageService;
             _idGenerator = idGenerator;

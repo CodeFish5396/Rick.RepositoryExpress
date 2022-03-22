@@ -56,7 +56,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             //            select packageorderapply.Id;
             //homePageResponse.OrderCount = await queryOrderCount.CountAsync();
 
-            var queryErrorCount = from Packageorderapplyerror in _sysuserService.Query<Packageorderapplyerror>(t => t.Appuser == UserInfo.Id)
+            var queryErrorCount = from Packageorderapplyerror in _sysuserService.Query<Packageorderapplyerror>(t => t.Status == 1 && t.Appuser == UserInfo.Id)
                                   select Packageorderapplyerror.Id;
             homePageResponse.ErrorCount = await queryErrorCount.CountAsync();
 

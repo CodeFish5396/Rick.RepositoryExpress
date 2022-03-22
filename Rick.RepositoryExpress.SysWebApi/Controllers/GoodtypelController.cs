@@ -67,7 +67,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     Parentid = g2.Parentid,
                     Name = g2.Name,
                     Order = g2.Order,
-                    Addtime = g2.Addtime
+                    Addtime = g2.Addtime,
+                    Code = g2.Code
                 }).OrderBy(t => t.Order).ToList();
             }
 
@@ -88,6 +89,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Id { get; set; }
             public long Parentid { get; set; }
             public string Name { get; set; }
+            public string Code { get; set; }
             public int Order { get; set; }
             public DateTime Addtime { get; set; }
 

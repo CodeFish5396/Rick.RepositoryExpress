@@ -51,7 +51,6 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                         on expressclaim.Packageid equals package.Id
                         join courier in _expressclaimService.Query<Courier>(t => 1 == 1)
                         on expressinfo.Courierid equals courier.Id
-
                         select new RecivedClaimResponse()
                         {
                             Id = expressclaim.Id,

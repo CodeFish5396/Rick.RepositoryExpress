@@ -53,7 +53,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 string outNumber = packageorderapplyexpress.Outnumber;
                 if (outNumber.StartsWith("sf") || outNumber.StartsWith("SF"))
                 {
-                    outNumber += ":5128";
+                    outNumber += ":2092";
                 }
                 string expressStatus = await ExpressApiHelper.Get(outNumber, packageorderapplyexpress.Couriercode);
 

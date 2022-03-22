@@ -535,6 +535,18 @@
             <param name="pageSize"></param>
             <returns></returns>
         </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.InvoiceExportController">
+            <summary>
+            发票导出
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.InvoiceExportController.Get(System.Int64)">
+            <summary>
+            出货面单导出
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
         <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.NationController">
             <summary>
             国家
@@ -1291,6 +1303,18 @@
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.SysUserController.Patch(System.Int64)">
             <summary>
             重置密码
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Rick.RepositoryExpress.SysWebApi.Controllers.TagExportController">
+            <summary>
+            快递标签导出
+            </summary>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.TagExportController.Get(System.Int64)">
+            <summary>
+            快递标签导出
             </summary>
             <param name="id"></param>
             <returns></returns>

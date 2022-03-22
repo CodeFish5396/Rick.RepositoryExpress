@@ -1193,6 +1193,12 @@ namespace Rick.RepositoryExpress.DataBase.Models
 
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
+                entity.Property(e => e.Code)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("code")
+                    .HasDefaultValueSql("''");
+
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
                     .HasColumnName("lasttime");

@@ -85,9 +85,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     channelResponse.details.Add(channelResponsedetail);
                 }
                 ChannelResponses.Add(channelResponse);
-            }
-
-            
+            }            
 
             return RickWebResult.Success((IList<ChannelResponse>)ChannelResponses);
         }
@@ -172,29 +170,34 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             Channel channelOld = await _channelService.FindAsync<Channel>(t => t.Id == channelRequest.id);
             DateTime now = DateTime.Now;
-
-            channelOld.Status = 0;
+            channelOld.Name = channelRequest.Name;
+            channelOld.Unitprice = channelRequest.Unitprice;
+            channelOld.Status = 1;
             channelOld.Lasttime = now;
             channelOld.Lastuser = UserInfo.Id;
             await _channelService.UpdateAsync(channelOld);
 
-            Channel channel = new Channel();
-            channel.Id = _idGenerator.NextId();
-            channel.Name = channelRequest.Name;
-            channel.Unitprice = channelRequest.Unitprice;
-            channel.Status = 1;
-            channel.Addtime = now;
-            channel.Lasttime = now;
-            channel.Adduser = UserInfo.Id;
-            channel.Lastuser = UserInfo.Id;
+            var channeldetailes = await _channelService.QueryAsync<Channeldetail>(t => t.Channelid == channelOld.Id && t.Status == 1);
 
-            await _channelService.AddAsync(channel);
+            //找出删除的
+            var removedchanneldetailes = channeldetailes.Where(old => !channelRequest.details.Any(t => t.Nationid == old.Nationid && t.Agentid == old.Agentid)).ToList();
 
-            foreach (var detail in channelRequest.details)
+            foreach (var detail in removedchanneldetailes)
+            {
+                detail.Status = 0;
+                detail.Lasttime = now;
+                detail.Lastuser = UserInfo.Id;
+                await _channelService.UpdateAsync(detail);
+            }
+
+            //找出新的
+            var addedchanneldetailes = channelRequest.details.Where(newC => !channeldetailes.Any(t => t.Nationid == newC.Nationid && t.Agentid == newC.Agentid)).ToList();
+
+            foreach (var detail in addedchanneldetailes)
             {
                 Channeldetail channeldetail = new Channeldetail();
                 channeldetail.Id = _idGenerator.NextId();
-                channeldetail.Channelid = channel.Id;
+                channeldetail.Channelid = channelOld.Id;
                 channeldetail.Nationid = detail.Nationid;
                 channeldetail.Agentid = detail.Agentid;
                 channeldetail.Status = 1;
@@ -207,8 +210,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             await _channelService.CommitAsync();
             ChannelResponse channelResponse = new ChannelResponse();
-            channelResponse.Id = channel.Id;
-            channelResponse.Name = channel.Name;
+            channelResponse.Id = channelOld.Id;
+            channelResponse.Name = channelOld.Name;
             return RickWebResult.Success(channelResponse);
         }
 

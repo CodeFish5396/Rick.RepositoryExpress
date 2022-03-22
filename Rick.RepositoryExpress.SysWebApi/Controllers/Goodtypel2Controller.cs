@@ -60,7 +60,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Parentid = goodtypel1.Id,
                             Parentname = goodtypel1.Name,
                             Order = goodtypel2.Order,
-                            Addtime = goodtypel2.Addtime
+                            Addtime = goodtypel2.Addtime,
+                            Code = goodtypel2.Code
                         };
 
             Goodtypel2ResponseList goodtypel2ResponseList = new Goodtypel2ResponseList();
@@ -83,6 +84,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             goodtypel2.Id = _idGenerator.NextId();
             goodtypel2.Name = goodtypel2PostRequest.Name;
             goodtypel2.Order = goodtypel2PostRequest.Order;
+            goodtypel2.Code = goodtypel2PostRequest.Code;
             goodtypel2.Parentid = goodtypel2PostRequest.Parentid;
             goodtypel2.Status = 1;
             goodtypel2.Adduser = UserInfo.Id;
@@ -108,6 +110,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             Goodtypel2 goodtypel2 = await _repositoryService.FindAsync<Goodtypel2>(t => t.Id == goodtypel2PutRequest.Id);
             goodtypel2.Name = goodtypel2PutRequest.Name;
+            goodtypel2.Code = goodtypel2PutRequest.Code;
             goodtypel2.Lastuser = UserInfo.Id;
             DateTime now = DateTime.Now;
             goodtypel2.Lasttime = now;
@@ -143,13 +146,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Id { get; set; }
             public string Name { get; set; }
             public int Order { get; set; }
-
+            public string Code { get; set; }
         }
 
         public class Goodtypel2PostRequest
         {
             public long Parentid { get; set; }
             public string Name { get; set; }
+            public string Code { get; set; }
             public int Order { get; set; }
         }
         public class Goodtypel2Response
@@ -158,6 +162,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Parentid { get; set; }
             public string Parentname { get; set; }
             public string Name { get; set; }
+            public string Code { get; set; }
             public int Order { get; set; }
             public DateTime Addtime { get; set; }
 

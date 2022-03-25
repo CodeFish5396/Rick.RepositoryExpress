@@ -68,7 +68,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                 Remark = expressclaim.Remark,
                                 Count = expressclaim.Count,
                                 Status = expressclaim.Status,
-                                Addtime = expressclaim.Addtime
+                                Addtime = expressclaim.Addtime,
+                                Cansendasap = expressclaim.Cansendasap,
+                                Hasbattery = expressclaim.Hasbattery
                             };
             expressclaimResponseList.Count = await mainQuery.CountAsync();
             expressclaimResponseList.List = await mainQuery.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -120,6 +122,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public int Status { get; set; }
             public DateTime Addtime { get; set; }
             public List<ExpressclaimResponseDetail> Detail { get; set; }
+            public sbyte Cansendasap { get; set; }
+            public sbyte Hasbattery { get; set; }
+
         }
         public class ExpressclaimResponseDetail
         {

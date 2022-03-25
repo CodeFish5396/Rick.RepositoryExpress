@@ -101,7 +101,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     await _channelService.AddAsync(channeltype);
                 }
             }
-
+            var oldChannelWorkday = await _channelService.QueryAsync<Channelworkday>(cw => cw.Channelid == channel.Id);
+            foreach (var olW in oldChannelWorkday)
+            {
+                await _channelService.DeleteAsync<Channelworkday>(olW.Id);
+            }
+            {
+                Channelworkday channelworkday = new Channelworkday();
+                channelworkday.Id = _idGenerator.NextId();
+                channelworkday.Channelid = channel.Id;
+                channelworkday.Workday = channeldescriptionPostRequest.Workday;
+                await _channelService.AddAsync(channelworkday);
+            }
 
             await _channelService.CommitAsync();
             return RickWebResult.Success(new object());
@@ -123,6 +134,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             var channeldescriptions = await _channelService.QueryAsync<Channeldescription>(cd => cd.Channelid == channel.Id);
             var channelLimits = await _channelService.QueryAsync<Channellimit>(cd => cd.Channelid == channel.Id);
             var Channeltypes = await _channelService.QueryAsync<Channeltype>(cd => cd.Channelid == channel.Id);
+            var channelDays = await _channelService.QueryAsync<Channelworkday>(cw => cw.Channelid == id);
+
             channeldescriptionGetResponse.Descriptions = channeldescriptions.Select(t => new ChanneldescriptionDetailGetResponse()
             {
                 Description = t.Description,
@@ -142,6 +155,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 Name = ctype,
                 Ischecked = Channeltypes.Any(t=>t.Name == ctype)
             }).ToList();
+            channeldescriptionGetResponse.Workday = channelDays.SingleOrDefault()?.Workday;
 
             return RickWebResult.Success(channeldescriptionGetResponse);
         }
@@ -149,6 +163,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public class ChanneldescriptionGetResponse
         {
             public long Id { get; set; }
+            public string Workday { get; set; }
             public List<ChanneldescriptionDetailGetResponse> Descriptions { get; set; }
             public List<ChannellimitGetResponse> Limits { get; set; }
             public List<ChanneltypeGetRequest> Types { get; set; }
@@ -175,7 +190,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public class ChanneldescriptionPostRequest
         {
             public long Id { get; set; }
-
+            public string Workday { get; set; }
             public List<ChanneldescriptionPostDetailRequest> Descriptions { get; set; }
             public List<ChannellimitPostRequest> Limits { get; set; }
             public List<ChanneltypePostRequest> Types { get; set; }

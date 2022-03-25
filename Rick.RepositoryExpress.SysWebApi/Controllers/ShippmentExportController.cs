@@ -193,7 +193,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 cell1i8.SetCellValue(currentIndex + 1);
 
                 ICell cell1i9 = sheet.GetRow(i).GetCell(10);
-                cell1i9.SetCellValue(shippmentResponse.Boxes[currentIndex].Length + "*" + shippmentResponse.Boxes[currentIndex].Width + "*" + shippmentResponse.Boxes[currentIndex].Height);
+                cell1i9.SetCellValue(Math.Ceiling(shippmentResponse.Boxes[currentIndex].Length).ToString("f0") + "*" + Math.Ceiling(shippmentResponse.Boxes[currentIndex].Width).ToString("f0") + "*" + Math.Ceiling(shippmentResponse.Boxes[currentIndex].Height).ToString("f0"));
 
                 ICell cell1i12 = sheet.GetRow(i).GetCell(13);
                 cell1i12.SetCellValue((double)shippmentResponse.Boxes[currentIndex].Volumeweight);

@@ -233,20 +233,25 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             //
             int startIndex = 20;
             int endIndex = 25;
-
+            int currentIndex = 0;
             int calEndIndex = startIndex + invoiceResponse.Boxes.Count - 1;
             endIndex = calEndIndex <= endIndex ? calEndIndex : endIndex;
             for (int i = startIndex; i <= endIndex; i++)
             {
                 ICell cell1i0 = sheet.GetRow(i).GetCell(0);
-                cell1i0.SetCellValue(invoiceResponse.Boxes[i].Goodtype2name);
+                cell1i0.SetCellValue(invoiceResponse.Boxes[currentIndex].Goodtype2name);
 
                 ICell cell1i2 = sheet.GetRow(i).GetCell(2);
-                cell1i2.SetCellValue(invoiceResponse.Boxes[i].PackageCount);
+                cell1i2.SetCellValue(invoiceResponse.Boxes[currentIndex].PackageCount);
 
                 ICell cell1i3 = sheet.GetRow(i).GetCell(3);
-                cell1i3.SetCellValue(invoiceResponse.Boxes[i].Goodtype2code);
+                cell1i3.SetCellValue(invoiceResponse.Boxes[currentIndex].Goodtype2code);
+                currentIndex++;
             }
+
+            //日期
+            ICell cell1286 = sheet.GetRow(28).GetCell(6);
+            cell1286.SetCellValue(DateTime.Now.ToString("yyyy-MM-dd"));
 
             #endregion
             using (var fileStream = new FileStream(tempFile, FileMode.Create))

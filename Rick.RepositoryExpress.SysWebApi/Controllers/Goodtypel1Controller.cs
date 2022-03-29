@@ -55,6 +55,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         {
                             Id = goodtypel1.Id,
                             Name = goodtypel1.Name,
+                            Foreignname = goodtypel1.Foreignname,
+                            Code = goodtypel1.Code,
                             Order = goodtypel1.Order,
                             Addtime = goodtypel1.Addtime
                         };
@@ -78,6 +80,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             Goodtypel1 goodtypel1 = new Goodtypel1();
             goodtypel1.Id = _idGenerator.NextId();
             goodtypel1.Name = goodtypel1PostRequest.Name;
+            goodtypel1.Code = goodtypel1PostRequest.Code;
+            goodtypel1.Foreignname = goodtypel1PostRequest.Foreignname;
             goodtypel1.Order = goodtypel1PostRequest.Order;
             goodtypel1.Status = 1;
             goodtypel1.Adduser = UserInfo.Id;
@@ -103,6 +107,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             Goodtypel1 goodtypel1 = await _repositoryService.FindAsync<Goodtypel1>(t => t.Id == goodtypel1PutRequest.Id);
             goodtypel1.Name = goodtypel1PutRequest.Name;
+            goodtypel1.Code = goodtypel1PutRequest.Code;
+            goodtypel1.Foreignname = goodtypel1PutRequest.Foreignname;
             goodtypel1.Lastuser = UserInfo.Id;
             DateTime now = DateTime.Now;
             goodtypel1.Lasttime = now;
@@ -137,19 +143,25 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             public long Id { get; set; }
             public string Name { get; set; }
-            public int Order { get; set; }
+            public string Foreignname { get; set; }
 
+            public string Code { get; set; }
+            public int Order { get; set; }
         }
 
         public class Goodtypel1PostRequest
         {
             public string Name { get; set; }
+            public string Foreignname { get; set; }
+            public string Code { get; set; }
             public int Order { get; set; }
         }
         public class Goodtypel1Response
         {
             public long Id { get; set; }
             public string Name { get; set; }
+            public string Foreignname { get; set; }
+            public string Code { get; set; }
             public int Order { get; set; }
             public DateTime Addtime { get; set; }
 

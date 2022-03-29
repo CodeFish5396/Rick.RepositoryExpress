@@ -76,12 +76,31 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 {
                     Id = log.Id,
                     Type = log.Type,
+                    Adduserid = log.Adduser,
                     Remark = log.Remark,
                     Addtime = log.Addtime
-                }).OrderByDescending(T=>T.Id).ToList();
+                }).OrderByDescending(T => T.Id).ToList();
                 orderErrorResponseList.Count = orderErrorResponseList.List.Count;
-
+                if (orderErrorResponseList.List != null && orderErrorResponseList.List.Count > 0)
+                {
+                    var appuserIds = orderErrorResponseList.List.Where(t => t.Type == 2).Select(t => t.Adduserid);
+                    var sysuserIds = orderErrorResponseList.List.Where(t => t.Type == 1).Select(t => t.Adduserid);
+                    var appusers = await _packageOrderApplyService.Query<Appuser>(t => appuserIds.Contains(t.Id)).ToListAsync();
+                    var sysusers = await _packageOrderApplyService.Query<Sysuser>(t => sysuserIds.Contains(t.Id)).ToListAsync();
+                    foreach (OrderErrorResponse orderErrorResponse in orderErrorResponseList.List)
+                    {
+                        if (orderErrorResponse.Type == 1)
+                        {
+                            orderErrorResponse.Addusername = "经手人:" + sysusers.Single(t => t.Id == orderErrorResponse.Adduserid).Name;
+                        }
+                        else if (orderErrorResponse.Type == 2)
+                        {
+                            orderErrorResponse.Addusername = "用户:" + appusers.Single(t => t.Id == orderErrorResponse.Adduserid).Usercode;
+                        }
+                    }
+                }
             }
+
 
             return RickWebResult.Success(orderErrorResponseList);
         }
@@ -214,10 +233,13 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public bool Isclosed { get; set; }
 
         }
+
         public class OrderErrorResponse
         {
             public long Id { get; set; }
             public int Type { get; set; }
+            public long Adduserid { get; set; }
+            public string Addusername { get; set; }
             public string Remark { get; set; }
             public DateTime Addtime { get; set; }
         }
@@ -233,7 +255,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public int Status { get; set; }
             public string Remark { get; set; }
             public string Endremark { get; set; }
-
             public decimal Price { get; set; }
             public int Count { get; set; }
             public List<OrderErrorResponse> List { get; set; }

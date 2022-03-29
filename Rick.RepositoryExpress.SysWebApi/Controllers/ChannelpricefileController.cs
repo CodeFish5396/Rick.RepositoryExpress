@@ -70,6 +70,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 byte[] buffer = new byte[fi.Length];
                 await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fi.Length));
                 FileContentResult fileContentResult = new FileContentResult(buffer, @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                fileContentResult.FileDownloadName = "阶梯价.xlsx";
                 return fileContentResult;
             }
         }

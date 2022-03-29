@@ -33,7 +33,6 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
         }
-        
 
         /// <summary>
         /// 包裹预报
@@ -70,6 +69,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             expressclaim.Remark = expressclaimRequest.Remark;
             expressclaim.Count = expressclaimRequest.Count;
             expressclaim.Cansendasap = expressclaimRequest.Cansendasap;
+            expressclaim.Hasbattery = expressclaimRequest.Hasbattery;
             expressclaim.Status = (int)ExpressClaimStatus.预报;
             expressclaim.Adduser = UserInfo.Id;
             expressclaim.Lastuser = UserInfo.Id;
@@ -164,14 +164,15 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         /// </summary>
         /// <param name="index"></param>
         /// <param name="pageSize"></param>
+        /// <param name="status"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<ExpressclaimResponseList>> Get([FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<ExpressclaimResponseList>> Get([FromQuery] int? status, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             await _expressclaimService.BeginTransactionAsync();
             ExpressclaimResponseList expressclaimResponseList = new ExpressclaimResponseList();
 
-            var expressclaims = from claim in _expressclaimService.Query<Expressclaim>(t => t.Appuser == UserInfo.Id && t.Status != 0)
+            var expressclaims = from claim in _expressclaimService.Query<Expressclaim>(t => t.Appuser == UserInfo.Id && t.Status != 0 && (!status.HasValue  || status == 0 || t.Status == status))
                                 join expressinfo in _expressclaimService.Query<Expressinfo>(t => t.Status == 1)
                                 on claim.Expressinfoid equals expressinfo.Id
                                 orderby claim.Id descending
@@ -352,6 +353,8 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public string Remark { get; set; }
             public int Count { get; set; }
             public sbyte Cansendasap { get; set; }
+            public sbyte Hasbattery { get; set; }
+
             public List<ExpressclaimdetailRequest> details { get; set; }
         }
         public class ExpressclaimPutRequest

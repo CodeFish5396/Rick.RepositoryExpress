@@ -36,12 +36,13 @@
             <param name="expressclaimPutRequest"></param>
             <returns></returns>
         </member>
-        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.ClaimController.Get(System.Int32,System.Int32)">
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.ClaimController.Get(System.Nullable{System.Int32},System.Int32,System.Int32)">
             <summary>
             查询包裹预报
             </summary>
             <param name="index"></param>
             <param name="pageSize"></param>
+            <param name="status"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.CourierController.Get(System.Nullable{System.Int32})">

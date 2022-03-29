@@ -48,6 +48,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                         {
                             Id = goodtypel1.Id,
                             Name = goodtypel1.Name,
+                            Foreignname = goodtypel1.Foreignname,
+                            Code = goodtypel1.Code,
                             Order = goodtypel1.Order,
                             Addtime = goodtypel1.Addtime
                         };
@@ -79,6 +81,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             public long Id { get; set; }
             public string Name { get; set; }
+            public string Foreignname { get; set; }
+            public string Code { get; set; }
             public int Order { get; set; }
             public DateTime Addtime { get; set; }
             public IList<GoodtypelDetailResponse> List { get; set; }

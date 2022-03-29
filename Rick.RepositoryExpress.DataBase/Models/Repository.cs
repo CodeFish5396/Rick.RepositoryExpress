@@ -19,5 +19,9 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public DateTime Addtime { get; set; }
         public long Lastuser { get; set; }
         public DateTime Lasttime { get; set; }
+        public string Foreignrecivername { get; set; }
+        public string Foreignrecivermobil { get; set; }
+        public string Foreignregion { get; set; }
+        public string Foreignaddress { get; set; }
     }
 }

@@ -34,44 +34,90 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             _idGenerator = idGenerator;
             _redisClientService = redisClientService;
         }
-
-        [AllowAnonymous]
+        /// <summary>
+        /// 获取类型列表
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<object>> Get()
+        public async Task<RickWebResult<List<string>>> Get()
         {
-            List<string> types = new List<string>();
-            types.Add("Led灯具");
-            types.Add("内置电池");
-            types.Add("内衣");
-            types.Add("家居用品");
-            types.Add("少儿读物");
-            types.Add("布料");
-            types.Add("帽子");
-            types.Add("服装配饰");
-            types.Add("服饰");
-            types.Add("衣服");
-            types.Add("饰品");
-            types.Add("保健用品");
-            types.Add("化妆品");
-            types.Add("口罩");
-            types.Add("品牌/仿牌");
-            types.Add("平衡滑板车");
-            types.Add("手机");
-            types.Add("洗手液");
-            types.Add("液体/粉末");
-            types.Add("电子烟");
-            types.Add("磁性/马达");
-            types.Add("移动电源");
-            types.Add("纯电池");
-            types.Add("膏状化妆品");
-            types.Add("配套电池");
-            types.Add("防疫物资");
-            types.Add("面膜");
-            types.Add("食品干货");
-            _redisClientService.StringSet("ChannelTypes",string.Join(",", types));
-
-            return RickWebResult.Success(new object());
+            //List<string> types = new List<string>();
+            //types.Add("Led灯具");
+            //types.Add("内置电池");
+            //types.Add("内衣");
+            //types.Add("家居用品");
+            //types.Add("少儿读物");
+            //types.Add("布料");
+            //types.Add("帽子");
+            //types.Add("服装配饰");
+            //types.Add("服饰");
+            //types.Add("衣服");
+            //types.Add("饰品");
+            //types.Add("保健用品");
+            //types.Add("化妆品");
+            //types.Add("口罩");
+            //types.Add("品牌/仿牌");
+            //types.Add("平衡滑板车");
+            //types.Add("手机");
+            //types.Add("洗手液");
+            //types.Add("液体/粉末");
+            //types.Add("电子烟");
+            //types.Add("磁性/马达");
+            //types.Add("移动电源");
+            //types.Add("纯电池");
+            //types.Add("膏状化妆品");
+            //types.Add("配套电池");
+            //types.Add("防疫物资");
+            //types.Add("面膜");
+            //types.Add("食品干货");
+            var redisString = _redisClientService.StringGet("ChannelTypes");
+            var redisStringArray = redisString.Split(',');
+            List<string> types = redisStringArray.ToList();
+            return RickWebResult.Success(types);
         }
-        
+        /// <summary>
+        /// 删除类型
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<RickWebResult<List<string>>> Delete([FromQuery]string name)
+        {
+            var redisString = _redisClientService.StringGet("ChannelTypes");
+            var redisStringArray = redisString.Split(',');
+            List<string> types = redisStringArray.ToList();
+            if (types.Contains(name))
+            {
+                types.Remove(name);
+
+                _redisClientService.StringSet("ChannelTypes", string.Join(',',types));
+            }
+            return RickWebResult.Success(types);
+        }
+        /// <summary>
+        /// 添加类型
+        /// </summary>
+        /// <param name="channeltypePostRequest"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<RickWebResult<List<string>>> Post([FromBody] ChanneltypePostReRequest channeltypePostRequest)
+        {
+            var redisString = _redisClientService.StringGet("ChannelTypes");
+            var redisStringArray = redisString.Split(',');
+            List<string> types = redisStringArray.ToList();
+            if (!types.Contains(channeltypePostRequest.name))
+            {
+                types.Add(channeltypePostRequest.name);
+                _redisClientService.StringSet("ChannelTypes", string.Join(',', types));
+            }
+
+            return RickWebResult.Success(types);
+
+        }
+
+        public class ChanneltypePostReRequest
+        { 
+            public string name { get; set; }
+        }
     }
 }

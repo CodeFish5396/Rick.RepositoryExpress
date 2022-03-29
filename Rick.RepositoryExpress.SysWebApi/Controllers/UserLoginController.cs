@@ -149,23 +149,20 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <summary>
         /// 修改密码
         /// </summary>
-        /// <param name="username"></param>
-        /// <param name="oldpassword"></param>
-        /// <param name="newpassword"></param>
-        /// <param name="companyId"></param>
+        /// <param name="userLoginPutRequest"></param>
         /// <returns></returns>
         [HttpPut]
         [AllowAnonymous]
-        public async Task<RickWebResult<object>> Put([FromQuery] string username, [FromQuery] string oldpassword, [FromQuery] string newpassword, [FromQuery] long companyId = 15464799164941312)
+        public async Task<RickWebResult<object>> Put([FromBody] UserLoginPutRequest userLoginPutRequest)
         {
-            Sysuser sysuser = await _sysuserService.FindAsync<Sysuser>(t => t.Name == username && t.Password == oldpassword.ToUpper() && t.Status == 1);
+            Sysuser sysuser = await _sysuserService.FindAsync<Sysuser>(t => t.Name == userLoginPutRequest.Username && t.Password == userLoginPutRequest.Oldpassword.ToUpper() && t.Status == 1);
             if (sysuser == null)
             {
                 return RickWebResult.Error(new object(), 996, "用户名或密码错误");
             }
             else
             {
-                sysuser.Password = newpassword;
+                sysuser.Password = userLoginPutRequest.Newpassword.ToUpper();
                 sysuser.Lasttime = DateTime.Now;
                 await _sysuserService.UpdateAsync(sysuser);
                 return RickWebResult.Success(new object());
@@ -178,6 +175,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public string Name { get; set; }
         public string PassWord { get; set; }
     }
+
+    public class UserLoginPutRequest
+    {
+        public string Username { get; set; }
+        public string Oldpassword { get; set; }
+        public string Newpassword { get; set; }
+    }
+
 
     public class UserLoginResult
     {

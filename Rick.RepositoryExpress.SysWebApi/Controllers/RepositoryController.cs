@@ -61,7 +61,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 Recivermobil = repository.Recivermobil,
                 Region = repository.Region,
                 Address = repository.Address,
-                Status = repository.Status
+                Status = repository.Status,
+                Foreignrecivername = repository.Foreignrecivername,
+                Foreignrecivermobil = repository.Foreignrecivermobil,
+                Foreignregion = repository.Foreignregion,
+                Foreignaddress = repository.Foreignaddress
             }).ToList();
             var repositortIds = repositoryResponceList.List.Select(t => t.Id).ToList();
             var regions = await _repositoryService.QueryAsync<Repositoryregion>(t => t.Status == 1 && repositortIds.Contains(t.Repositoryid));
@@ -129,6 +133,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             repository.Recivermobil = repositoryRequest.Recivermobil;
             repository.Region = repositoryRequest.Region;
             repository.Address = repositoryRequest.Address;
+            repository.Foreignrecivername = repositoryRequest.Foreignrecivername;
+            repository.Foreignrecivermobil = repositoryRequest.Foreignrecivermobil;
+            repository.Foreignregion = repositoryRequest.Foreignregion;
+            repository.Foreignaddress = repositoryRequest.Foreignaddress;
+
             repository.Status = 1;
             repository.Adduser = UserInfo.Id;
             repository.Lastuser = UserInfo.Id;
@@ -164,6 +173,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             repository.Recivermobil = repositoryPutRequest.Recivermobil;
             repository.Region = repositoryPutRequest.Region;
             repository.Address = repositoryPutRequest.Address;
+            repository.Foreignrecivername = repositoryPutRequest.Foreignrecivername;
+            repository.Foreignrecivermobil = repositoryPutRequest.Foreignrecivermobil;
+            repository.Foreignregion = repositoryPutRequest.Foreignregion;
+            repository.Foreignaddress = repositoryPutRequest.Foreignaddress;
+
             repository.Status = repositoryPutRequest.Status;
             repository.Lastuser = UserInfo.Id;
             DateTime now = DateTime.Now;
@@ -216,6 +230,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Recivermobil { get; set; }
             public string Region { get; set; }
             public string Address { get; set; }
+            public string Foreignrecivername { get; set; }
+            public string Foreignrecivermobil { get; set; }
+            public string Foreignregion { get; set; }
+            public string Foreignaddress { get; set; }
+
             public int Status { get; set; }
 
         }
@@ -227,6 +246,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Recivermobil { get; set; }
             public string Region { get; set; }
             public string Address { get; set; }
+            public string Foreignrecivername { get; set; }
+            public string Foreignrecivermobil { get; set; }
+            public string Foreignregion { get; set; }
+            public string Foreignaddress { get; set; }
+
         }
         public class RepositoryResponce
         {
@@ -236,6 +260,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Recivermobil { get; set; }
             public string Region { get; set; }
             public string Address { get; set; }
+            public string Foreignrecivername { get; set; }
+            public string Foreignrecivermobil { get; set; }
+            public string Foreignregion { get; set; }
+            public string Foreignaddress { get; set; }
+
             public int Status { get; set; }
             public List<RepositoryRegionResponse> Regions { get; set; }
 

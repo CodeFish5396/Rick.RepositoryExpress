@@ -53,9 +53,10 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             orderErrorResponseList.Count = await query.CountAsync();
             var results = await query.OrderByDescending(t => t.Id).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
             orderErrorResponseList.List = new List<OrderErrorResponse>();
+            var appuserIds = new List<long>();
+            var sysuserIds = new List<long>();
             foreach (Packageorderapply packageorderapply in results)
             {
-
                 Packageorderapplyerror packageorderapplyerror = await _packageOrderApplyService.Query<Packageorderapplyerror>(error => error.Packageorderapplyid == packageorderapply.Id).OrderByDescending(t => t.Id).FirstAsync();
                 OrderErrorResponse orderErrorResponse = new OrderErrorResponse();
                 orderErrorResponse.Code = packageorderapply.Code;
@@ -74,6 +75,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     {
                         Id = log.Id,
                         Type = log.Type,
+                        Adduserid = log.Adduser,
                         Remark = log.Remark,
                         Addtime = log.Addtime
                     }).ToList();
@@ -90,9 +92,29 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     Nation nation = await _packageOrderApplyService.FindAsync<Nation>(appuseraddress.Nationid);
                     orderErrorResponse.Address = string.Format("{0}{1}{2}", nation != null ? nation.Name : string.Empty, appuseraddress.Region, appuseraddress.Address);
                 }
+                appuserIds.AddRange(orderErrorResponse.List.Where(t=>t.Type == 2).Select(t=>t.Adduserid));
+                sysuserIds.AddRange(orderErrorResponse.List.Where(t => t.Type == 1).Select(t => t.Adduserid));
                 orderErrorResponseList.List.Add(orderErrorResponse);
-
             }
+            appuserIds = appuserIds.Distinct().ToList();
+            sysuserIds = sysuserIds.Distinct().ToList();
+            var appusers = await _packageOrderApplyService.Query<Appuser>(t => appuserIds.Contains(t.Id)).ToListAsync();
+            var sysusers = await _packageOrderApplyService.Query<Sysuser>(t => sysuserIds.Contains(t.Id)).ToListAsync();
+            foreach (var item in orderErrorResponseList.List)
+            {
+                foreach (var orderErrorResponse in item.List)
+                {
+                    if (orderErrorResponse.Type == 1)
+                    {
+                        orderErrorResponse.Addusername = "经手人:" + sysusers.Single(t => t.Id == orderErrorResponse.Adduserid).Name;
+                    }
+                    else if (orderErrorResponse.Type == 2)
+                    {
+                        orderErrorResponse.Addusername = "用户:" + appusers.Single(t => t.Id == orderErrorResponse.Adduserid).Usercode;
+                    }
+                }
+            }
+
             return RickWebResult.Success(orderErrorResponseList);
         }
 
@@ -211,6 +233,9 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public long Id { get; set; }
             public int Type { get; set; }
             public string Remark { get; set; }
+            public long Adduserid { get; set; }
+            public string Addusername { get; set; }
+
             public DateTime Addtime { get; set; }
         }
 

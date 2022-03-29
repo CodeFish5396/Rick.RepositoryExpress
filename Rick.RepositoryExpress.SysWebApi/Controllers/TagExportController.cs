@@ -63,10 +63,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// 快递标签导出
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="index"></param>
         /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<FileContentResult> Get([FromQuery] long id)
+        public async Task<FileContentResult> Get([FromQuery] long id, [FromQuery] int index)
         {
             //1 查询订单
             await _packageOrderApplyService.BeginTransactionAsync();
@@ -121,32 +122,28 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             #region 写入Sheet
             ISheet sheet = book.GetSheetAt(0);
 
-            //收货人
-            ICell cell62 = sheet.GetRow(6).GetCell(2);
-            cell62.SetCellValue(tagResponse.Recievername);
-
-            //详细地址
+            //地址
             ICell cell71 = sheet.GetRow(7).GetCell(1);
-            cell71.SetCellValue(tagResponse.Recieveraddress);
-
-            //手机号
-            ICell cell112 = sheet.GetRow(11).GetCell(2);
-            cell112.SetCellValue(tagResponse.Recievermobile);
+            cell71.SetCellValue("地址：" + tagResponse.Recievercountryname + tagResponse.Recieveraddress);
 
             //国家
-            ICell cell122 = sheet.GetRow(12).GetCell(2);
-            cell122.SetCellValue(tagResponse.Recievercountryname);
+            ICell cell102 = sheet.GetRow(10).GetCell(2);
+            cell102.SetCellValue(tagResponse.Recievercountryname);
+
+            //件数
+            ICell cell112 = sheet.GetRow(11).GetCell(2);
+            cell112.SetCellValue(index + "\\" + tagResponse.Boxcount);
 
             //内单号
-            ICell cell131 = sheet.GetRow(13).GetCell(1);
-            cell131.SetCellValue(tagResponse.Ordercode);
+            ICell cell121 = sheet.GetRow(12).GetCell(1);
+            cell121.SetCellValue(tagResponse.Ordercode);
 
             //内单条码 
             byte[] bcImage = BarCodeHelper.GetBarCode(tagResponse.Ordercode.Substring(2));
             int pictureIdx = book.AddPicture(bcImage, PictureType.JPEG);
             IDrawing patriarch = sheet.CreateDrawingPatriarch();
             // 插图片的位置  HSSFClientAnchor（dx1,dy1,dx2,dy2,col1,row1,col2,row2) 后面再作解释
-            IClientAnchor anchor = patriarch.CreateAnchor(0, 0, 0, 0, 1, 14, 7, 16);
+            IClientAnchor anchor = patriarch.CreateAnchor(0, 0, 0, 0, 1, 13, 7, 16);
             //把图片插到相应的位置
             IPicture pict = patriarch.CreatePicture(anchor, pictureIdx);
 
@@ -156,7 +153,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             //客户编码
             ICell cell171 = sheet.GetRow(17).GetCell(1);
-            cell171.SetCellValue("客户内部编码:" + tagResponse.Appusercode);
+            cell171.SetCellValue("客户代码:" + tagResponse.Appusercode);
+
+            //是否带电
+            ICell cell164 = sheet.GetRow(16).GetCell(4);
+            cell164.SetCellValue(tagResponse.Hasbattery ? "带电" : "不带电");
 
             #endregion
             using (var fileStream = new FileStream(tempFile, FileMode.Create))
@@ -169,7 +170,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             {
                 byte[] buffer = new byte[fileStream.Length];
                 await fileStream.ReadAsync(buffer, 0, Convert.ToInt32(fileStream.Length));
-
                 FileContentResult fileContentResult = new FileContentResult(buffer, @"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 return fileContentResult;
             }

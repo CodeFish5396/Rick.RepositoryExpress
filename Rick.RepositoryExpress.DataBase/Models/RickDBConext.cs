@@ -37,6 +37,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Channellimit> Channellimits { get; set; }
         public virtual DbSet<Channelprice> Channelprices { get; set; }
         public virtual DbSet<Channeltype> Channeltypes { get; set; }
+        public virtual DbSet<Channelworkday> Channelworkdays { get; set; }
         public virtual DbSet<Courier> Couriers { get; set; }
         public virtual DbSet<Currency> Currencies { get; set; }
         public virtual DbSet<Currencychangerate> Currencychangerates { get; set; }
@@ -806,6 +807,22 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasColumnName("name");
             });
 
+            modelBuilder.Entity<Channelworkday>(entity =>
+            {
+                entity.ToTable("channelworkday");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Channelid).HasColumnName("channelid");
+
+                entity.Property(e => e.Workday)
+                    .IsRequired()
+                    .HasMaxLength(500)
+                    .HasColumnName("workday");
+            });
+
             modelBuilder.Entity<Courier>(entity =>
             {
                 entity.ToTable("courier");
@@ -955,6 +972,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.Expressinfoid).HasColumnName("expressinfoid");
+
+                entity.Property(e => e.Hasbattery).HasColumnName("hasbattery");
 
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
@@ -1168,6 +1187,17 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasColumnName("addtime");
 
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Code)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("code")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Foreignname)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("foreignname");
 
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")
@@ -1443,11 +1473,11 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasComment("0:已删除 1：正常 2：已出库");
 
                 entity.Property(e => e.Volume)
-                    .HasPrecision(10)
+                    .HasPrecision(10, 2)
                     .HasColumnName("volume");
 
                 entity.Property(e => e.Weight)
-                    .HasPrecision(10)
+                    .HasPrecision(10, 2)
                     .HasColumnName("weight");
             });
 
@@ -2184,6 +2214,30 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Adduser).HasColumnName("adduser");
 
                 entity.Property(e => e.Companyid).HasColumnName("companyid");
+
+                entity.Property(e => e.Foreignaddress)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("foreignaddress")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Foreignrecivermobil)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("foreignrecivermobil")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Foreignrecivername)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("foreignrecivername")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.Foreignregion)
+                    .IsRequired()
+                    .HasMaxLength(45)
+                    .HasColumnName("foreignregion")
+                    .HasDefaultValueSql("''");
 
                 entity.Property(e => e.Lasttime)
                     .HasColumnType("datetime")

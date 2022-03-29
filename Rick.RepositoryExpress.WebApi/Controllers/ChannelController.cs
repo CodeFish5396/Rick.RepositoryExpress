@@ -66,6 +66,8 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
 
             var channelTypes = _redisClientService.StringGet("ChannelTypes").Split(",");
 
+            var channelDays = await _channelService.QueryAsync<Channelworkday>(cd => chaneelIds.Contains(cd.Channelid));
+
             foreach (ChannelResponse channelResponse in result)
             {
                 channelResponse.Pricedetails = (from channelPrice in channelPrices
@@ -102,7 +104,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                     Ischecked = Channeltypes.Any(t => t.Name == ctype && t.Channelid == channelResponse.Id)
                 }).ToList();
 
-
+                channelResponse.Workday = channelDays.SingleOrDefault(t => t.Channelid == channelResponse.Id)?.Workday;
             }
 
             return RickWebResult.Success(result);
@@ -117,6 +119,7 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         {
             public long Id { get; set; }
             public string Name { get; set; }
+            public string Workday { get; set; }
             public decimal Unitprice { get; set; }
             public List<ChannelResponsepricedetail> Pricedetails { get; set; }
             public List<ChanneldescriptionResponse> Descriptions { get; set; }

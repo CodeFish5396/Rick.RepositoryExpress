@@ -221,8 +221,16 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             //把图片插到相应的位置
             IPicture pict = patriarch.CreatePicture(anchor, pictureIdx);
 
-            //ICell cell232 = sheet.GetRow(23).GetCell(2);
-            //cell232.SetCellValue(shippmentResponse.Ordercode);
+            //内单条码 TO-DO  
+            byte[] bcImageTitle = BarCodeHelper.GetBarCode(shippmentResponse.Ordercode.Substring(2));
+            int pictureIdxTitle = book.AddPicture(bcImageTitle, PictureType.JPEG);
+            IDrawing patriarchTitle = sheet.CreateDrawingPatriarch();
+            // 插图片的位置  HSSFClientAnchor（dx1,dy1,dx2,dy2,col1,row1,col2,row2) 后面再作解释
+            IClientAnchor anchorTitle = patriarchTitle.CreateAnchor(0, 0, 0, 0, 5, 2, 8, 6);
+            //把图片插到相应的位置
+            IPicture pictTitle = patriarchTitle.CreatePicture(anchorTitle, pictureIdxTitle);
+
+
             //发货渠道
             ICell cell236 = sheet.GetRow(23).GetCell(6);
             cell236.SetCellValue(shippmentResponse.Channlename);
@@ -275,11 +283,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Recieverregion { get; set; }
             public string Recievercountryname { get; set; }
             public string Recieveraddress { get; set; }
-
             public int Boxcount { get; set; }
             public decimal Boxweight { get; set; }
             public bool Hasbattery { get; set; }
-
             public List<ShippmentBoxdetail> Boxes { get; set; }
             public string Ordercode { get; set; }
             public long Appuserid { get; set; }
@@ -290,7 +296,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public decimal Remoteprice { get; set; }
             public string Remark { get; set; }
             public string CurrentDate { get; set; }
-
         }
         public class ShippmentBoxdetail
         {
@@ -300,7 +305,5 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public decimal Weight { get; set; }
             public decimal Volumeweight { get; set; }
         }
-
-
     }
 }

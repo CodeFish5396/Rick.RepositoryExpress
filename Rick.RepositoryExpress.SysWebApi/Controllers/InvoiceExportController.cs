@@ -96,6 +96,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                    PackageCount = package.Count,
                                    Goodtype1id = type1.Id,
                                    Goodtype1name = type1.Name,
+                                   Goodtype1code = type1.Code,
+
+                                   Foreigngoodtype1name = type1.Foreignname,
                                    Goodtype2id = type2.Id,
                                    Goodtype2name = type2.Name,
                                    Goodtype2code = type2.Code,
@@ -103,12 +106,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                };
             invoiceResponse.Id = packageorderapply.Id;
             invoiceResponse.Sendcompany = "达人集运";
-            invoiceResponse.Sendname = "田志波";
-            invoiceResponse.Sendcountry = "中国";
+            invoiceResponse.Sendname = repository.Foreignrecivername;
+            invoiceResponse.Sendcountry = "China";
             invoiceResponse.Sendcode = "518000";
-            invoiceResponse.Sendmobile = repository.Recivermobil;
-            invoiceResponse.Sendaddress = repository.Region + repository.Address;
-            invoiceResponse.Sendregion = repository.Region;
+            invoiceResponse.Sendmobile = repository.Foreignrecivermobil;
+            invoiceResponse.Sendaddress = repository.Foreignregion + repository.Foreignaddress;
+            invoiceResponse.Sendregion = repository.Foreignregion;
             invoiceResponse.Recievername = appuseraddress.Name;
             invoiceResponse.Recievercompany = string.Empty;
             invoiceResponse.Recievermobile = appuseraddress.Contactnumber;
@@ -234,18 +237,38 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             int startIndex = 20;
             int endIndex = 25;
             int currentIndex = 0;
-            int calEndIndex = startIndex + invoiceResponse.Boxes.Count - 1;
+            var sumBoxs = (from box in invoiceResponse.Boxes
+                           group box.PackageCount by new InvoiceBoxdetail()
+                           {
+                               Foreigngoodtype1name = box.Foreigngoodtype1name,
+                               Goodtype1name = box.Goodtype1name,
+                               Goodtype1code = box.Goodtype1code
+                           }
+                           into sumTemp
+                           select new
+                           {
+                               Foreigngoodtype1name = sumTemp.Key.Foreigngoodtype1name,
+                               Goodtype1name = sumTemp.Key.Goodtype1name,
+                               Goodtype1code = sumTemp.Key.Goodtype1code,
+                               PackageCount = sumTemp.Sum()
+                           }
+                                     ).ToList();
+            int calEndIndex = startIndex + sumBoxs.Count - 1;
+
             endIndex = calEndIndex <= endIndex ? calEndIndex : endIndex;
             for (int i = startIndex; i <= endIndex; i++)
             {
                 ICell cell1i0 = sheet.GetRow(i).GetCell(0);
-                cell1i0.SetCellValue(invoiceResponse.Boxes[currentIndex].Goodtype2name);
+                cell1i0.SetCellValue(sumBoxs[currentIndex].Goodtype1name);
+
+                ICell cell1i1 = sheet.GetRow(i).GetCell(1);
+                cell1i1.SetCellValue(sumBoxs[currentIndex].Foreigngoodtype1name);
 
                 ICell cell1i2 = sheet.GetRow(i).GetCell(2);
-                cell1i2.SetCellValue(invoiceResponse.Boxes[currentIndex].PackageCount);
+                cell1i2.SetCellValue(sumBoxs[currentIndex].PackageCount);
 
                 ICell cell1i3 = sheet.GetRow(i).GetCell(3);
-                cell1i3.SetCellValue(invoiceResponse.Boxes[currentIndex].Goodtype2code);
+                cell1i3.SetCellValue(sumBoxs[currentIndex].Goodtype1code);
                 currentIndex++;
             }
 
@@ -311,6 +334,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public int PackageCount { get; set; }
             public long Goodtype1id { get; set; }
             public string Goodtype1name { get; set; }
+            public string Foreigngoodtype1name { get; set; }
+            public string Goodtype1code { get; set; }
+
             public long Goodtype2id { get; set; }
             public string Goodtype2name { get; set; }
             public string Goodtype2code { get; set; }

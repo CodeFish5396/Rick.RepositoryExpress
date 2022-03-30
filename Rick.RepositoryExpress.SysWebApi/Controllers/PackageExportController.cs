@@ -127,7 +127,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                 row.CreateCell(2).SetCellValue(item.Name);
                 row.CreateCell(3).SetCellValue(item.RepositoryName);
                 row.CreateCell(4).SetCellValue(item.Addusername);
-                row.CreateCell(5).SetCellValue(item.Location.ToString());
+                row.CreateCell(5).SetCellValue(item.Location);
                 row.CreateCell(6).SetCellValue(item.Addtime.ToString());
                 row.CreateCell(7).SetCellValue(Enum.GetName(typeof(PackageStatus), item.Status));
                 row.CreateCell(8).SetCellValue(item.Remark);

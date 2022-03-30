@@ -209,7 +209,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                 Lastusername = sysuser.Name,
                                 Lasttime = package.Lasttime,
                                 Status = package.Status,
-                                Freightprice = package.Freightprice
+                                Freightprice = package.Freightprice,
+                                Cansendasap = exclaimt == null ? (sbyte)0 :exclaimt.Cansendasap,
+                                Hasbattery = exclaimt == null ? (sbyte)0 :exclaimt.Hasbattery
                             };
             var currencies = await _packageService.QueryAsync<Currency>(t => t.Status == 1 && (t.Isdefault == 1 || t.Islocal == 1));
             var localCurrency = currencies.Single(t => t.Islocal == 1);
@@ -300,6 +302,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public List<long> Images { get; set; }
         public List<long> Videos { get; set; }
         public decimal? Freightprice { get; set; }
+
+        public sbyte Cansendasap { get; set; }
+        public sbyte Hasbattery { get; set; }
 
     }
 

@@ -102,7 +102,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Repositoryregionid = package.Repositoryregionid,
                             Repositoryshelfid = package.Repositoryshelfid,
                             Repositorylayerid = package.Repositorylayerid,
-                            Repositorynumber = package.Repositorynumber
+                            Repositorynumber = package.Repositorynumber,
+                            
                         };
 
             if (isUser)
@@ -141,7 +142,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                    user.Usercode,
                                    user.Truename,
                                    user.Name,
-                                   user.Mobile
+                                   user.Mobile,
+                                   claim.Cansendasap,
+                                   claim.Hasbattery,
                                }
                         ).ToListAsync();
             var relatedUserIds = users.Select(t => t.Id).ToList();
@@ -186,7 +189,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     Userid = t.Id,
                     Usercode = t.Usercode,
                     Username = t.Truename,
-                    Usermobile = t.Mobile
+                    Usermobile = t.Mobile,
+                    Cansendasap = t.Cansendasap,
+                    Hasbattery = t.Hasbattery,
                 }).ToList();
                 foreach (var user in packageInResponse.Users)
                 {
@@ -315,7 +320,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long? Repositorylayerid { get; set; }
 
             public string Repositorynumber { get; set; }
-
             public IList<long> Images { get; set; }
             public IList<long> Videos { get; set; }
             public IList<RepositoryInUserInfoResponse> Users { get; set; }
@@ -327,6 +331,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Usercode { get; set; }
             public string Username { get; set; }
             public string Usermobile { get; set; }
+
+            public sbyte Cansendasap { get; set; }
+            public sbyte Hasbattery { get; set; }
             public List<string> RelatedLocations { get; set; }
             public List<RelatedLocationResponse> RelatedPackageLocations { get; set; }
         }

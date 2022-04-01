@@ -393,6 +393,42 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             await _packageOrderApplyService.CommitAsync();
             return RickWebResult.Success(new object());
         }
+        
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<RickWebResult<object>> Delete([FromQuery] long id)
+        {
+            await _packageOrderApplyService.BeginTransactionAsync();
+            DateTime now = DateTime.Now;
+
+            Packageorderapply packageorderapply = await _packageOrderApplyService.FindAsync<Packageorderapply>(id);
+            if (packageorderapply.Status != (int)OrderApplyStatus.申请打包)
+            {
+                RickWebResult.Error<object>(null, 996, "包裹状态不正确");
+            }
+
+            var packageorderapplydetailes = await _packageOrderApplyService.QueryAsync<Packageorderapplydetail>(t => t.Packageorderapplyid == packageorderapply.Id);
+            var claimids = packageorderapplydetailes.Select(t => t.Exclaimid).ToList();
+
+            foreach (var packageorderapplydetaile in packageorderapplydetailes)
+            {
+                await _packageOrderApplyService.DeleteAsync<Packageorderapplydetail>(packageorderapplydetaile.Id);
+            }
+            var claims = await _packageOrderApplyService.QueryAsync<Expressclaim>(t => claimids.Contains(t.Id));
+            foreach (var claim in claims)
+            {
+                claim.Status = (int)ExpressClaimStatus.已入库;
+                await _packageOrderApplyService.UpdateAsync(claim);
+            }
+
+            await _packageOrderApplyService.DeleteAsync<Packageorderapply>(packageorderapply.Id);
+            await _packageOrderApplyService.CommitAsync();
+            return RickWebResult.Success(new object());
+        }
 
         public class OrderApplyRequest
         {
@@ -406,7 +442,6 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
         {
             public long Id { get; set; }
             public string Code { get; set; }
-
             public long ExpressId { get; set; }
             public long Channelid { get; set; }
             public long Nationid { get; set; }
@@ -428,7 +463,6 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public int Count { get; set; }
             public decimal? Weight { get; set; }
             public decimal? Freightprice { get; set; }
-
             public IList<long> Images { get; set; }
             public IList<long> Videos { get; set; }
         }

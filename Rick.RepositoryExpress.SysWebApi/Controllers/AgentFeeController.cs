@@ -73,6 +73,18 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             agentfee.Paytype = agentFeeRequest.Paytype;
             await _agentFeeService.AddAsync(agentfee);
 
+            foreach (var image in agentFeeRequest.Images)
+            {
+                Agentfeeimage agentfeeimage = new Agentfeeimage();
+                agentfeeimage.Id = _idGenerator.NextId();
+                agentfeeimage.Agentfeeid = agentfee.Id;
+                agentfeeimage.Fileinfoid = image;
+                agentfeeimage.Status = 1;
+                agentfeeimage.Adduser = UserInfo.Id;
+                agentfeeimage.Addtime = now;
+                await _agentFeeService.AddAsync(agentfeeimage);
+            }
+
             //账户充值
             Agentfeeaccount agentfeeaccount = await _agentFeeService.FindAsync<Agentfeeaccount>(t => t.Currencyid == account.Currencyid && t.Agentid == agentfee.Agentid);
             if (agentfeeaccount == null)
@@ -106,12 +118,12 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         /// <param name="pageSize"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<RickWebResult<AgentFeeResponseList>> Get([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] long? currencyId, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
+        public async Task<RickWebResult<AgentFeeResponseList>> Get([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime, [FromQuery] long? currencyId, [FromQuery] long? agentId, [FromQuery] int index = 1, [FromQuery] int pageSize = 10)
         {
             AgentFeeResponseList agentFeeResponseList = new AgentFeeResponseList();
 
             var query = from account in _agentFeeService.Query<Account>(t => t.Subjectcode == accountSubjectCode && (!startTime.HasValue || t.Addtime >= startTime) && (!endTime.HasValue || t.Addtime <= endTime))
-                        join agentfee in _agentFeeService.Query<Agentfee>()
+                        join agentfee in _agentFeeService.Query<Agentfee>(t=> !agentId.HasValue ||t.Agentid == agentId)
                         on account.Id equals agentfee.Accountid
                         join currency in _agentFeeService.Query<Currency>(t => !currencyId.HasValue || t.Id == currencyId)
                         on account.Currencyid equals currency.Id
@@ -124,6 +136,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Id = account.Id,
                             Agentid = agentfee.Agentid,
                             Agentname = agent.Name,
+                            Agentfeeid = agentfee.Id,
                             Currencyid = account.Currencyid,
                             Currencyname = currency.Name,
                             Amount = account.Amount,
@@ -146,6 +159,14 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             agentFeeResponseList.SumList = sumQuery;
             agentFeeResponseList.Count = await query.CountAsync();
             agentFeeResponseList.List = await query.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            var agentFeeids = agentFeeResponseList.List.Select(t=>t.Agentfeeid);
+            var agentFeeImages = await _agentFeeService.QueryAsync<Agentfeeimage>(t => t.Status == 1 && agentFeeids.Contains(t.Agentfeeid));
+            foreach (var agentFeeResponse in agentFeeResponseList.List)
+            {
+                agentFeeResponse.Images = agentFeeImages.Where(t => t.Agentfeeid == agentFeeResponse.Agentfeeid).Select(t => t.Fileinfoid).ToList();
+            }
+
             return RickWebResult.Success(agentFeeResponseList);
         }
 
@@ -153,6 +174,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         {
             public long Id { get; set; }
             public long Agentid { get; set; }
+            public long Agentfeeid { get; set; }
             public string Agentname { get; set; }
             public long Currencyid { get; set; }
             public string Currencyname { get; set; }
@@ -161,6 +183,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Addusername { get; set; }
             public DateTime Addtime { get; set; }
             public int Paytype { get; set; }
+            public List<long> Images { get; set; }
+
         }
         public class AgentFeeResponseList
         {
@@ -183,6 +207,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public long Currencyid { get; set; }
             public decimal Amount { get; set; }
             public int Paytype { get; set; }
+            public List<long> Images { get; set; }
+
         }
     }
 }

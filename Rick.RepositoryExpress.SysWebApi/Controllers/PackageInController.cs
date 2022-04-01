@@ -254,12 +254,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
         public decimal? Freightprice { get; set; }
         public IList<long> Images { get; set; }
         public IList<long> Videos { get; set; }
-        //public IList<PackageDetailInRequest> Details { get; set; }
         public long Currencychangerateid { get; set; }
         public decimal? Localfreightprice { get; set; }
         public long Goodtypel1id { get; set; }
         public long Goodtypel2id { get; set; }
-
     }
 
     public class PackageDetailInRequest

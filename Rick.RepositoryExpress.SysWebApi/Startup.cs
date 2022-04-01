@@ -97,6 +97,7 @@ namespace Rick.RepositoryExpress.SysWebApi
             services.AddScoped<ISyssettingService, SyssettingService>();
             services.AddScoped<IMessageService, MessageService>();
             services.AddScoped<IAppnewService, AppnewService>();
+            services.AddScoped<IUserchargeqrcodeimageService, UserchargeqrcodeimageService>();
 
             var redisConnectionString = Configuration.GetConnectionString("RedisConnection");
             var redisDbNum = Convert.ToInt32(Configuration.GetConnectionString("RedisDbNum"));

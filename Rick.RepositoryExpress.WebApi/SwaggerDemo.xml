@@ -126,6 +126,13 @@
             <param name="id"></param>
             <returns></returns>
         </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OrderApplyController.Delete(System.Int64)">
+            <summary>
+            删除
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.OrderApplyExpressStatusController.Get(System.Int64)">
             <summary>
             查询快递详情
@@ -290,6 +297,12 @@
             修改用户地址
             </summary>
             <param name="userAddressPutRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserchargeqrcodeimageController.Get">
+            <summary>
+            获取二维码图片
+            </summary>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.WebApi.Controllers.UserController.Get">

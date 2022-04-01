@@ -84,7 +84,7 @@
             <param name="agentFeeRequest"></param>
             <returns></returns>
         </member>
-        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AgentFeeController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int64},System.Int32,System.Int32)">
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.AgentFeeController.Get(System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Nullable{System.Int64},System.Nullable{System.Int64},System.Int32,System.Int32)">
             <summary>
             查询代理商成本
             </summary>
@@ -1426,6 +1426,35 @@
             用户充值清账
             </summary>
             <param name="userChargeConsumeResquest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserchargeqrcodeimageController.Get(System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            获取支付二维码
+            </summary>
+            <param name="type"></param>
+            <param name="status"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserchargeqrcodeimageController.Post(Rick.RepositoryExpress.SysWebApi.Controllers.UserchargeqrcodeimageController.UserchargeqrcodeimagePostRequest)">
+            <summary>
+            提交二维码图片
+            </summary>
+            <param name="userchargeqrcodeimagePostRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserchargeqrcodeimageController.Delete(System.Int64)">
+            <summary>
+            隐藏二维码
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserchargeqrcodeimageController.Put(System.Int64)">
+            <summary>
+            激活二维码图片
+            </summary>
+            <param name="id"></param>
             <returns></returns>
         </member>
         <member name="M:Rick.RepositoryExpress.SysWebApi.Controllers.UserLoginController.Get(System.String,System.String,System.Int64)">

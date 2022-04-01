@@ -24,6 +24,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Agentfee> Agentfees { get; set; }
         public virtual DbSet<Agentfeeaccount> Agentfeeaccounts { get; set; }
         public virtual DbSet<Agentfeeconsume> Agentfeeconsumes { get; set; }
+        public virtual DbSet<Agentfeeimage> Agentfeeimages { get; set; }
         public virtual DbSet<Appnew> Appnews { get; set; }
         public virtual DbSet<Appuser> Appusers { get; set; }
         public virtual DbSet<Appuseraccount> Appuseraccounts { get; set; }
@@ -84,6 +85,7 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public virtual DbSet<Sysusercompany> Sysusercompanies { get; set; }
         public virtual DbSet<Sysuserdepartment> Sysuserdepartments { get; set; }
         public virtual DbSet<Sysuserrole> Sysuserroles { get; set; }
+        public virtual DbSet<Userchargeqrcodeimage> Userchargeqrcodeimages { get; set; }
         public virtual DbSet<Viewagentuserdatum> Viewagentuserdata { get; set; }
         public virtual DbSet<Viewappuserdatum> Viewappuserdata { get; set; }
 
@@ -318,6 +320,30 @@ namespace Rick.RepositoryExpress.DataBase.Models
                 entity.Property(e => e.Orderid).HasColumnName("orderid");
 
                 entity.Property(e => e.Status).HasColumnName("status");
+            });
+
+            modelBuilder.Entity<Agentfeeimage>(entity =>
+            {
+                entity.ToTable("agentfeeimages");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Agentfeeid).HasColumnName("agentfeeid");
+
+                entity.Property(e => e.Fileinfoid).HasColumnName("fileinfoid");
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("status")
+                    .HasDefaultValueSql("'1'");
             });
 
             modelBuilder.Entity<Appnew>(entity =>
@@ -2826,6 +2852,30 @@ namespace Rick.RepositoryExpress.DataBase.Models
                     .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.Userid).HasColumnName("userid");
+            });
+
+            modelBuilder.Entity<Userchargeqrcodeimage>(entity =>
+            {
+                entity.ToTable("userchargeqrcodeimages");
+
+                entity.Property(e => e.Id)
+                    .ValueGeneratedNever()
+                    .HasColumnName("id");
+
+                entity.Property(e => e.Addtime)
+                    .HasColumnType("datetime")
+                    .HasColumnName("addtime")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                entity.Property(e => e.Adduser).HasColumnName("adduser");
+
+                entity.Property(e => e.Fileinfoid).HasColumnName("fileinfoid");
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("status")
+                    .HasDefaultValueSql("'1'");
+
+                entity.Property(e => e.Type).HasColumnName("type");
             });
 
             modelBuilder.Entity<Viewagentuserdatum>(entity =>

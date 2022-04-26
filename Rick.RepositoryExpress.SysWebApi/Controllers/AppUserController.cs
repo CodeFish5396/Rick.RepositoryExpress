@@ -76,7 +76,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Nickname = user.Name,
                             Countryname = user.Countryname,
                             Address = user.Address,
-                            Status = user.Status
+                            Status = user.Status,
                         };
             appUserResponseList.Count = await query.CountAsync();
             appUserResponseList.List = await query.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -100,6 +100,32 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             return RickWebResult.Success(appUserResponseList);
         }
 
+        /// <summary>
+        /// 修改系统用户信息
+        /// </summary>
+        /// <param name="appUserPutRequest"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<RickWebResult<object>> Put([FromBody] AppUserPutRequest appUserPutRequest)
+        {
+            await _appuserService.BeginTransactionAsync();
+
+            Appuser appuser = await _appuserService.FindAsync<Appuser>(t => t.Id == appUserPutRequest.Id);
+            DateTime now = DateTime.Now;
+
+            if (appUserPutRequest.Disable.HasValue) appuser.Status = appUserPutRequest.Disable.Value ? 2 : 1;
+            appuser.Lasttime = now;
+            await _appuserService.UpdateAsync(appuser);
+
+            await _appuserService.CommitAsync();
+            return RickWebResult.Success(new object());
+        }
+        public class AppUserPutRequest
+        {
+            public long Id { get; set; }
+            public bool? Disable { get; set; }
+
+        }
         public class AppUserResponse
         {
             public long Id { get; set; }
@@ -117,6 +143,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Email { get; set; }
             public string Address { get; set; }
             public int Status { get; set; }
+
+            public bool Disable { get; set; }
             public List<AppUserAccountResponse> Accounts { get; set; }
         }
         public class AppUserAccountResponse

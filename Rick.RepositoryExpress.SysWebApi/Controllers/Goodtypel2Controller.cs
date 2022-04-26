@@ -86,6 +86,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             goodtypel2.Order = goodtypel2PostRequest.Order;
             goodtypel2.Code = goodtypel2PostRequest.Code;
             goodtypel2.Parentid = goodtypel2PostRequest.Parentid;
+            goodtypel2.Purpose = goodtypel2PostRequest.Purpose;
+            goodtypel2.Unitvalue = goodtypel2PostRequest.Unitvalue;
+            goodtypel2.Totalvalue = goodtypel2PostRequest.Totalvalue;
             goodtypel2.Status = 1;
             goodtypel2.Adduser = UserInfo.Id;
             goodtypel2.Lastuser = UserInfo.Id;
@@ -111,6 +114,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             Goodtypel2 goodtypel2 = await _repositoryService.FindAsync<Goodtypel2>(t => t.Id == goodtypel2PutRequest.Id);
             goodtypel2.Name = goodtypel2PutRequest.Name;
             goodtypel2.Code = goodtypel2PutRequest.Code;
+            goodtypel2.Purpose = goodtypel2PutRequest.Purpose;
+            goodtypel2.Unitvalue = goodtypel2PutRequest.Unitvalue;
+            goodtypel2.Totalvalue = goodtypel2PutRequest.Totalvalue;
             goodtypel2.Lastuser = UserInfo.Id;
             DateTime now = DateTime.Now;
             goodtypel2.Lasttime = now;
@@ -147,6 +153,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Name { get; set; }
             public int Order { get; set; }
             public string Code { get; set; }
+            public string Purpose { get; set; }
+            public string Unitvalue { get; set; }
+            public string Totalvalue { get; set; }
         }
 
         public class Goodtypel2PostRequest
@@ -155,6 +164,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Name { get; set; }
             public string Code { get; set; }
             public int Order { get; set; }
+            public string Purpose { get; set; }
+            public string Unitvalue { get; set; }
+            public string Totalvalue { get; set; }
         }
         public class Goodtypel2Response
         {

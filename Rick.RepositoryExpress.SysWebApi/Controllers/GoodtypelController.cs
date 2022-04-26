@@ -51,7 +51,11 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Foreignname = goodtypel1.Foreignname,
                             Code = goodtypel1.Code,
                             Order = goodtypel1.Order,
-                            Addtime = goodtypel1.Addtime
+                            Addtime = goodtypel1.Addtime,
+                            Purpose = goodtypel1.Purpose,
+                            Unitvalue = goodtypel1.Unitvalue,
+                            Totalvalue = goodtypel1.Totalvalue,
+                            
                         };
 
             GoodtypelResponseList goodtypel1ResponseList = new GoodtypelResponseList();
@@ -70,7 +74,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                     Name = g2.Name,
                     Order = g2.Order,
                     Addtime = g2.Addtime,
-                    Code = g2.Code
+                    Code = g2.Code,
+                    Purpose = g2.Purpose,
+                    Unitvalue = g2.Unitvalue,
+                    Totalvalue = g2.Totalvalue,
                 }).OrderBy(t => t.Order).ToList();
             }
 
@@ -85,6 +92,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Code { get; set; }
             public int Order { get; set; }
             public DateTime Addtime { get; set; }
+
+            public string Purpose { get; set; }
+            public string Unitvalue { get; set; }
+            public string Totalvalue { get; set; }
             public IList<GoodtypelDetailResponse> List { get; set; }
         }
 
@@ -95,6 +106,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Name { get; set; }
             public string Code { get; set; }
             public int Order { get; set; }
+
+            public string Purpose { get; set; }
+            public string Unitvalue { get; set; }
+            public string Totalvalue { get; set; }
             public DateTime Addtime { get; set; }
 
         }

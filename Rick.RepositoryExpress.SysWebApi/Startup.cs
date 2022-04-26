@@ -43,7 +43,7 @@ namespace Rick.RepositoryExpress.SysWebApi
                 options.AddPolicy(name: MyAllowSpecificOrigins,
                                   builder =>
                                   {
-                                      builder.WithOrigins("http://localhost:8080", "http://localhost:5656",
+                                      builder.WithOrigins("http://localhost:8080", "http://localhost:5656", "https://localhost:8080", "https://localhost:5656",
                                                           "https://www.darenexpress.com", "http://www.darenexpress.com", "https://www.darenjiyun.com", "http://www.darenjiyun.com")
                                       .AllowAnyHeader()
                                       .AllowAnyMethod();

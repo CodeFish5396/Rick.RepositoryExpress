@@ -83,6 +83,10 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
                 }
                 else
                 {
+					if (appuser.Status!=1)
+					{
+                        return RickWebResult.Error(new OpenIdResponseData(), 995, "用户已禁用");
+                    }
                     appuser.Mobile = miniProgramUserResult.PurePhoneNumber;
                     appuser.Countrycode = miniProgramUserResult.Countrycode;
                     DateTime now = DateTime.Now;

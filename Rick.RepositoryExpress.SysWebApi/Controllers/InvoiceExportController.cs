@@ -97,11 +97,16 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                    Goodtype1id = type1.Id,
                                    Goodtype1name = type1.Name,
                                    Goodtype1code = type1.Code,
-
+                                   Goodtype1Purpose = type1.Purpose,
+                                   Goodtype1Unitvalue = type1.Unitvalue,
+                                   Goodtype1Totalvalue = type1.Totalvalue,
                                    Foreigngoodtype1name = type1.Foreignname,
                                    Goodtype2id = type2.Id,
                                    Goodtype2name = type2.Name,
                                    Goodtype2code = type2.Code,
+                                   Goodtype2Purpose = type2.Purpose,
+                                   Goodtype2Unitvalue = type2.Unitvalue,
+                                   Goodtype2Totalvalue = type2.Totalvalue,
                                    Claimid = packageorderapplydetail.Exclaimid
                                };
             invoiceResponse.Id = packageorderapply.Id;
@@ -242,7 +247,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                            {
                                Foreigngoodtype1name = box.Foreigngoodtype1name,
                                Goodtype1name = box.Goodtype1name,
-                               Goodtype1code = box.Goodtype1code
+                               Goodtype1code = box.Goodtype1code,
+                               Goodtype1Purpose = box.Goodtype1Purpose,
+                               Goodtype1Unitvalue = box.Goodtype1Unitvalue,
+                               Goodtype1Totalvalue = box.Goodtype1Totalvalue,
                            }
                            into sumTemp
                            select new
@@ -250,6 +258,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                                Foreigngoodtype1name = sumTemp.Key.Foreigngoodtype1name,
                                Goodtype1name = sumTemp.Key.Goodtype1name,
                                Goodtype1code = sumTemp.Key.Goodtype1code,
+                               Goodtype1Purpose = sumTemp.Key.Goodtype1Purpose,
+                               Goodtype1Unitvalue = sumTemp.Key.Goodtype1Unitvalue,
+                               Goodtype1Totalvalue = sumTemp.Key.Goodtype1Totalvalue,
                                PackageCount = sumTemp.Sum()
                            }
                                      ).ToList();
@@ -269,6 +280,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
                 ICell cell1i3 = sheet.GetRow(i).GetCell(3);
                 cell1i3.SetCellValue(sumBoxs[currentIndex].Goodtype1code);
+
+                sheet.GetRow(i).GetCell(4).SetCellValue(sumBoxs[currentIndex].Goodtype1Purpose);
+                sheet.GetRow(i).GetCell(5).SetCellValue(sumBoxs[currentIndex].Goodtype1Unitvalue);
+                sheet.GetRow(i).GetCell(6).SetCellValue(sumBoxs[currentIndex].Goodtype1Totalvalue);
                 currentIndex++;
             }
 
@@ -336,10 +351,16 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Goodtype1name { get; set; }
             public string Foreigngoodtype1name { get; set; }
             public string Goodtype1code { get; set; }
-
+            public string Goodtype1Purpose { get; set; }
+            public string Goodtype1Unitvalue { get; set; }
+            public string Goodtype1Totalvalue { get; set; }
             public long Goodtype2id { get; set; }
             public string Goodtype2name { get; set; }
             public string Goodtype2code { get; set; }
+
+            public string Goodtype2Purpose { get; set; }
+            public string Goodtype2Unitvalue { get; set; }
+            public string Goodtype2Totalvalue { get; set; }
             public long Claimid { get; set; }
         }
 

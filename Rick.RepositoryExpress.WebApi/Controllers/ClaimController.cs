@@ -113,10 +113,10 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
 
             }
             Expressinfo expressinfo = await _expressclaimService.FindAsync<Expressinfo>(expressclaim.Expressinfoid);
-            if (expressinfo.Expressnumber == expressclaimPutRequest.Expressnumber && expressinfo.Courierid == expressclaimPutRequest.Courierid)
-            {
-                return RickWebResult.Success(new object());
-            }
+            //if (expressinfo.Expressnumber == expressclaimPutRequest.Expressnumber && expressinfo.Courierid == expressclaimPutRequest.Courierid)
+            //{
+            //    return RickWebResult.Success(new object());
+            //}
 
             //原包裹
             if (expressclaim.Packageid.HasValue && expressclaim.Packageid > 0)
@@ -155,6 +155,31 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             expressclaim.Lasttime = now;
             await _expressclaimService.UpdateAsync(expressclaim);
 
+            if (expressclaimPutRequest.details != null)
+			{
+                var oldDetails = await _expressclaimService.QueryAsync<Expressclaimdetail>(t => t.Expressclaimid == expressclaim.Id);
+                foreach (var oldDeital in oldDetails)
+                {
+                    await _expressclaimService.DeleteAsync<Expressclaimdetail>(oldDeital.Id);
+                }
+                foreach (ExpressclaimdetailRequest expressclaimdetailRequest in expressclaimPutRequest.details)
+                {
+                    Expressclaimdetail expressclaimdetail = new Expressclaimdetail();
+                    expressclaimdetail.Id = _idGenerator.NextId();
+                    expressclaimdetail.Expressclaimid = expressclaim.Id;
+                    expressclaimdetail.Name = expressclaimdetailRequest.Name;
+                    expressclaimdetail.Unitprice = expressclaimdetailRequest.Unitprice;
+                    expressclaimdetail.Count = expressclaimdetailRequest.Count;
+                    expressclaimdetail.Status = 1;
+                    expressclaimdetail.Adduser = UserInfo.Id;
+                    expressclaimdetail.Lastuser = UserInfo.Id;
+                    expressclaimdetail.Addtime = now;
+                    expressclaimdetail.Lasttime = now;
+                    await _expressclaimService.AddAsync(expressclaimdetail);
+                }
+                expressclaim.Count = expressclaimPutRequest.details.Count;
+            }
+            
             await _expressclaimService.CommitAsync();
             return RickWebResult.Success(new object());
         }
@@ -362,6 +387,8 @@ namespace Rick.RepositoryExpress.WebApi.Controllers
             public long Id { get; set; }
             public long Courierid { get; set; }
             public string Expressnumber { get; set; }
+
+            public List<ExpressclaimdetailRequest> details { get; set; }
         }
 
         public class ExpressclaimdetailRequest

@@ -17,5 +17,8 @@ namespace Rick.RepositoryExpress.DataBase.Models
         public long Adduser { get; set; }
         public long Lastuser { get; set; }
         public string Code { get; set; }
+        public string Purpose { get; set; }
+        public string Unitvalue { get; set; }
+        public string Totalvalue { get; set; }
     }
 }

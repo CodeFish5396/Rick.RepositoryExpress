@@ -57,7 +57,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
                             Mobile = user.Mobile,
                             Name = user.Name,
                             Addtime = user.Addtime,
-                            Status = user.Status
+                            Status = user.Status,
                         };
             sysUserResponseList.Count = await query.CountAsync();
             sysUserResponseList.List = await query.OrderByDescending(t => t.Addtime).Skip((index - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -135,7 +135,6 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             DateTime now = DateTime.Now;
             sysuser.Name = sysUserPutRequest.Name;
             sysuser.Mobile = sysUserPutRequest.Mobile;
-            sysuser.Password = Md5Helper.Create("a1Ab2Bc3C");
             sysuser.Status = 1;
             sysuser.Lasttime = now;
             sysuser.Lastuser = UserInfo.Id;
@@ -196,6 +195,8 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             return RickWebResult.Success(new object());
         }
 
+     
+
         public class SysUserResponse
         {
             public long Id { get; set; }
@@ -203,6 +204,7 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Name { get; set; }
             public DateTime Addtime { get; set; }
             public int Status { get; set; }
+
             public List<SysUserRoleResponse> Roles { get; set; }
         }
         public class SysUserResponseList

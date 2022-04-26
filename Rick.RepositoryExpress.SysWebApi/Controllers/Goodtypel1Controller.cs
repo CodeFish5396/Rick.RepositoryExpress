@@ -83,6 +83,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             goodtypel1.Code = goodtypel1PostRequest.Code;
             goodtypel1.Foreignname = goodtypel1PostRequest.Foreignname;
             goodtypel1.Order = goodtypel1PostRequest.Order;
+            goodtypel1.Purpose = goodtypel1PostRequest.Purpose;
+            goodtypel1.Unitvalue = goodtypel1PostRequest.Unitvalue;
+            goodtypel1.Totalvalue = goodtypel1PostRequest.Totalvalue;
             goodtypel1.Status = 1;
             goodtypel1.Adduser = UserInfo.Id;
             goodtypel1.Lastuser = UserInfo.Id;
@@ -109,6 +112,9 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             goodtypel1.Name = goodtypel1PutRequest.Name;
             goodtypel1.Code = goodtypel1PutRequest.Code;
             goodtypel1.Foreignname = goodtypel1PutRequest.Foreignname;
+            goodtypel1.Purpose = goodtypel1PutRequest.Purpose;
+            goodtypel1.Unitvalue = goodtypel1PutRequest.Unitvalue;
+            goodtypel1.Totalvalue = goodtypel1PutRequest.Totalvalue;
             goodtypel1.Lastuser = UserInfo.Id;
             DateTime now = DateTime.Now;
             goodtypel1.Lasttime = now;
@@ -147,6 +153,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
 
             public string Code { get; set; }
             public int Order { get; set; }
+
+            public string Purpose { get; set; }
+            public string Unitvalue { get; set; }
+            public string Totalvalue { get; set; }
         }
 
         public class Goodtypel1PostRequest
@@ -155,6 +165,10 @@ namespace Rick.RepositoryExpress.SysWebApi.Controllers
             public string Foreignname { get; set; }
             public string Code { get; set; }
             public int Order { get; set; }
+
+            public string Purpose { get; set; }
+            public string Unitvalue { get; set; }
+            public string Totalvalue { get; set; }
         }
         public class Goodtypel1Response
         {
